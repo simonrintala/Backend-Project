@@ -3,6 +3,7 @@
 ## 1. Projektöversikt
 
 - Beskriv kort vad er applikation gör
+
 Platform för privatpersoner att hyra ut och boka boenden av varandra.
 
 - Lista huvudfunktionaliteter (MVP)
