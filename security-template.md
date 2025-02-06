@@ -83,7 +83,7 @@ Kryssa i det som finns med/det ni har hanterar eller ska hantera i er applikatio
 
 Kryssa i det som finns med/det ni har hanterat eller ska hantera i er applikation
 
-- [X] HTTPS användning
+- [X] HTTPS användning (kommer inte användas i dev)
 - [X] Rate limiting (time-out/limit för antal identiska request per tidsenhet?)
 - [X] CORS konfiguration (ja, men först aktuellt för front end, postman ignorerar)
 - [X] Error handling (inga känsliga felmeddelanden, kommentar: bara detaljerade felmeddelanden under utveckling, sen ska de generaliseras)
