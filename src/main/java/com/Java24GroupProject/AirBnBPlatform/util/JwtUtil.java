@@ -17,7 +17,7 @@ import java.util.Date;
 //requires various jwt dependencies, which are included in the in pom-file
 @Component
 public class JwtUtil {
-    //both "${jwt.secret}" and "${jwt.expirationMs}" are references to values in the application.properties files (which should always be in git ignore, not pushed to GitHub)
+    //both "${jwt.secret}" and "${jwt.expirationMs}" are references to values in the application.yml files (which should always be in git ignore, not pushed to GitHub)
 
     //secret authentication token
     @Value("${jwt.secret}")
