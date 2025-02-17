@@ -74,6 +74,7 @@ public class AuthenticationController {
         user.setPassword(registerRequest.getPassword());
         user.setEmail(registerRequest.getEmail());
         user.setPhoneNr(registerRequest.getPhoneNr());
+        user.setRoles(registerRequest.getRoles());
 
         //if no roles are provided in RegisterRequest, set to user
         if(registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
