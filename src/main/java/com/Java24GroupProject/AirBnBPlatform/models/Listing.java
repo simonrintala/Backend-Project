@@ -25,17 +25,17 @@ public class Listing {
     
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
-    private double price_per_night;
+    private Double price_per_night;
     
     @NotNull(message = "Capacity limit must be set.")
     @Positive(message = "Capacity must be greater than zero")
-    private int capacity;
+    private Integer capacity;
     
     private Set<ListingUtilities> utilities;
     
     @NotNull(message = "Listing must have at least one host.")
     @DBRef
-    private List<User> hosts;
+    private User host;
     
     private List<String> image_urls;
     
@@ -73,28 +73,20 @@ public class Listing {
         this.description = description;
     }
     
-    public double getPrice_per_night() {
-        return price_per_night;
-    }
-    
-    public void setPrice_per_night(double price_per_night) {
-        this.price_per_night = price_per_night;
-    }
-    
-    public int getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
     
-    public void setCapacity(int capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
     
-    public List<User> getHosts() {
-        return hosts;
+    public User getHost() {
+        return host;
     }
     
-    public void setHosts(List<User> hosts) {
-        this.hosts = hosts;
+    public void setHost(User hosts) {
+        this.host = hosts;
     }
     
     public Set<ListingUtilities> getUtilities() {
@@ -127,5 +119,13 @@ public class Listing {
     
     public void setCreated_at(LocalDateTime created_at) {
         this.created_at = created_at;
+    }
+    
+    public Double getPrice_per_night() {
+        return price_per_night;
+    }
+    
+    public void setPrice_per_night(Double price_per_night) {
+        this.price_per_night = price_per_night;
     }
 }

@@ -9,10 +9,10 @@ import java.util.Set;
 public class ListingResponse {
     private String title;
     private String description;
-    private double price_per_night;
-    private int capacity;
+    private Double price_per_night;
+    private Integer capacity;
     
-    public ListingResponse(String title, String description, double price_per_night, int capacity) {
+    public ListingResponse(String title, String description, Double price_per_night, Integer capacity) {
         this.title = title;
         this.description = description;
         this.price_per_night = price_per_night;
@@ -35,19 +35,19 @@ public class ListingResponse {
         this.description = description;
     }
     
-    public double getPrice_per_night() {
+    public Double getPrice_per_night() {
         return price_per_night;
     }
     
-    public void setPrice_per_night(double price_per_night) {
+    public void setPrice_per_night(Double price_per_night) {
         this.price_per_night = price_per_night;
     }
     
-    public int getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
     
-    public void setCapacity(int capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 }

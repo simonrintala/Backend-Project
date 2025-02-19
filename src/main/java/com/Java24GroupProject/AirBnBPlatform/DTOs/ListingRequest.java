@@ -12,22 +12,22 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
+    private Double price_per_night;
     private String description;
-    private double price_per_night;
     private Set<ListingUtilities> utilities;
-    private int capacity;
-    private List<User> hosts;
+    private Integer capacity;
+    private User host;
     
-    public ListingRequest(String title, String description, double price_per_night, Set<ListingUtilities> utilities, int capacity, List<User> hosts) {
+    public ListingRequest(String title, String description, Double price_per_night, Set<ListingUtilities> utilities, Integer capacity, User host) {
         this.title = title;
         this.description = description;
         this.price_per_night = price_per_night;
         this.utilities = utilities;
         this.capacity = capacity;
-        this.hosts = hosts;
+        this.host = host;
     }
     
-    public String getTitle() {
+    public @NotBlank String getTitle() {
         return title;
     }
     
@@ -35,7 +35,7 @@ public class ListingRequest {
         return description;
     }
     
-    public double getPrice_per_night() {
+    public @NotBlank Double getPrice_per_night() {
         return price_per_night;
     }
     
@@ -43,11 +43,11 @@ public class ListingRequest {
         return utilities;
     }
     
-    public int getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
     
-    public List<User> getHosts() {
-        return hosts;
+    public User getHost() {
+        return host;
     }
 }
