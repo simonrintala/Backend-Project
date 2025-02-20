@@ -38,7 +38,7 @@ public class BookingService {
                 booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         );
         //ändra getPrice_per_night till korrekt variabel
-        BigDecimal totalPrice = listing.getPrice_Per_Night().multiply(BigDecimal.valueOf(daysBooked));
+        BigDecimal totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
         booking.setTotalPrice(totalPrice);
 
         //lägg till status
@@ -74,7 +74,7 @@ public class BookingService {
             );
 
             //ändra getPrice_per_night till korrekt variabel
-            BigDecimal newTotalPrice = booking.getListing().getPrice_Per_Night().multiply(BigDecimal.valueOf(daysBetween));
+            BigDecimal newTotalPrice = booking.getListing().getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
             booking.setTotalPrice(newTotalPrice);
         }
         return bookingRepository.save(booking);

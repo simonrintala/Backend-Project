@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Set;
 
 @Document(collection = "bookings")
 public class Booking {
@@ -44,7 +45,7 @@ public class Booking {
     private BigDecimal totalPrice;
     // (number of days) * (price per night)
 
-    private BookingStatus bookingStatus;
+    private Set<BookingStatus> bookingStatus;
 
     @CreatedDate
     private LocalDateTime createdDate;
@@ -108,11 +109,11 @@ public class Booking {
         this.totalPrice = totalPrice;
     }
 
-    public BookingStatus getBookingStatus() {
+    public Set<BookingStatus> getBookingStatus() {
         return bookingStatus;
     }
 
-    public void setBookingStatus(BookingStatus bookingStatus) {
+    public void setBookingStatus(Set<BookingStatus> bookingStatus) {
         this.bookingStatus = bookingStatus;
     }
 

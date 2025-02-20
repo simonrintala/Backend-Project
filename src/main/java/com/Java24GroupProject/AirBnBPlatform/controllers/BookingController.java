@@ -21,7 +21,7 @@ public class BookingController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'HOST', 'ADMIN')")
     public ResponseEntity<Booking> createBooking(@Valid @RequestBody Booking booking) {
         Booking newBooking = bookingService.createBooking(booking);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
