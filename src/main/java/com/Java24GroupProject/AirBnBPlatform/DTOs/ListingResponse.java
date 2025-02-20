@@ -1,8 +1,10 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
+import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 
 
+import javax.swing.text.Utilities;
 import java.util.Set;
 
 //The DTO for returning information at successful listing creation
@@ -11,12 +13,10 @@ public class ListingResponse {
     private String description;
     private Double price_per_night;
     private Integer capacity;
+    private Set<ListingUtilities> utilities;
+    private String host;
     
-    public ListingResponse(String title, String description, Double price_per_night, Integer capacity) {
-        this.title = title;
-        this.description = description;
-        this.price_per_night = price_per_night;
-        this.capacity = capacity;
+    public ListingResponse() {
     }
     
     public String getTitle() {
@@ -49,5 +49,21 @@ public class ListingResponse {
     
     public void setCapacity(Integer capacity) {
         this.capacity = capacity;
+    }
+    
+    public Set<ListingUtilities> getUtilities() {
+        return utilities;
+    }
+    
+    public void setUtilities(Set<ListingUtilities> utilities) {
+        this.utilities = utilities;
+    }
+    
+    public String getHost() {
+        return host;
+    }
+    
+    public void setHost(String host) {
+        this.host = host;
     }
 }

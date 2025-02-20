@@ -1,21 +1,17 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
 
-import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ListingService {
@@ -41,8 +37,13 @@ public class ListingService {
         
     }
     
-    public List<Listing> getAllListings() {
-        return listingRepository.findAll();
+    public List<ListingResponse> getAllListings() {
+        List<Listing> listings = listingRepository.findAll();
+        
+        // convert Listing to ListingResponse
+        return listings.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
     
     public Optional<Listing> getListingById(String id) {
@@ -102,4 +103,19 @@ public class ListingService {
         }
     }
     
+    // limit what's shown when grabbing listings
+    private ListingResponse convertToDTO(Listing listing) {
+        ListingResponse listingResponse = new ListingResponse();
+        
+        listingResponse.setTitle(listing.getTitle());
+        listingResponse.setDescription(listing.getDescription());
+        listingResponse.setCapacity(listing.getCapacity());
+        listingResponse.setPrice_per_night(listing.getPrice_per_night());
+        listingResponse.setUtilities(listing.getUtilities());
+        listingResponse.setHost(listing.getHost().getUsername());
+        
+        
+        return listingResponse;
+        
+    }
 }

@@ -1,5 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
 import jakarta.validation.Valid;
@@ -23,14 +24,15 @@ public class ListingController {
     //REMEMBER LISTINGS PERMIT IS SET TO ALL
     
     @PostMapping
+    @PreAuthorize("hasRole('HOST')")
     public ResponseEntity<Listing> createListing(@Valid @RequestBody Listing listing) {
         Listing newListing = listingService.createListing(listing);
         return new ResponseEntity<>(newListing, HttpStatus.CREATED);
     }
     
     @GetMapping
-    public ResponseEntity<List<Listing>> getAllListings() {
-        List<Listing> listing = listingService.getAllListings();
+    public ResponseEntity<List<ListingResponse>> getAllListings() {
+        List<ListingResponse> listing = listingService.getAllListings();
         return new ResponseEntity<>(listing, HttpStatus.OK);
     }
     
