@@ -90,7 +90,7 @@ public class ListingService {
     
     
     
-    // used the one from product_api project
+/*    // used the one from product_api project
     private void validateListing(Listing listing) {
         if(listing.getTitle() == null || listing.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty");
@@ -101,7 +101,7 @@ public class ListingService {
         if(listing.getHost().getId() == null || listing.getHost().getId().trim().isEmpty()) {
             throw new IllegalArgumentException("Host id cannot be empty");
         }
-    }
+    }*/
     
     // limit what's shown when grabbing listings
     private ListingResponse convertToDTO(Listing listing) {

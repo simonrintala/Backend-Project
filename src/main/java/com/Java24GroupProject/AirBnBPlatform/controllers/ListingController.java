@@ -6,7 +6,6 @@ import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,10 +20,7 @@ public class ListingController {
         this.listingService = listingService;
     }
     
-    //REMEMBER LISTINGS PERMIT IS SET TO ALL
-    
     @PostMapping
-    @PreAuthorize("hasRole('HOST')")
     public ResponseEntity<Listing> createListing(@Valid @RequestBody Listing listing) {
         Listing newListing = listingService.createListing(listing);
         return new ResponseEntity<>(newListing, HttpStatus.CREATED);
