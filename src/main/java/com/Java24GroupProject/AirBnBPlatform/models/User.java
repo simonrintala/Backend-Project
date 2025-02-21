@@ -2,10 +2,12 @@ package com.Java24GroupProject.AirBnBPlatform.models;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import jakarta.validation.constraints.Pattern;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.Set;
 
 //NOTE: not finished, just made what needed to be there for Security implementation.
@@ -30,6 +32,9 @@ public class User {
     private String phoneNr;
 
     private Set<Role> roles;
+    
+    @CreatedDate
+    private Date createdAt;
 
     public User() {
     }
@@ -90,6 +95,14 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+    
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }
 
