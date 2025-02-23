@@ -40,7 +40,7 @@ public class Booking {
     @Positive(message = "Amount of guests must be greater than 0")
     private Integer numberOfGuests;
 
-    @NotNull(message = "A total price is required")
+    //@NotNull(message = "A total price is required")
     @Positive(message = "Total price must be greater than 0")
     private BigDecimal totalPrice;
     // (number of days) * (price per night)
@@ -49,6 +49,19 @@ public class Booking {
 
     @CreatedDate
     private LocalDateTime createdDate;
+
+    public void CalculateTotalPrice() {
+        if (listing == null && listing.getPrice_per_night() == null && startDate == null && endDate == null) {
+            throw new IllegalStateException("Missing data to calculate total price, (check null values, remove this after dev)");
+        }
+            long daysBooked = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000); //Beräkna dagar
+            if (daysBooked > 0){
+                this.totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
+            } else {
+                throw new IllegalStateException("End date must be after start date");
+            }
+        }
+
 
     public Booking() {
     }
@@ -101,11 +114,11 @@ public class Booking {
         this.numberOfGuests = numberOfGuests;
     }
 
-    public @NotNull(message = "A total price is required") @Positive(message = "Total price must be greater than 0") BigDecimal getTotalPrice() {
+    public @Positive(message = "Total price must be greater than 0") BigDecimal getTotalPrice() {
         return totalPrice;
     }
 
-    public void setTotalPrice(@NotNull(message = "A total price is required") @Positive(message = "Total price must be greater than 0") BigDecimal totalPrice) {
+    public void setTotalPrice(@Positive(message = "Total price must be greater than 0") BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
     }
 

@@ -1,5 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
@@ -32,14 +34,17 @@ public class BookingService {
         Listing listing = listingRepository.findById(booking.getListing().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
 
-        //Pris calc
-        Long daysBooked = ChronoUnit.DAYS.between(
-                booking.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-        );
-        //ändra getPrice_per_night till korrekt variabel
-        BigDecimal totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
-        booking.setTotalPrice(totalPrice);
+        booking.setListing(listing);
+        booking.CalculateTotalPrice();
+
+        //Pris calc, blev för komplicerad gjorde om den i booking.java
+//        Long daysBooked = ChronoUnit.DAYS.between(
+//                booking.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+//                booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//        );
+//        //ändra getPrice_per_night till korrekt variabel
+//        BigDecimal totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
+//        booking.setTotalPrice(totalPrice);
 
         //lägg till status
         booking.setBookingStatus(Set.of(BookingStatus.PENDING));
@@ -60,11 +65,15 @@ public class BookingService {
     public Booking updateBooking (String id, Booking updatedBooking) {
         Booking booking = getBookingById(id);
 
+        //user och listing får inte vara null
+        booking.setListing(booking.getListing());
+        booking.setUser(booking.getUser());
+
+        // Uppdatera numberOfGuests
+        booking.setNumberOfGuests(updatedBooking.getNumberOfGuests());
         booking.setStartDate(updatedBooking.getStartDate());
         booking.setEndDate(updatedBooking.getEndDate());
-        booking.setNumberOfGuests(updatedBooking.getNumberOfGuests());
 
-        // Om datum ändrats, beräkna nytt totalpris
         if (!booking.getStartDate().equals(updatedBooking.getStartDate()) ||
                 !booking.getEndDate().equals(updatedBooking.getEndDate())) {
 
@@ -73,15 +82,70 @@ public class BookingService {
                     booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
             );
 
-            //ändra getPrice_per_night till korrekt variabel
             BigDecimal newTotalPrice = booking.getListing().getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
             booking.setTotalPrice(newTotalPrice);
         }
+
+            // Uppdatera bookingStatus till PENDING om en  förändring av datum sker
+            booking.setBookingStatus(Set.of(BookingStatus.PENDING));
+
+
         return bookingRepository.save(booking);
     }
+
+        //        Booking booking = getBookingById(id);
+//
+//        booking.setStartDate(updatedBooking.getStartDate());
+//        booking.setEndDate(updatedBooking.getEndDate());
+//        booking.setNumberOfGuests(updatedBooking.getNumberOfGuests());
+//
+//        // Om datum ändrats, beräkna nytt totalpris
+//        if (!booking.getStartDate().equals(updatedBooking.getStartDate()) ||
+//                !booking.getEndDate().equals(updatedBooking.getEndDate())) {
+//
+//            long daysBetween = ChronoUnit.DAYS.between(
+//                    booking.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+//                    booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+//            );
+//
+//            //ändra getPrice_per_night till korrekt variabel
+//            BigDecimal newTotalPrice = booking.getListing().getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
+//            booking.setTotalPrice(newTotalPrice);
+//        }
+//        return bookingRepository.save(booking);
+
     public void deleteBooking(String id) {
         bookingRepository.deleteById(id);
     }
+    public BookingResponse convertToDTO(Booking booking) {
+        return new BookingResponse(
+                booking.getId(),
+                booking.getListing().getTitle(),
+                booking.getListing().getHost().getUsername(),
+                booking.getUser().getUsername(),
+                booking.getUser().getEmail(),
+                booking.getUser().getPhoneNr(),
+                booking.getStartDate(),
+                booking.getEndDate(),
+                booking.getNumberOfGuests(),
+                booking.getTotalPrice()
+
+        );
+    }
+    public BookingRequest convertToDTORequest(Booking booking) {
+        return new BookingRequest(
+                booking.getId(),
+                booking.getListing().getTitle(),
+                booking.getListing().getHost().getUsername(),
+                booking.getStartDate(),
+                booking.getEndDate(),
+                booking.getNumberOfGuests(),
+                booking.getTotalPrice()
+        );
+    }
+
+
+
 
 
 }
