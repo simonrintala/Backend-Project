@@ -1,6 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.Set;
 
@@ -8,9 +9,13 @@ import java.util.Set;
 //SHOULD BE ANNOTATED (e.g., @NotNull, etc.)
 //The DTO for receiving information for user registration
 public class RegisterRequest {
+    @NotBlank
     private String username;
+    @NotBlank
     private String password;
+    @NotBlank
     private String email;
+    @NotBlank
     private String phoneNr;
     private Set<Role> roles;
 
