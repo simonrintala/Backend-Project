@@ -1,16 +1,17 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
-import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/*registration of new users is handled by AutheniticationController*/
+/*registration of new users is handled by AuthenticationController*/
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -31,10 +32,24 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteListing(@PathVariable String id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping
+    public ResponseEntity<UserResponse> updateCurrentUser(@Valid @RequestBody UserRequest userRequest) {
+        return new ResponseEntity<>(userService.updateUser(userRequest), HttpStatus.OK);
+    }
+
+    @PatchMapping("/addFavorite")
+    public ResponseEntity<String> addFavorite(@RequestBody String listingId) {
+        return new ResponseEntity<>(userService.addFavorite(listingId), HttpStatus.OK);
+    }
+
+    @PatchMapping("/removeFavorite")
+    public ResponseEntity<String> removeFavorite(@RequestBody String listingId) {
+        return new ResponseEntity<>(userService.removeFavorite(listingId), HttpStatus.OK);
+    }
 
 }

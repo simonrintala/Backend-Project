@@ -8,16 +8,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-//NOTE: not finished, just made what needed to be there for Security implementation.
-//should be expanded upon with createdAt, updatedAt, address, description, etc.
-//should be annotated (e.g., @NotNull, @NotBlank, @Pattern, etc. etc.)
-//Other???
 
 @Document(collection = "users")
 public class User {
@@ -58,7 +52,7 @@ public class User {
 
     private String description;
 
-    private List<String> favorites;
+    private List<Listing> favorites;
 
     private Set<Role> roles;
     
@@ -133,11 +127,11 @@ public class User {
         this.description = description;
     }
 
-    public List<String> getFavorites() {
+    public List<Listing> getFavorites() {
         return favorites;
     }
 
-    public void setFavorites(List<String> favorites) {
+    public void setFavorites(List<Listing> favorites) {
         this.favorites = favorites;
     }
 

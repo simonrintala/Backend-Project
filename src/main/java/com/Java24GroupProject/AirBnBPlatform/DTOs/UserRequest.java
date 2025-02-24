@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import java.util.Set;
 
 //The DTO for receiving information for user registration
-public class RegisterRequest {
+public class UserRequest {
     @NotNull(message = "username is a required field")
     @NotEmpty(message = "username is a required field")
     @NotBlank(message = "username is a required field")
@@ -47,7 +47,7 @@ public class RegisterRequest {
 
     private Set<Role> roles;
 
-    public RegisterRequest(String username, String password, String email, String phoneNr, String street, String zipCode, String city, String country, String profilePictureURL, String description, Set<Role> roles) {
+    public UserRequest(String username, String password, String email, String phoneNr, String street, String zipCode, String city, String country, String profilePictureURL, String description, Set<Role> roles) {
         this.username = username;
         this.password = password;
         this.email = email;

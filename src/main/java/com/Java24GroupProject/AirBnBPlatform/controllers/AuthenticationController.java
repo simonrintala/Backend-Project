@@ -2,7 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.controllers;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.AuthenticationRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.AuthenticationResponse;
-import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterRequest;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.services.UserService;
 import com.Java24GroupProject.AirBnBPlatform.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,8 +39,8 @@ public class AuthenticationController {
 
     //register a new user, uses the RegisterRequest DTO
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(registerRequest));
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userRequest));
     }
 
     //login as an existing user, uses the AuthenticationRequest and AuthenticationResponse DTOs
