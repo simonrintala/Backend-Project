@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 
 src/main/resources/application.yml
-docker-compose.yaml
+docker-compose.yml
 
 ### STS ###
 .apt_generated
