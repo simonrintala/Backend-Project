@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.naming.NameAlreadyBoundException;
 import java.nio.file.AccessDeniedException;
 
 @ControllerAdvice
@@ -33,6 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> accessDeniedExceptionHandler(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized");
+    }
+
+    @ExceptionHandler(NameAlreadyBoundException.class)
+    public ResponseEntity<String> conflictExceptionHandler(Exception ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
     
     

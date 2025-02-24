@@ -5,9 +5,11 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
 import jakarta.validation.constraints.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +54,7 @@ public class User {
 
     private UserAddress address;
 
-    private String profile_picture;
+    private String profilePictureURL;
 
     private String description;
 
@@ -62,6 +64,8 @@ public class User {
     
     @CreatedDate
     private Date createdAt;
+
+    private Date updatedAt;
 
 
     public User() {
@@ -113,12 +117,12 @@ public class User {
         this.address = address;
     }
 
-    public String getProfile_picture() {
-        return profile_picture;
+    public String getProfilePictureURL() {
+        return profilePictureURL;
     }
 
-    public void setProfile_picture(String profile_picture) {
-        this.profile_picture = profile_picture;
+    public void setProfilePictureURL(String profilePictureURL) {
+        this.profilePictureURL = profilePictureURL;
     }
 
     public String getDescription() {
@@ -151,6 +155,14 @@ public class User {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
 
