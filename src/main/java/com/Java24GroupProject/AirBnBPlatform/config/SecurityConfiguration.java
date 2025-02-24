@@ -50,7 +50,7 @@ public class SecurityConfiguration {
                         //only admin can access things under url admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         //only users with host role can access listing creation
-                        .requestMatchers("/listing/**").hasRole("HOST")
+                        .requestMatchers("/listings/**").hasRole("HOST")
                         //only logged-in users (any role) can access
                         .requestMatchers("/user/**", "/booking/**").hasAnyRole("USER", "HOST", "ADMIN")
                         //any user can access, incl. login page and search page (search for listings)
