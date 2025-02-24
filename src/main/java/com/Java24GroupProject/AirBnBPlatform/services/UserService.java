@@ -2,6 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
@@ -76,12 +77,17 @@ public class UserService {
                 user.getRoles());
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers() {
+        List<UserResponse> userResponseList = new ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            userResponseList.add(convertUsertoUserResponse(user));
+        }
+        return userResponseList;
     }
 
-    public User getUserById(String id) {
-        return validateUserIdAndReturnUser(id);
+    public UserResponse getUserById(String id) {
+        User user = validateUserIdAndReturnUser(id);
+        return convertUsertoUserResponse(user);
     }
 
     public void deleteUser(String id) {
@@ -98,6 +104,10 @@ public class UserService {
     private User validateUserIdAndReturnUser(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User id does not exist in database"));
+    }
+
+    private UserResponse convertUsertoUserResponse(User user) {
+        return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), user.getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 
 }
