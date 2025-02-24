@@ -4,7 +4,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 import jakarta.validation.constraints.NotBlank;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.Set;
 
 //The DTO for receiving information for listing creation
@@ -12,13 +12,13 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
-    private Double price_per_night;
+    private BigDecimal price_per_night;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
     private User host;
     
-    public ListingRequest(String title, String description, Double price_per_night, Set<ListingUtilities> utilities, Integer capacity, User host) {
+    public ListingRequest(String title, String description, BigDecimal price_per_night, Set<ListingUtilities> utilities, Integer capacity, User host) {
         this.title = title;
         this.description = description;
         this.price_per_night = price_per_night;
@@ -35,7 +35,7 @@ public class ListingRequest {
         return description;
     }
     
-    public @NotBlank Double getPrice_per_night() {
+    public @NotBlank BigDecimal getPrice_per_night() {
         return price_per_night;
     }
     

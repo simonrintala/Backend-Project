@@ -72,7 +72,7 @@ public class JwtUtil {
     }
 
     //extract contents of a token
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigninKey())
                 .build()

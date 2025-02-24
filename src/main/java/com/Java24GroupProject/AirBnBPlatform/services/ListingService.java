@@ -9,6 +9,7 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ public class ListingService {
         if (listing.getTitle() == null || listing.getTitle().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty");
         }
-        if (listing.getPrice_per_night() == null || listing.getPrice_per_night() <= 0) {
+        if (listing.getPrice_per_night() == null || listing.getPrice_per_night().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Price per night must be greater than 0");
         }
         User user = userRepository.findById(listing.getHost().getId())

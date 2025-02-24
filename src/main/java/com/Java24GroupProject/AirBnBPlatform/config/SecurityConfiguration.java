@@ -52,7 +52,7 @@ public class SecurityConfiguration {
                         //only users with host role can access listing creation
                         .requestMatchers("/listings/**").hasRole("HOST")
                         //only logged-in users (any role) can access
-                        .requestMatchers("/user/**", "/booking/**").hasAnyRole("USER", "HOST", "ADMIN")
+                        .requestMatchers("/user/**", "/bookings/**").hasAnyRole("USER", "HOST", "ADMIN")
                         //any user can access, incl. login page and search page (search for listings)
                         .requestMatchers("/auth/**", "/search/**").permitAll()
                         //all other urls, only logged-in users
