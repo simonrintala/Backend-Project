@@ -84,6 +84,10 @@ public class UserService {
         return validateUserIdAndReturnUser(id);
     }
 
+    public void deleteUser(String id) {
+        userRepository.delete(validateUserIdAndReturnUser(id));
+    }
+
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
