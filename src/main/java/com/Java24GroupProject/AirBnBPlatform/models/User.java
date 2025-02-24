@@ -1,13 +1,15 @@
 package com.Java24GroupProject.AirBnBPlatform.models;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
-import jakarta.validation.constraints.Pattern;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
+import jakarta.validation.constraints.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 //NOTE: not finished, just made what needed to be there for Security implementation.
@@ -20,21 +22,47 @@ public class User {
     @Id
     private String id;
 
+    @NotNull(message = "username is a required field")
+    @NotEmpty(message = "username is a required field")
+    @NotBlank(message = "username is a required field")
     @Indexed(unique = true)
     private String username;
 
+    @NotNull(message = "password is a required field")
+    @NotEmpty(message = "password is a required field")
+    @NotBlank(message = "password is a required field")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,}$",
+            message = "password must be minimum 8 characters and must contain must contain: 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character")
+
     private String password;
 
+    @NotNull(message = "email is a required field")
+    @NotEmpty(message = "email is a required field")
+    @NotBlank(message = "email is a required field")
+    @Email(message = "email does not have a valid format")
     @Indexed(unique = true)
     private String email;
 
+    @NotNull(message = "phoneNr is a required field")
+    @NotEmpty(message = "phoneNr is a required field")
+    @NotBlank(message = "phoneNr is a required field")
+    @Pattern(regexp = "^[0-9+]+$", message = "phoneNr may only contain numbers and +")
     @Indexed(unique = true)
     private String phoneNr;
+
+    private UserAddress address;
+
+    private String profile_picture;
+
+    private String description;
+
+    private List<String> favorites;
 
     private Set<Role> roles;
     
     @CreatedDate
     private Date createdAt;
+
 
     public User() {
     }
@@ -43,50 +71,70 @@ public class User {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
+    public @NotNull(message = "username is a required field") @NotEmpty(message = "username is a required field") @NotBlank(message = "username is a required field") String getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(@NotNull(message = "username is a required field") @NotEmpty(message = "username is a required field") @NotBlank(message = "username is a required field") String username) {
         this.username = username;
     }
 
-    public @Pattern(
-            regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()\\-_=+{};:,<.>])(?=.{8,})" +
-                    ".*$",
-            message = "Password must be at least 8 characters long and contain at least " +
-                    "one uppercase letter, one number, and one special character"
-    ) String getPassword() {
+    public @NotNull(message = "password is a required field") @NotEmpty(message = "password is a required field") @NotBlank(message = "password is a required field") @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,}$",
+            message = "password must be minimum 8 characters and must contain must contain: 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character") String getPassword() {
         return password;
     }
 
-    public void setPassword(@Pattern(
-            regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()\\-_=+{};:,<.>])(?=.{8,})" +
-                    ".*$",
-            message = "Password must be at least 8 characters long and contain at least " +
-                    "one uppercase letter, one number, and one special character"
-    ) String password) {
+    public void setPassword(@NotNull(message = "password is a required field") @NotEmpty(message = "password is a required field") @NotBlank(message = "password is a required field") @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,}$",
+            message = "password must be minimum 8 characters and must contain must contain: 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character") String password) {
         this.password = password;
     }
 
-    public String getEmail() {
+    public @NotNull(message = "email is a required field") @NotEmpty(message = "email is a required field") @NotBlank(message = "email is a required field") @Email(message = "email does not have a valid format") String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(@NotNull(message = "email is a required field") @NotEmpty(message = "email is a required field") @NotBlank(message = "email is a required field") @Email(message = "email does not have a valid format") String email) {
         this.email = email;
     }
 
-    public String getPhoneNr() {
+    public @NotNull(message = "phoneNr is a required field") @NotEmpty(message = "phoneNr is a required field") @NotBlank(message = "phoneNr is a required field") @Pattern(regexp = "^[0-9+]+$", message = "phoneNr may only contain numbers and +") String getPhoneNr() {
         return phoneNr;
     }
 
-    public void setPhoneNr(String phoneNr) {
+    public void setPhoneNr(@NotNull(message = "phoneNr is a required field") @NotEmpty(message = "phoneNr is a required field") @NotBlank(message = "phoneNr is a required field") @Pattern(regexp = "^[0-9+]+$", message = "phoneNr may only contain numbers and +") String phoneNr) {
         this.phoneNr = phoneNr;
+    }
+
+    public UserAddress getAddress() {
+        return address;
+    }
+
+    public void setAddress(UserAddress address) {
+        this.address = address;
+    }
+
+    public String getProfile_picture() {
+        return profile_picture;
+    }
+
+    public void setProfile_picture(String profile_picture) {
+        this.profile_picture = profile_picture;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<String> getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(List<String> favorites) {
+        this.favorites = favorites;
     }
 
     public Set<Role> getRoles() {
@@ -96,11 +144,11 @@ public class User {
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
-    
+
     public Date getCreatedAt() {
         return createdAt;
     }
-    
+
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
