@@ -45,27 +45,14 @@ public class UserService {
         //validate that username, email and phoneNr is unique
         validateUniqueFields(userRequest);
 
-        //maps the RegisterRequest to a User entity
-        User user = new User();
-        user.setUsername(userRequest.getUsername());
-        //encodes the password
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user.setEmail(userRequest.getEmail());
-        user.setPhoneNr(userRequest.getPhoneNr());
-        user.setAddress(new UserAddress(userRequest.getStreet(), userRequest.getZipCode(), userRequest.getCity(), userRequest.getCountry()));
-        user.setProfilePictureURL(userRequest.getProfilePictureURL());
-        user.setDescription(userRequest.getDescription());
+
+        //maps the RegisterRequest to a new User entity
+        User user = transferUserRequestToUser(userRequest, new User());
+
         //empty listing-favorites array list for a new user
         user.setFavorites(new ArrayList<>());
-
-        //if no roles are provided in RegisterRequest, set to user
-        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
-        } else {
-            user.setRoles(userRequest.getRoles());
-        }
-
         user.setUpdatedAt(null);
+
         userRepository.save(user);
 
         return new RegisterResponse(
@@ -77,14 +64,14 @@ public class UserService {
     public List<UserResponse> getAllUsers() {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userRepository.findAll()) {
-            userResponseList.add(convertUsertoUserResponse(user));
+            userResponseList.add(convertUserToUserResponse(user));
         }
         return userResponseList;
     }
 
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
-        return convertUsertoUserResponse(user);
+        return convertUserToUserResponse(user);
     }
 
     public void deleteUser(String id) {
@@ -95,54 +82,34 @@ public class UserService {
         //validate that username, email and phoneNr in updated user info are unique
         validateUniqueFields(userRequest);
 
+        //validate user id and get existing user, and then update the existing user according to userRequest
+        User existingUser = transferUserRequestToUser(userRequest, verifyCookiesAndExtractUser());
 
-
-        //validate user id and get existing user
-        User existingUser = verifyCookiesAndExtractUser();
-
-        existingUser.setUsername(userRequest.getUsername());
-        //encodes the password
-        existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        existingUser.setEmail(userRequest.getEmail());
-        existingUser.setPhoneNr(userRequest.getPhoneNr());
-        existingUser.setAddress(new UserAddress(userRequest.getStreet(), userRequest.getZipCode(), userRequest.getCity(), userRequest.getCountry()));
-        existingUser.setProfilePictureURL(userRequest.getProfilePictureURL());
-        existingUser.setDescription(userRequest.getDescription());
+        //set updated at to current time
         existingUser.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(existingUser);
 
-        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
-            existingUser.setRoles(Set.of(Role.USER));
-        } else {
-            existingUser.setRoles(userRequest.getRoles());
-        }
-
-        return convertUsertoUserResponse(existingUser);
+        //convert to a responseDTO and return
+        return convertUserToUserResponse(existingUser);
     }
 
-    public String addFavorite(String listingId) {
+    //add or remove a listing using listing id as an input variable
+    public String addOrRemoveFavorite(String listingId) {
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
 
-        User user = verifyCookiesAndExtractUser();
-
-        if (user.getFavorites().contains(listing)) {
-            throw new IllegalArgumentException("listing already in favorites, could not be added");
-        }
-        user.getFavorites().add(listing);
-        return listing.getTitle();
-    }
-
-    public String removeFavorite(String listingId) {
-        Listing listing = listingRepository.findById(listingId)
-                .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
-
+        String message = listing.getTitle();
         User user = verifyCookiesAndExtractUser();
 
         if (!user.getFavorites().contains(listing)) {
-            throw new IllegalArgumentException("listing not in favorites, could not be removed");
+            user.getFavorites().add(listing);
+            message = message +" has been added to favorites";
+        } else {
+            user.getFavorites().remove(listing);
+            message = message +" has been removed from favorites";
         }
-        user.getFavorites().remove(listing);
-        return listing.getTitle();
+        userRepository.save(user);
+        return message;
     }
 
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
@@ -174,15 +141,6 @@ public class UserService {
         }
     }
 
-
-    private UserResponse convertUsertoUserResponse(User user) {
-        List<String> favorites = new ArrayList<>();
-        for (Listing listing : user.getFavorites()) {
-            favorites.add(listing.getTitle());
-        }
-        return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
-    }
-
     private User verifyCookiesAndExtractUser() {
         //check that user is logged in
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -195,4 +153,35 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
+    private User transferUserRequestToUser(UserRequest userRequest, User user) {
+        user.setUsername(userRequest.getUsername());
+
+        //encodes the password
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setEmail(userRequest.getEmail());
+        user.setPhoneNr(userRequest.getPhoneNr());
+
+        //create UserAddress from String variables from the UserRequest
+        user.setAddress(new UserAddress(userRequest.getStreet(), userRequest.getZipCode(), userRequest.getCity(), userRequest.getCountry()));
+        user.setProfilePictureURL(userRequest.getProfilePictureURL());
+        user.setDescription(userRequest.getDescription());
+
+        //assign the role USER if not roles are specified
+        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
+            user.setRoles(Set.of(Role.USER));
+        } else {
+            user.setRoles(userRequest.getRoles());
+        }
+
+        return user;
+    }
+
+    private UserResponse convertUserToUserResponse(User user) {
+        //convert list of listings to list of string objects
+        List<String> favorites = new ArrayList<>();
+        for (Listing listing : user.getFavorites()) {
+            favorites.add(listing.getTitle());
+        }
+        return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
+    }
 }

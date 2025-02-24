@@ -1,6 +1,5 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
-
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.services.UserService;
@@ -42,14 +41,10 @@ public class UserController {
         return new ResponseEntity<>(userService.updateUser(userRequest), HttpStatus.OK);
     }
 
-    @PatchMapping("/addFavorite")
-    public ResponseEntity<String> addFavorite(@RequestBody String listingId) {
-        return new ResponseEntity<>(userService.addFavorite(listingId), HttpStatus.OK);
-    }
-
-    @PatchMapping("/removeFavorite")
-    public ResponseEntity<String> removeFavorite(@RequestBody String listingId) {
-        return new ResponseEntity<>(userService.removeFavorite(listingId), HttpStatus.OK);
+    //adds a listing to users favorites if not already saved, otherwise removes it from favorites
+    @PatchMapping("/favorites/{listingId}")
+    public ResponseEntity<String> addOrRemoveFavorite(@PathVariable String listingId) {
+        return new ResponseEntity<>(userService.addOrRemoveFavorite(listingId), HttpStatus.OK);
     }
 
 }
