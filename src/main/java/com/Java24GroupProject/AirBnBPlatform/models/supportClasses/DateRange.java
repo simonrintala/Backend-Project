@@ -1,51 +1,47 @@
 package com.Java24GroupProject.AirBnBPlatform.models.supportClasses;
 
-
-import java.util.Date;
+import java.time.LocalDate;
 
 public class DateRange {
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
-    public DateRange(Date startDate, Date endDate) {
-        if (endDate.before(startDate)) {
+    public DateRange(LocalDate startDate, LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException("start date must be before end date");
-        }
+        } else if (endDate.isEqual(startDate))
+            throw new IllegalArgumentException("start date not be equal to' end date");
         this.startDate = startDate;
         this.endDate = endDate;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
     public boolean isWithinAnotherDateRange(DateRange availableDateRange) {
-        return ((this.startDate.equals(availableDateRange.startDate) || this.startDate.after(availableDateRange.startDate))
-                &&(this.endDate.equals(availableDateRange.endDate) || this.endDate.before(availableDateRange.endDate)));
+        return (this.startDate.isEqual(availableDateRange.startDate) || this.startDate.isAfter(availableDateRange.startDate))
+                && (this.endDate.isEqual(availableDateRange.endDate) || this.endDate.isBefore(availableDateRange.endDate));
     }
 
-    public boolean areIdentical (DateRange availableDateRange) {
-        return haveTheSameStartDate(availableDateRange) && haveTheSameEndDate(availableDateRange);
+    public boolean isIdenticalToAnotherDateRange(DateRange dateRange) {
+        return (this.startDate.isEqual(dateRange.startDate) && this.endDate.isEqual(dateRange.endDate));
     }
 
-    public boolean haveTheSameStartDate(DateRange availableDateRange) {
-        return (this.startDate.equals(availableDateRange.startDate));
+    public boolean hasOverlapWithAnotherDateRange(DateRange dateRange) {
+        return !((this.endDate.isEqual(dateRange.startDate) || this.endDate.isBefore(dateRange.startDate))
+                || (dateRange.endDate.isEqual(this.startDate) || dateRange.endDate.isBefore(this.startDate)));
     }
-
-    public boolean haveTheSameEndDate(DateRange availableDateRange) {
-        return (this.endDate.equals(availableDateRange.endDate));
-    }
-
 }

@@ -14,8 +14,8 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,8 +157,8 @@ public class BookingService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhoneNr(),
-                booking.getBookingDates().getStartDate(),
-                booking.getBookingDates().getEndDate(),
+                booking.getBookingDates().getStartDate().toString(),
+                booking.getBookingDates().getEndDate().toString(),
                 booking.getNumberOfGuests(),
                 booking.getTotalPrice(),
                 booking.getBookingStatus(),
@@ -171,7 +171,9 @@ public class BookingService {
                 Booking booking = new Booking();
                 booking.setListing(bookingRequest.getListing());
                 booking.setUser(bookingRequest.getUser());
-                booking.setBookingDates(new DateRange(bookingRequest.getStartDate(),bookingRequest.getEndDate()));
+                booking.setBookingDates(new DateRange(
+                        LocalDate.parse(bookingRequest.getStartDate()),
+                        LocalDate.parse(bookingRequest.getEndDate())));
                 booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
                 calculateAndSetPrice(booking);
                 return booking;
@@ -199,6 +201,7 @@ public class BookingService {
         if (bookingRequest.getNumberOfGuests() > listing.getCapacity()) {
             throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
         }
+
     }
 
     //validate that booking dates are available and update listing dates
@@ -216,11 +219,11 @@ public class BookingService {
                 areBookingDatesAvailable = true;
 
                 //update listing dates
-                if (bookingDates.areIdentical(availibleDateRange)) {
+                if (bookingDates.isIdenticalToAnotherDateRange(availibleDateRange)) {
                     listing.getAvailableDates().remove(availibleDateRange);
-                } else if (bookingDates.haveTheSameStartDate(availibleDateRange)) {
+                } else if (bookingDates.getStartDate().isEqual(availibleDateRange.getStartDate())) {
                     availibleDateRange.setStartDate(bookingDates.getEndDate());
-                } else if (bookingDates.haveTheSameEndDate(availibleDateRange)) {
+                } else if (bookingDates.getEndDate().isEqual(availibleDateRange.getEndDate())) {
                     availibleDateRange.setEndDate(bookingDates.getStartDate());
                 } else {
                     DateRange newDateRange = new DateRange(bookingDates.getEndDate(), availibleDateRange.getEndDate());
@@ -244,8 +247,8 @@ public class BookingService {
     private void calculateAndSetPrice(Booking booking) {
         //calculate days in between start and end date
         long daysBetween = ChronoUnit.DAYS.between(
-                booking.getBookingDates().getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                booking.getBookingDates().getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                booking.getBookingDates().getStartDate(),
+                booking.getBookingDates().getEndDate()
         );
 
         //get listing

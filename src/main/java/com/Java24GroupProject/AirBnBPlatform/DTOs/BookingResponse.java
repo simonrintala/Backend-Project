@@ -4,21 +4,20 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 public class BookingResponse {
     private String listingTitle;
     private String username;
     private String email;
     private String phoneNr;
-    private Date startDate;
-    private Date endDate;
+    private String startDate;
+    private String endDate;
     private Integer numberOfGuests;
     private BigDecimal totalPrice;
     private BookingStatus status;
     private LocalDateTime createdAt;
 
-    public BookingResponse(String listingTitle, String username, String email, String phoneNr, Date startDate, Date endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status, LocalDateTime createdAt) {
+    public BookingResponse(String listingTitle, String username, String email, String phoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status, LocalDateTime createdAt) {
         this.listingTitle = listingTitle;
         this.username = username;
         this.email = email;
@@ -63,19 +62,19 @@ public class BookingResponse {
         this.phoneNr = phoneNr;
     }
 
-    public Date getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(String startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public String getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(String endDate) {
         this.endDate = endDate;
     }
 

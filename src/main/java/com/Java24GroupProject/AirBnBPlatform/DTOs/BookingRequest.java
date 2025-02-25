@@ -3,13 +3,12 @@ package com.Java24GroupProject.AirBnBPlatform.DTOs;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 
-import java.util.Date;
 
 public class BookingRequest {
     private Listing listing;
     private User user;
-    private Date startDate;
-    private Date endDate;
+    private String startDate;
+    private String endDate;
     private Integer numberOfGuests;
 
     public BookingRequest() {
@@ -23,11 +22,11 @@ public class BookingRequest {
         return user;
     }
 
-    public Date getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public Date getEndDate() {
+    public String getEndDate() {
         return endDate;
     }
 

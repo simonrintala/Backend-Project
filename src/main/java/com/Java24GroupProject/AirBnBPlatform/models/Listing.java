@@ -141,13 +141,6 @@ public class Listing {
         this.availableDates = availableDates;
     }
 
-    public void addAvailableDateRange(DateRange dateRange) {
-        this.availableDates.add(dateRange);
-    }
-
-    public void removeAvailableDateRange(DateRange dateRange) {
-        this.availableDates.remove(dateRange);
-    }
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
@@ -155,5 +148,54 @@ public class Listing {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void addAvailableDateRange(DateRange dateRange) {
+        for (DateRange availableDateRange : availableDates) {
+            //check if there is overlap with existing dates
+            if (dateRange.hasOverlapWithAnotherDateRange(availableDateRange)) {
+                throw new IllegalArgumentException("dates could not be added, as they overlap with existing available date ranges");
+
+                //if dates are identical to dates in list throw error
+            } else if (dateRange.isIdenticalToAnotherDateRange(availableDateRange)) {
+                throw new IllegalArgumentException("dates could not be added, already in available dates for listing");
+            }
+        }
+
+        //add dates
+        availableDates.add(dateRange);
+
+        //run through list and fuse any dateRanges that are adjacent
+        boolean continueFuseDateRanges = true;
+        while (continueFuseDateRanges) {
+            continueFuseDateRanges = fuseAdjacentDateRanges();
+        }
+    }
+
+    public boolean fuseAdjacentDateRanges() {
+        boolean dateRangeFused = false;
+        for (DateRange availableDates1 : availableDates) {
+            for (DateRange availableDates2 : availableDates) {
+                if (availableDates1.isIdenticalToAnotherDateRange(availableDates2)) {
+                    continue;
+                }
+                if (availableDates1.getStartDate().isEqual(availableDates2.getEndDate())) {
+                    availableDates1.setStartDate(availableDates2.getStartDate());
+                    availableDates.remove(availableDates2);
+                    dateRangeFused = true;
+                    break;
+                } else if (availableDates2.getStartDate().isEqual(availableDates1.getEndDate()) || availableDates2.getStartDate().minusDays(1).isEqual(availableDates1.getEndDate())) {
+                    availableDates1.setEndDate(availableDates2.getEndDate());
+                    availableDates.remove(availableDates2);
+                    dateRangeFused = true;
+                    break;
+                }
+            }
+            if (dateRangeFused) {
+                break;
+            }
+
+        }
+        return dateRangeFused;
     }
 }
