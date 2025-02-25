@@ -30,4 +30,22 @@ public class DateRange {
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
+
+    public boolean isWithinAnotherDateRange(DateRange availableDateRange) {
+        return ((this.startDate.equals(availableDateRange.startDate) || this.startDate.after(availableDateRange.startDate))
+                &&(this.endDate.equals(availableDateRange.endDate) || this.endDate.before(availableDateRange.endDate)));
+    }
+
+    public boolean areIdentical (DateRange availableDateRange) {
+        return haveTheSameStartDate(availableDateRange) && haveTheSameEndDate(availableDateRange);
+    }
+
+    public boolean haveTheSameStartDate(DateRange availableDateRange) {
+        return (this.startDate.equals(availableDateRange.startDate));
+    }
+
+    public boolean haveTheSameEndDate(DateRange availableDateRange) {
+        return (this.endDate.equals(availableDateRange.endDate));
+    }
+
 }

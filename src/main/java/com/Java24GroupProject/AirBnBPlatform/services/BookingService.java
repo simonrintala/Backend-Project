@@ -7,6 +7,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
@@ -33,6 +34,8 @@ public class BookingService {
     public Booking createBooking(Booking booking) {
         validateBooking(booking);
 
+        validateBookingDatesAndUpdateListing(booking);
+
         booking.CalculateTotalPrice();
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setCreatedDate(LocalDateTime.now());
@@ -44,12 +47,14 @@ public class BookingService {
         return bookingRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException("Booking not found"));
     }
+
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
     public List<Booking> getBookingByUserId(String userId) {
         return bookingRepository.findByUser_Id(userId);
     }
+
     public Booking updateBooking (String id, Booking updatedBooking) {
         //validate data in new booking
         validateBooking(updatedBooking);
@@ -59,22 +64,37 @@ public class BookingService {
             throw new UnsupportedOperationException("Confirmed, payed or cancelled bookings cannot be updated");
         }
 
+        //if booking dates are changed
+        if (!booking.getBookingDates().getStartDate().equals(updatedBooking.getBookingDates().getStartDate()) ||
+                !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
+
+            //add back the old dates
+            Listing listing = listingRepository.findById(booking.getListing().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
+            listing.addAvailableDateRange(booking.getBookingDates());
+
+            validateBookingDatesAndUpdateListing(updatedBooking);
+        }
+
         //update booking
         booking.setListing(updatedBooking.getListing());
         booking.setUser(updatedBooking.getUser());
         booking.setNumberOfGuests(updatedBooking.getNumberOfGuests());
-        booking.setBookingDates(updatedBooking.getBookingDates());
-
-        if (!booking.getBookingDates().getStartDate().equals(updatedBooking.getBookingDates().getStartDate()) ||
-                !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
-            booking.setTotalPrice(calculatePrice(updatedBooking));
-        }
 
         return bookingRepository.save(booking);
     }
 
 
     public void deleteBooking(String id) {
+        //check if id is valid
+        Booking booking = getBookingById(id);
+
+        Listing listing = listingRepository.findById(booking.getListing().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
+
+        listing.addAvailableDateRange(booking.getBookingDates());
+
+        //delete booking
         bookingRepository.deleteById(id);
     }
 
@@ -90,7 +110,6 @@ public class BookingService {
                 booking.getBookingDates().getEndDate(),
                 booking.getNumberOfGuests(),
                 booking.getTotalPrice()
-
         );
     }
 
@@ -124,9 +143,41 @@ public class BookingService {
         if (booking.getNumberOfGuests() > listing.getCapacity()) {
             throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
         }
+    }
 
+    private void validateBookingDatesAndUpdateListing(Booking booking) {
+        Listing listing = listingRepository.findById(booking.getListing().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
 
+        DateRange bookingDates = booking.getBookingDates();
 
+        //check that booking dates fall within available dates of listing.
+        boolean areBookingDatesAvailable = false;
+        for (DateRange availibleDateRange : listing.getAvailableDates()) {
+            if (bookingDates.isWithinAnotherDateRange(availibleDateRange)) {
+                areBookingDatesAvailable = true;
+
+                //update listing dates
+                if (bookingDates.areIdentical(availibleDateRange)) {
+                    listing.getAvailableDates().remove(availibleDateRange);
+                } else if (bookingDates.haveTheSameStartDate(availibleDateRange)) {
+                    availibleDateRange.setStartDate(bookingDates.getEndDate());
+                } else if (bookingDates.haveTheSameEndDate(availibleDateRange)) {
+                    availibleDateRange.setEndDate(bookingDates.getStartDate());
+                } else {
+                    DateRange newDateRange = new DateRange(bookingDates.getEndDate(), availibleDateRange.getEndDate());
+                    listing.getAvailableDates().add(newDateRange);
+                    availibleDateRange.setEndDate(bookingDates.getStartDate());
+                }
+                listingRepository.save(listing);
+                break;
+            }
+        }
+
+        //error if bookingDates are not available in listing
+        if(!areBookingDatesAvailable) {
+            throw new IllegalArgumentException("booking dates not available on listing");
+        }
     }
 
 

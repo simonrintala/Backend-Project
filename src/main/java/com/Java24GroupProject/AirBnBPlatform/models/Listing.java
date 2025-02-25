@@ -138,4 +138,12 @@ public class Listing {
     public void setAvailableDates(List<DateRange> availableDates) {
         this.availableDates = availableDates;
     }
+
+    public void addAvailableDateRange(DateRange dateRange) {
+        this.availableDates.add(dateRange);
+    }
+
+    public void removeAvailableDateRange(DateRange dateRange) {
+        this.availableDates.remove(dateRange);
+    }
 }

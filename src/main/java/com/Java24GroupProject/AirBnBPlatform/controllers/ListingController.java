@@ -28,15 +28,14 @@ public class ListingController {
     
     @GetMapping
     public ResponseEntity<List<ListingResponse>> getAllListings() {
-        List<ListingResponse> listing = listingService.getAllListings();
-        return new ResponseEntity<>(listing, HttpStatus.OK);
+        List<ListingResponse> listings = listingService.getAllListings();
+        return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Listing> getListingById(@PathVariable String id) {
-        Optional<Listing> listing = listingService.getListingById(id);
-        return listing.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String id) {
+        ListingResponse listing = listingService.getListingById(id);
+        return new ResponseEntity<>(listing, HttpStatus.OK);
     }
     
     @PatchMapping("/{id}")
