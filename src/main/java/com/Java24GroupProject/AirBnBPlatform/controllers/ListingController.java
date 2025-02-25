@@ -21,7 +21,7 @@ public class ListingController {
     }
     
     @PostMapping
-    @PreAuthorize("hasRole('HOST')")
+    @PreAuthorize("hasAnyRole('HOST','ADMIN')")
     public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody Listing listing) {
         ListingResponse newListing = listingService.createListing(listing);
         return new ResponseEntity<>(newListing, HttpStatus.CREATED);
@@ -40,13 +40,13 @@ public class ListingController {
     }
     
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('HOST')")
+    @PreAuthorize("hasAnyRole('HOST','ADMIN')")
     public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
         return ResponseEntity.ok(listingService.updateListing(id, listing));
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('HOST')")
+    @PreAuthorize("hasAnyRole('HOST','ADMIN')")
     public ResponseEntity<Void> deleteListing(@PathVariable String id) {
         listingService.deleteListing(id);
         return ResponseEntity.noContent().build();
