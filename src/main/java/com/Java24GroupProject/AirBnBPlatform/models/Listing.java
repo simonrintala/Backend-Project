@@ -10,7 +10,6 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -18,19 +17,19 @@ import java.util.Set;
 public class Listing {
     @Id
     private String id;
-    
+
     private String title;
-    
+
     private String description;
     
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
     private Double price_per_night;
-    
+
     @NotNull(message = "Capacity limit must be set.")
     @Positive(message = "Capacity must be greater than zero")
     private Integer capacity;
-    
+
     private Set<ListingUtilities> utilities;
     
     @NotNull(message = "Listing must have at least one host.")

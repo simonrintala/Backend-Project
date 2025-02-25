@@ -1,8 +1,13 @@
 package com.Java24GroupProject.AirBnBPlatform.models.supportClasses;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 public class TimePeriod {
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private Date startDate;
+    private Date endDate;
+
 }
+
+
+
+
