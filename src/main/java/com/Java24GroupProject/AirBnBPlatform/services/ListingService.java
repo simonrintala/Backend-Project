@@ -52,13 +52,15 @@ public class ListingService {
     }
     
     public List<Listing> getListingByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        // make sure none of the prices are negative
         if (minPrice.compareTo(BigDecimal.ZERO) < 0 || maxPrice.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Price cannot be negative");
         }
         
- /*       if (minPrice > maxPrice) {
-            throw new IllegalArgumentException("Price cannot be greater than max");
-        }*/
+        // make sure minPrice is not greater that maxPrice
+        if (minPrice.compareTo(maxPrice) > 0 ) {
+            throw new IllegalArgumentException("Price cannot be greater than maxPrice");
+        }
         
         List<Listing> listings = listingRepository.findByPricePerNightBetween(minPrice, maxPrice);
         if(listings.isEmpty()) {

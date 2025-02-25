@@ -8,6 +8,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,9 +24,10 @@ public class Listing {
     private String title;
 
     private String description;
-
+    
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
+    //@Field(targetType = FieldType.DECIMAL128)
     private BigDecimal pricePerNight;
 
     @NotNull(message = "Capacity limit must be set.")

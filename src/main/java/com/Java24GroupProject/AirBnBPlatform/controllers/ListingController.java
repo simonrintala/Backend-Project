@@ -47,7 +47,7 @@ public class ListingController {
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
-    @GetMapping("/location")
+    @GetMapping("/location/{location}")
     public ResponseEntity<List<Listing>> getAllListingsByLocation(@PathVariable String location) {
         List<Listing> listings = listingService.getListingByLocation(location);
         return new ResponseEntity<>(listings, HttpStatus.OK);
