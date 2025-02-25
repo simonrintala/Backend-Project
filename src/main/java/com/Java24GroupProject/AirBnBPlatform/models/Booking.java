@@ -51,12 +51,12 @@ public class Booking {
     private LocalDateTime createdDate;
 
     public void CalculateTotalPrice() {
-        if (listing == null && listing.getPrice_per_night() == null && startDate == null && endDate == null) {
+        if (listing == null && listing.getPricePerNight() == null && startDate == null && endDate == null) {
             throw new IllegalStateException("Missing data to calculate total price, (check null values, remove this after dev)");
         }
             long daysBooked = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000); //Beräkna dagar
             if (daysBooked > 0){
-                this.totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
+                this.totalPrice = listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBooked));
             } else {
                 throw new IllegalStateException("End date must be after start date");
             }

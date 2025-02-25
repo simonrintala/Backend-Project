@@ -82,7 +82,7 @@ public class BookingService {
                     booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
             );
 
-            BigDecimal newTotalPrice = booking.getListing().getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
+            BigDecimal newTotalPrice = booking.getListing().getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
             booking.setTotalPrice(newTotalPrice);
         }
 

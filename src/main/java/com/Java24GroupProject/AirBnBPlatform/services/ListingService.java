@@ -28,7 +28,7 @@ public class ListingService {
         if (listing.getTitle() == null || listing.getTitle().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty");
         }
-        if (listing.getPrice_per_night() == null || listing.getPrice_per_night().compareTo(BigDecimal.ZERO) <= 0) {
+        if (listing.getPricePerNight() == null || listing.getPricePerNight().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Price per night must be greater than 0");
         }
         User user = userRepository.findById(listing.getHost().getId())
@@ -51,6 +51,33 @@ public class ListingService {
         return listingRepository.findById(id);
     }
     
+    public List<Listing> getListingByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        if (minPrice.compareTo(BigDecimal.ZERO) < 0 || maxPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
+        
+ /*       if (minPrice > maxPrice) {
+            throw new IllegalArgumentException("Price cannot be greater than max");
+        }*/
+        
+        List<Listing> listings = listingRepository.findByPricePerNightBetween(minPrice, maxPrice);
+        if(listings.isEmpty()) {
+            throw new ResourceNotFoundException("Listing not found");
+        }
+        return listings;
+    }
+    
+    public List<Listing> getListingByLocation(String location) {
+        if(location == null || location.isEmpty()) {
+            throw new IllegalArgumentException("Location cannot be empty or null");
+        }
+        List<Listing> listings = listingRepository.findByLocation(location);
+        if(listings.isEmpty()) {
+            throw new ResourceNotFoundException("No listing found for location: " + location);
+        }
+        return listings;
+    }
+    
     // PATCH
     public Listing updateListing(String id, Listing listing) {
         Listing existingListing = listingRepository.findById(id)
@@ -60,8 +87,8 @@ public class ListingService {
         if (listing.getTitle() != null) {
             existingListing.setTitle(listing.getTitle());
         }
-        if (listing.getPrice_per_night() != null) {
-            existingListing.setPrice_per_night(listing.getPrice_per_night());
+        if (listing.getPricePerNight() != null) {
+            existingListing.setPricePerNight(listing.getPricePerNight());
         }
         if(listing.getDescription() != null) {
             existingListing.setDescription(listing.getDescription());
@@ -111,7 +138,7 @@ public class ListingService {
         listingResponse.setTitle(listing.getTitle());
         listingResponse.setDescription(listing.getDescription());
         listingResponse.setCapacity(listing.getCapacity());
-        listingResponse.setPrice_per_night(listing.getPrice_per_night());
+        listingResponse.setPrice_per_night(listing.getPricePerNight());
         listingResponse.setUtilities(listing.getUtilities());
         listingResponse.setHost(listing.getHost().getUsername());
         

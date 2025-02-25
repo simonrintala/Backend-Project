@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +38,19 @@ public class ListingController {
         Optional<Listing> listing = listingService.getListingById(id);
         return listing.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+    
+    // search for listing between price range
+    @GetMapping("/price")
+    public ResponseEntity<List<Listing>> getAllListingsByPrice(@RequestParam BigDecimal minPrice, @RequestParam BigDecimal maxPrice) {
+        List<Listing> listings = listingService.getListingByPriceRange(minPrice, maxPrice);
+        return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+    
+    @GetMapping("/location")
+    public ResponseEntity<List<Listing>> getAllListingsByLocation(@PathVariable String location) {
+        List<Listing> listings = listingService.getListingByLocation(location);
+        return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
     @PatchMapping("/{id}")
