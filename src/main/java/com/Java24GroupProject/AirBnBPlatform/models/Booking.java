@@ -43,19 +43,9 @@ public class Booking {
     private BookingStatus bookingStatus;
 
     @CreatedDate
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
-    public void CalculateTotalPrice() {
-        if (listing == null || listing.getPrice_per_night() == null || bookingDates.getStartDate() == null || bookingDates.getEndDate() == null) {
-            throw new IllegalStateException("Missing data to calculate total price, (check null values, remove this after dev)");
-        }
-            long daysBooked = (bookingDates.getEndDate().getTime() - bookingDates.getStartDate().getTime()) / (24 * 60 * 60 * 1000); //Beräkna dagar
-            if (daysBooked > 0){
-                this.totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
-            } else {
-                throw new IllegalStateException("End date must be after start date");
-            }
-        }
+    private LocalDateTime updatedAt;
 
 
     public Booking() {
@@ -103,6 +93,7 @@ public class Booking {
         this.totalPrice = totalPrice;
     }
 
+
     public BookingStatus getBookingStatus() {
         return bookingStatus;
     }
@@ -111,12 +102,20 @@ public class Booking {
         this.bookingStatus = bookingStatus;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public DateRange getBookingDates() {

@@ -44,9 +44,11 @@ public class Listing {
     private String location;
 
     private List<DateRange> availableDates;
-    // learn about something like updated_at
+
     @CreatedDate
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Listing() {
     }
@@ -115,12 +117,12 @@ public class Listing {
         this.location = location;
     }
 
-    public LocalDateTime getCreated_at() {
-        return created_at;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public BigDecimal getPrice_per_night() {
@@ -145,5 +147,13 @@ public class Listing {
 
     public void removeAvailableDateRange(DateRange dateRange) {
         this.availableDates.remove(dateRange);
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,37 +32,78 @@ public class BookingService {
         this.listingRepository = listingRepository;
     }
 
-    public Booking createBooking(Booking booking) {
-        validateBooking(booking);
+    public BookingResponse createBooking(BookingRequest bookingRequest) {
+        //validate that bookingRequest data is valid
+        validateBooking(bookingRequest);
 
+        //convert from RequestDTO to Booking
+        Booking booking = convertRequestToBooking(bookingRequest);
+
+        //validate that booking dates are available and update listing dates
         validateBookingDatesAndUpdateListing(booking);
-
-        booking.CalculateTotalPrice();
         booking.setBookingStatus(BookingStatus.PENDING);
-        booking.setCreatedDate(LocalDateTime.now());
+        booking.setUpdatedAt(null);
 
-        return bookingRepository.save(booking);
+        //save booking
+        bookingRepository.save(booking);
+
+        //return as DTO
+        return convertToDTOResponse(booking);
     }
 
-    public Booking getBookingById(String id) {
-        return bookingRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Booking not found"));
+    //get booking by id
+    public BookingResponse getBookingById(String id) {
+        Booking booking = validateBookingIdAndGetBooking(id);
+
+        //convert to DTO
+        return convertToDTOResponse(booking);
     }
 
-    public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
-    }
-    public List<Booking> getBookingByUserId(String userId) {
-        return bookingRepository.findByUser_Id(userId);
+    public List<BookingResponse> getAllBookings() {
+        List<BookingResponse> bookingResponses = new ArrayList<>();
+        //convert toDTO
+        for (Booking booking : bookingRepository.findAll()) {
+            bookingResponses.add(convertToDTOResponse(booking));
+        }
+        return bookingResponses;
     }
 
-    public Booking updateBooking (String id, Booking updatedBooking) {
-        //validate data in new booking
-        validateBooking(updatedBooking);
+    //get all bookings for a user
+    public List<BookingResponse> getBookingByUserId(String userId) {
+        //validate user id
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
 
-        Booking booking = getBookingById(id);
+        //convert toDTO
+        List<BookingResponse> userBookingResponses = new ArrayList<>();
+        for (Booking booking : bookingRepository.findByUser(user)) {
+            userBookingResponses.add(convertToDTOResponse(booking));
+        }
+        return userBookingResponses;
+    }
+
+    public BookingResponse updateBooking (String id, BookingRequest updatedBookingRequest) {
+        //validate booking id
+        Booking booking = validateBookingIdAndGetBooking(id);
+
+        //check if status is pending, otherwise cannot be changed
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
             throw new UnsupportedOperationException("Confirmed, payed or cancelled bookings cannot be updated");
+        }
+
+        //validate data in new booking
+        validateBooking(updatedBookingRequest);
+        //convert to booking
+        Booking updatedBooking = convertRequestToBooking(updatedBookingRequest);
+
+        //owner of booking cannot be changed
+        if (booking.getUser().getId().equals(updatedBooking.getUser().getId())) {
+            throw new IllegalArgumentException("Owner of booking cannot be changed");
+        }
+
+        //listing of booking cannot be changed
+        if (booking.getListing().getId().equals(updatedBooking.getListing().getId())) {
+            throw new IllegalArgumentException("Listing cannot be changed");
         }
 
         //if booking dates are changed
@@ -69,86 +111,102 @@ public class BookingService {
                 !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
 
             //add back the old dates
-            Listing listing = listingRepository.findById(booking.getListing().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
+            Listing listing = validateListingIdAndGetListing(booking);
             listing.addAvailableDateRange(booking.getBookingDates());
 
+            //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking);
         }
 
-        //update booking
-        booking.setListing(updatedBooking.getListing());
-        booking.setUser(updatedBooking.getUser());
+        //update other booking data booking
         booking.setNumberOfGuests(updatedBooking.getNumberOfGuests());
 
-        return bookingRepository.save(booking);
+        //update updatedAt
+        booking.setUpdatedAt(LocalDateTime.now());
+
+        //save booking
+        bookingRepository.save(booking);
+
+        //return as DTO
+        return convertToDTOResponse(booking);
     }
 
 
     public void deleteBooking(String id) {
         //check if id is valid
-        Booking booking = getBookingById(id);
+        Booking booking = validateBookingIdAndGetBooking(id);
 
-        Listing listing = listingRepository.findById(booking.getListing().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
+        //get listing
+        Listing listing = validateListingIdAndGetListing(booking);
 
+        //add back the booked dates to the listing
         listing.addAvailableDateRange(booking.getBookingDates());
+        listingRepository.save(listing);
 
         //delete booking
         bookingRepository.deleteById(id);
     }
 
-    public BookingResponse convertToDTO(Booking booking) {
+    private BookingResponse convertToDTOResponse(Booking booking) {
+        //get listing and user to save variables in DTOResponse
+        Listing listing = validateListingIdAndGetListing(booking);
+        User user = validateUserIdAndGetUser(booking);
+
         return new BookingResponse(
-                booking.getId(),
-                booking.getListing().getTitle(),
-                booking.getListing().getHost().getUsername(),
-                booking.getUser().getUsername(),
-                booking.getUser().getEmail(),
-                booking.getUser().getPhoneNr(),
+                listing.getTitle(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPhoneNr(),
                 booking.getBookingDates().getStartDate(),
                 booking.getBookingDates().getEndDate(),
                 booking.getNumberOfGuests(),
-                booking.getTotalPrice()
+                booking.getTotalPrice(),
+                booking.getBookingStatus(),
+                booking.getCreatedAt()
         );
     }
 
-    public BookingRequest convertToDTORequest(Booking booking) {
-        return new BookingRequest(
-                booking.getId(),
-                booking.getListing().getTitle(),
-                booking.getListing().getHost().getUsername(),
-                booking.getBookingDates().getStartDate(),
-                booking.getBookingDates().getEndDate(),
-                booking.getNumberOfGuests(),
-                booking.getTotalPrice()
-        );
+    //convert BookingRequest to Booking
+    public Booking convertRequestToBooking(BookingRequest bookingRequest) {
+                Booking booking = new Booking();
+                booking.setListing(bookingRequest.getListing());
+                booking.setUser(bookingRequest.getUser());
+                booking.setBookingDates(new DateRange(bookingRequest.getStartDate(),bookingRequest.getEndDate()));
+                booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
+                calculateAndSetPrice(booking);
+                return booking;
     }
 
-    private void validateBooking(Booking booking) {
+    //validate that BookingRequest data is valid
+    private void validateBooking(BookingRequest bookingRequest) {
         //check that user id is valid
-        User user = userRepository.findById(booking.getUser().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("user id not found"));
+        User user = validateUserIdAndGetUser(bookingRequest);
 
         //check that listing id is valid
-        Listing listing = listingRepository.findById(booking.getListing().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
+        Listing listing = validateListingIdAndGetListing(bookingRequest);
 
         //check that the user for the booking is not also the host of the listing
         if (user.getId().equals(listing.getHost().getId())) {
             throw new IllegalArgumentException("user not allowed to make booking for their own listing");
         }
 
+        //check that request had dates
+        if (bookingRequest.getStartDate() == null || bookingRequest.getEndDate() == null) {
+            throw new IllegalArgumentException("booking must have start and end date");
+        }
+
         //check that nrOfGuest does not exceed listing capacity
-        if (booking.getNumberOfGuests() > listing.getCapacity()) {
+        if (bookingRequest.getNumberOfGuests() > listing.getCapacity()) {
             throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
         }
     }
 
+    //validate that booking dates are available and update listing dates
     private void validateBookingDatesAndUpdateListing(Booking booking) {
-        Listing listing = listingRepository.findById(booking.getListing().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("listing id not found"));
+        //get listing
+        Listing listing = validateListingIdAndGetListing(booking);
 
+        //save booking dates in variable for ease of use
         DateRange bookingDates = booking.getBookingDates();
 
         //check that booking dates fall within available dates of listing.
@@ -169,6 +227,9 @@ public class BookingService {
                     listing.getAvailableDates().add(newDateRange);
                     availibleDateRange.setEndDate(bookingDates.getStartDate());
                 }
+
+                //save updated listing
+                listing.setUpdatedAt(LocalDateTime.now());
                 listingRepository.save(listing);
                 break;
             }
@@ -180,13 +241,56 @@ public class BookingService {
         }
     }
 
-
-    private BigDecimal calculatePrice(Booking booking) {
+    private void calculateAndSetPrice(Booking booking) {
+        //calculate days in between start and end date
         long daysBetween = ChronoUnit.DAYS.between(
                 booking.getBookingDates().getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
                 booking.getBookingDates().getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         );
-        return booking.getListing().getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
+
+        //get listing
+        Listing listing = validateListingIdAndGetListing(booking);
+
+        //calculate price using listing price_per_night
+        BigDecimal totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
+
+        //set total price of booking
+        booking.setTotalPrice(totalPrice);
+    }
+
+    //validate id and get booking object
+    private Booking validateBookingIdAndGetBooking(String id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+    }
+
+    //validate listing id and get listing object from booking
+    private Listing validateListingIdAndGetListing(Booking booking) {
+        return listingRepository.findById(booking.getListing().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
+    }
+
+    //validate listing id and get listing object from bookingRequest
+    private Listing validateListingIdAndGetListing(BookingRequest bookingRequest) {
+        return listingRepository.findById(bookingRequest.getListing().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
+    }
+
+    //validate user id and get user object from booking
+    private User validateUserIdAndGetUser(Booking booking) {
+        return userRepository.findById(booking.getUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    }
+
+    //validate user id and get user object from bookingRequest
+    private User validateUserIdAndGetUser(BookingRequest bookingRequest) {
+        return userRepository.findById(bookingRequest.getUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
     }
 
 }

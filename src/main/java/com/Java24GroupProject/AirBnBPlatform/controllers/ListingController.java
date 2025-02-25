@@ -6,10 +6,10 @@ import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/listings")
@@ -21,8 +21,9 @@ public class ListingController {
     }
     
     @PostMapping
-    public ResponseEntity<Listing> createListing(@Valid @RequestBody Listing listing) {
-        Listing newListing = listingService.createListing(listing);
+    @PreAuthorize("hasRole('HOST')")
+    public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody Listing listing) {
+        ListingResponse newListing = listingService.createListing(listing);
         return new ResponseEntity<>(newListing, HttpStatus.CREATED);
     }
     
@@ -39,11 +40,13 @@ public class ListingController {
     }
     
     @PatchMapping("/{id}")
-    public ResponseEntity<Listing> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
+    @PreAuthorize("hasRole('HOST')")
+    public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
         return ResponseEntity.ok(listingService.updateListing(id, listing));
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('HOST')")
     public ResponseEntity<Void> deleteListing(@PathVariable String id) {
         listingService.deleteListing(id);
         return ResponseEntity.noContent().build();

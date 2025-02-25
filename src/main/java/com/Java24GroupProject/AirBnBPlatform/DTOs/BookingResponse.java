@@ -1,12 +1,13 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class BookingResponse {
-    private String bookingId;
-    private String title;
-    private String host;
+    private String listingTitle;
     private String username;
     private String email;
     private String phoneNr;
@@ -14,11 +15,11 @@ public class BookingResponse {
     private Date endDate;
     private Integer numberOfGuests;
     private BigDecimal totalPrice;
+    private BookingStatus status;
+    private LocalDateTime createdAt;
 
-    public BookingResponse(String bookingId, String title, String host, String username, String email, String phoneNr, Date startDate, Date endDate, Integer numberOfGuests, BigDecimal totalPrice) {
-        this.bookingId = bookingId;
-        this.title = title;
-        this.host = host;
+    public BookingResponse(String listingTitle, String username, String email, String phoneNr, Date startDate, Date endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status, LocalDateTime createdAt) {
+        this.listingTitle = listingTitle;
         this.username = username;
         this.email = email;
         this.phoneNr = phoneNr;
@@ -26,87 +27,87 @@ public class BookingResponse {
         this.endDate = endDate;
         this.numberOfGuests = numberOfGuests;
         this.totalPrice = totalPrice;
+        this.status = status;
+        this.createdAt = createdAt;
     }
 
-    public void setBookingId(String bookingId) {
-        this.bookingId = bookingId;
+    public String getListingTitle() {
+        return listingTitle;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setListingTitle(String listingTitle) {
+        this.listingTitle = listingTitle;
     }
 
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
+    public String getUsername() {
+        return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPhoneNr(String phoneNr) {
-        this.phoneNr = phoneNr;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
-    }
-
-    public void setNumberOfGuests(Integer numberOfGuests) {
-        this.numberOfGuests = numberOfGuests;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public String getBookingId() {
-        return bookingId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-
-
-    public String getUsername() {
-        return username;
-    }
-
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPhoneNr() {
         return phoneNr;
     }
 
+    public void setPhoneNr(String phoneNr) {
+        this.phoneNr = phoneNr;
+    }
+
     public Date getStartDate() {
         return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     public Date getEndDate() {
         return endDate;
     }
 
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
     public Integer getNumberOfGuests() {
         return numberOfGuests;
     }
 
+    public void setNumberOfGuests(Integer numberOfGuests) {
+        this.numberOfGuests = numberOfGuests;
+    }
+
     public BigDecimal getTotalPrice() {
         return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public BookingStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(BookingStatus status) {
+        this.status = status;
     }
 }

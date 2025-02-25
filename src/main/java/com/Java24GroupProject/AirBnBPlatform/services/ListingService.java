@@ -3,11 +3,13 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
+import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +23,7 @@ public class ListingService {
         this.userRepository = userRepository;
     }
 
-    public Listing createListing(Listing listing) {
+    public ListingResponse createListing(Listing listing) {
         if (listing.getTitle() == null || listing.getTitle().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty");
         }
@@ -32,33 +34,42 @@ public class ListingService {
         if (listing.getCapacity() <= 0) {
             throw new IllegalArgumentException("capacity must be greater than 0");
         }
+
         userRepository.findById(listing.getHost().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return listingRepository.save(listing);
+        //save new listing
+        listingRepository.save(listing);
+
+        //return as ResponseDTO
+        return convertToListingResponseDTO(listing);
 
     }
 
+    //get all listings
     public List<ListingResponse> getAllListings() {
         List<Listing> listings = listingRepository.findAll();
 
-        // convert Listing to ListingResponse
+        //convert Listing to ListingResponse
         return listings.stream()
-                .map(this::convertToDTO)
+                .map(this::convertToListingResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    //get listing using listing id
     public ListingResponse getListingById(String id) {
-        Listing listing = listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-        return convertToDTO(listing);
+        //validate listing id and get existing listing
+        Listing listing = validateListingIdAndGetListing(id);
+
+        //return as DTO
+        return convertToListingResponseDTO(listing);
     }
 
     
     // PATCH
-    public Listing updateListing(String id, Listing listing) {
-        Listing existingListing = listingRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
+    public ListingResponse updateListing(String id, Listing listing) {
+        //validate listing id and get existing listing
+        Listing existingListing = validateListingIdAndGetListing(id);
        
         // only non null field will be updated
         if (listing.getTitle() != null) {
@@ -86,13 +97,19 @@ public class ListingService {
             existingListing.setAvailableDates(listing.getAvailableDates());
         }
 
-        return listingRepository.save(existingListing);
+        //update updatedAt
+        listing.setUpdatedAt(LocalDateTime.now());
+
+        //save updated listing
+        listingRepository.save(existingListing);
+
+        //return as ResponseDTO
+        return convertToListingResponseDTO(existingListing);
     }
-    
+
+    //validate listing id exists in database and delete listing
     public void deleteListing(String id) {
-        Listing listing = listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-        
+        Listing listing = validateListingIdAndGetListing(id);
         listingRepository.delete(listing);
     }
     
@@ -112,7 +129,9 @@ public class ListingService {
     }*/
     
     // limit what's shown when grabbing listings
-    private ListingResponse convertToDTO(Listing listing) {
+    private ListingResponse convertToListingResponseDTO(Listing listing) {
+        User user = userRepository.findById(listing.getHost().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         ListingResponse listingResponse = new ListingResponse();
         
         listingResponse.setTitle(listing.getTitle());
@@ -120,10 +139,16 @@ public class ListingService {
         listingResponse.setCapacity(listing.getCapacity());
         listingResponse.setPrice_per_night(listing.getPrice_per_night());
         listingResponse.setUtilities(listing.getUtilities());
-        listingResponse.setHost(listing.getHost().getUsername());
+        listingResponse.setHost(user.getUsername());
         listingResponse.setAvailiableDates(listing.getAvailableDates());
 
         return listingResponse;
         
+    }
+
+    private Listing validateListingIdAndGetListing(String id) {
+        return listingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
     }
 }
