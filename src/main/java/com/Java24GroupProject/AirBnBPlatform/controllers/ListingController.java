@@ -47,6 +47,7 @@ public class ListingController {
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
+    //search for listing via location (city)
     @GetMapping("/location/{location}")
     public ResponseEntity<List<Listing>> getAllListingsByLocation(@PathVariable String location) {
         List<Listing> listings = listingService.getListingByLocation(location);
