@@ -2,6 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.models;
 
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.data.annotation.CreatedDate;
@@ -11,8 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Set;
 
 @Document(collection = "bookings")
 public class Booking {
@@ -30,11 +29,7 @@ public class Booking {
 //    @DBRef
 //    private User username
 
-//    private TimePeriod startDate;
-//    private TimePeriod endDate;
-
-    private Date startDate;
-    private Date endDate;
+    private DateRange bookingDates;
 
     @NotNull(message = "Number of guests is required")
     @Positive(message = "Amount of guests must be greater than 0")
@@ -45,16 +40,16 @@ public class Booking {
     private BigDecimal totalPrice;
     // (number of days) * (price per night)
 
-    private Set<BookingStatus> bookingStatus;
+    private BookingStatus bookingStatus;
 
     @CreatedDate
     private LocalDateTime createdDate;
 
     public void CalculateTotalPrice() {
-        if (listing == null && listing.getPrice_per_night() == null && startDate == null && endDate == null) {
+        if (listing == null || listing.getPrice_per_night() == null || bookingDates.getStartDate() == null || bookingDates.getEndDate() == null) {
             throw new IllegalStateException("Missing data to calculate total price, (check null values, remove this after dev)");
         }
-            long daysBooked = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000); //Beräkna dagar
+            long daysBooked = (bookingDates.getEndDate().getTime() - bookingDates.getStartDate().getTime()) / (24 * 60 * 60 * 1000); //Beräkna dagar
             if (daysBooked > 0){
                 this.totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBooked));
             } else {
@@ -90,21 +85,7 @@ public class Booking {
         this.user = user;
     }
 
-    public Date getStartDate() {
-        return startDate;
-    }
 
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
-    }
 
     public @NotNull(message = "Number of guests is required") @Positive(message = "Amount of guests must be greater than 0") Integer getNumberOfGuests() {
         return numberOfGuests;
@@ -122,11 +103,11 @@ public class Booking {
         this.totalPrice = totalPrice;
     }
 
-    public Set<BookingStatus> getBookingStatus() {
+    public BookingStatus getBookingStatus() {
         return bookingStatus;
     }
 
-    public void setBookingStatus(Set<BookingStatus> bookingStatus) {
+    public void setBookingStatus(BookingStatus bookingStatus) {
         this.bookingStatus = bookingStatus;
     }
 
@@ -136,5 +117,13 @@ public class Booking {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public DateRange getBookingDates() {
+        return bookingDates;
+    }
+
+    public void setBookingDates(DateRange bookingDates) {
+        this.bookingDates = bookingDates;
     }
 }

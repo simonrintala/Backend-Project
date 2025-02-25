@@ -1,6 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.models;
 
 
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -42,6 +43,7 @@ public class Listing {
     // location by city so one can search by city later on
     private String location;
 
+    private List<DateRange> availableDates;
     // learn about something like updated_at
     @CreatedDate
     private LocalDateTime created_at;
@@ -127,5 +129,13 @@ public class Listing {
 
     public void setPrice_per_night(BigDecimal price_per_night) {
         this.price_per_night = price_per_night;
+    }
+
+    public List<DateRange> getAvailableDates() {
+        return availableDates;
+    }
+
+    public void setAvailableDates(List<DateRange> availableDates) {
+        this.availableDates = availableDates;
     }
 }

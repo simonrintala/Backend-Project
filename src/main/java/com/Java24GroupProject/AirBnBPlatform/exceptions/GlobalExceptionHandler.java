@@ -14,6 +14,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> illegalArgumentExceptionHandler(IllegalArgumentException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<String> unsupportedOperationExceptionHandler(UnsupportedOperationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
     
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> resourceNotFoundExceptionHandler(ResourceNotFoundException ex) {
