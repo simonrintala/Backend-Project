@@ -49,12 +49,12 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         //only admin can access things under url admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        //only users with host role can access listing creation
-                        .requestMatchers("/listings/**").hasRole("HOST")
+                        //permit all so that all can search for listing (method based access control for non-GET methods in ListingController)
+                        .requestMatchers("/listings/**").permitAll()
                         //only logged-in users (any role) can access
-                        .requestMatchers("/user/**", "/bookings/**").hasAnyRole("USER", "HOST", "ADMIN")
+                        .requestMatchers("/users/**", "/bookings/**").hasAnyRole("ADMIN","HOST","USER")
                         //any user can access, incl. login page and search page (search for listings)
-                        .requestMatchers("/auth/**", "/search/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         //all other urls, only logged-in users
                         .anyRequest().authenticated()
                 )
