@@ -1,9 +1,11 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 import jakarta.validation.constraints.NotBlank;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -12,21 +14,23 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
-    private Double price_per_night;
+    private BigDecimal price_per_night;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
     private User host;
-    
-    public ListingRequest(String title, String description, Double price_per_night, Set<ListingUtilities> utilities, Integer capacity, User host) {
+    private List<DateRange> availableDates;
+
+    public ListingRequest(String title, BigDecimal price_per_night, String description, Set<ListingUtilities> utilities, Integer capacity, User host, List<DateRange> availableDates) {
         this.title = title;
-        this.description = description;
         this.price_per_night = price_per_night;
+        this.description = description;
         this.utilities = utilities;
         this.capacity = capacity;
         this.host = host;
+        this.availableDates = availableDates;
     }
-    
+
     public @NotBlank String getTitle() {
         return title;
     }
@@ -35,7 +39,7 @@ public class ListingRequest {
         return description;
     }
     
-    public @NotBlank Double getPrice_per_night() {
+    public @NotBlank BigDecimal getPrice_per_night() {
         return price_per_night;
     }
     
@@ -49,5 +53,9 @@ public class ListingRequest {
     
     public User getHost() {
         return host;
+    }
+
+    public List<DateRange> getAvailableDates() {
+        return availableDates;
     }
 }
