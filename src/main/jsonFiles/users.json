@@ -1,7 +1,0 @@
-{
-  "username": "username",
-  "password": "password",
-  "email": "test@test.com",
-  "phoneNr": "0788888288",
-  "roles": ["ADMIN","HOST","USER"]
-}
