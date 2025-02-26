@@ -23,7 +23,7 @@ public class Review {
     private Booking booking;
 
     @NotNull(message = "A end date is required")
-    private Date endDate;
+    private LocalDate endDate;
 
     @Positive(message = "Review score must be greater than zero")
     @Min(value = 1, message = "Minimum value must be atleast 1")
@@ -36,7 +36,7 @@ public class Review {
     public Review() {
     }
 
-    public Review(String id, Booking booking, LocalDate endDate, Double rating, LocalDateTime createdAt) {
+    public Review(String id, Booking booking, Date endDate, Double rating, LocalDateTime createdAt) {
         this.id = id;
         this.booking = booking;
         this.endDate = endDate;
@@ -60,11 +60,11 @@ public class Review {
         this.booking = booking;
     }
 
-    public @NotNull(message = "A end date is required") Date getEndDate() {
+    public @NotNull(message = "A end date is required") LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(@NotNull(message = "A end date is required") Date endDate) {
+    public void setEndDate(@NotNull(message = "A end date is required") LocalDate endDate) {
         this.endDate = endDate;
     }
 
