@@ -99,7 +99,7 @@ public class UserService {
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
 
-        String message = listing.getTitle();
+        String message = "'"+listing.getTitle()+"'";
         User user = verifyCookiesAndExtractUser();
 
         boolean isRemoved = false;
@@ -190,11 +190,17 @@ public class UserService {
     private UserResponse convertUserToUserResponse(User user) {
         //convert list of listings to list of string objects
         List<String> favorites = new ArrayList<>();
-        if (user.getFavorites() != null || !user.getFavorites().isEmpty()) {
-            for (Listing l : user.getFavorites()) {
-                Listing listing = listingRepository.findById(l.getId())
+        if (user.getFavorites() != null) {
+            if (!user.getFavorites().isEmpty()) {
+                for (Listing listingReference : user.getFavorites()) {
+                    if (listingRepository.findById(listingReference.getId()).isPresent()) {
+                        Listing listing = listingRepository.findById(listingReference.getId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                favorites.add(listing.getTitle());
+                        favorites.add(listing.getTitle());
+                    } else {
+                        favorites.add("[deleted listing]");
+                    }
+                }
             }
         }
         return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
