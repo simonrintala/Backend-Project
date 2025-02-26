@@ -1,6 +1,5 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
-import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -8,10 +7,8 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -59,16 +56,16 @@ public class ReviewService {
         return savedReview;
     }
 
-    public List<Review> getReviewsByListing(Listing listingId) {
-        return reviewRepository.findByListingId(listingId);
+    public List<Review> getReviewsByListing(String listingId) {
+        return reviewRepository.findByListing_Id(listingId);
     }
 
-    public List<Review> getReviewsByUser(User userId) {
-        return reviewRepository.findByUserId(userId);
+    public List<Review> getReviewsByUser(String userId) {
+        return reviewRepository.findByUser_Id(userId);
     }
 
     private void updateListingAverageRating(String listingId) {
-        List<Review> reviews = reviewRepository.findByListingId(listingId);
+        List<Review> reviews = reviewRepository.findByListing_Id(listingId);
 
         if (!reviews.isEmpty()) {
             double avgRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
