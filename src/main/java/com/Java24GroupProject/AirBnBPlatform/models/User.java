@@ -136,6 +136,14 @@ public class User {
         this.favorites = favorites;
     }
 
+    public void addFavorite(Listing listing) {
+        favorites.add(listing);
+    }
+
+    public void removeFavorite(Listing listing) {
+        favorites.remove(listing);
+    }
+
     public Set<Role> getRoles() {
         return roles;
     }

@@ -4,6 +4,7 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -101,13 +102,23 @@ public class UserService {
         String message = listing.getTitle();
         User user = verifyCookiesAndExtractUser();
 
-        if (!user.getFavorites().contains(listing)) {
-            user.getFavorites().add(listing);
-            message = message +" has been added to favorites";
-        } else {
-            user.getFavorites().remove(listing);
-            message = message +" has been removed from favorites";
+        boolean isRemoved = false;
+        for (Listing listingReference : user.getFavorites()) {
+            Listing listingInFavorites = listingRepository.findById(listingReference.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+            if (listingInFavorites.getId().equals(listing.getId())) {
+                user.removeFavorite(listingReference);
+                message = message +" has been removed from favorites";
+                isRemoved = true;
+                break;
+            }
         }
+
+        if (!isRemoved) {
+            user.addFavorite(listing);
+            message = message +" has been added to favorites";
+        }
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return message;
     }
@@ -179,8 +190,12 @@ public class UserService {
     private UserResponse convertUserToUserResponse(User user) {
         //convert list of listings to list of string objects
         List<String> favorites = new ArrayList<>();
-        for (Listing listing : user.getFavorites()) {
-            favorites.add(listing.getTitle());
+        if (user.getFavorites() != null || !user.getFavorites().isEmpty()) {
+            for (Listing l : user.getFavorites()) {
+                Listing listing = listingRepository.findById(l.getId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                favorites.add(listing.getTitle());
+            }
         }
         return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }

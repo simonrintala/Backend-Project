@@ -2,6 +2,8 @@ package com.Java24GroupProject.AirBnBPlatform.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -39,6 +41,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NameAlreadyBoundException.class)
     public ResponseEntity<String> conflictExceptionHandler(Exception ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    //error handling for @RequestBody failing @Valid check
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationError(MethodArgumentNotValidException exception) {
+        String errorMessages = "Invalid input argument(s):";
+
+        //extract the part of the error message that correlates with the "message" string set in the annotation in the class
+        for (ObjectError objectError : exception.getAllErrors()) {
+            String[] errorFields = objectError.toString().split(";");
+            String errorMessage = errorFields[errorFields.length-1].substring(18).replace("]","");
+            errorMessages = errorMessages.concat("\n- "+errorMessage);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages);
     }
     
     
