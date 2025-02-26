@@ -6,10 +6,10 @@ import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/listings")
@@ -21,30 +21,32 @@ public class ListingController {
     }
     
     @PostMapping
-    public ResponseEntity<Listing> createListing(@Valid @RequestBody Listing listing) {
-        Listing newListing = listingService.createListing(listing);
+    @PreAuthorize("hasAnyRole('HOST','ADMIN')")
+    public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody Listing listing) {
+        ListingResponse newListing = listingService.createListing(listing);
         return new ResponseEntity<>(newListing, HttpStatus.CREATED);
     }
     
     @GetMapping
     public ResponseEntity<List<ListingResponse>> getAllListings() {
-        List<ListingResponse> listing = listingService.getAllListings();
-        return new ResponseEntity<>(listing, HttpStatus.OK);
+        List<ListingResponse> listings = listingService.getAllListings();
+        return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Listing> getListingById(@PathVariable String id) {
-        Optional<Listing> listing = listingService.getListingById(id);
-        return listing.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String id) {
+        ListingResponse listing = listingService.getListingById(id);
+        return new ResponseEntity<>(listing, HttpStatus.OK);
     }
     
     @PatchMapping("/{id}")
-    public ResponseEntity<Listing> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
+    @PreAuthorize("hasAnyRole('HOST','ADMIN')")
+    public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
         return ResponseEntity.ok(listingService.updateListing(id, listing));
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('HOST','ADMIN')")
     public ResponseEntity<Void> deleteListing(@PathVariable String id) {
         listingService.deleteListing(id);
         return ResponseEntity.noContent().build();

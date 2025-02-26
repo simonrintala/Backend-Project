@@ -1,6 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.models;
 
 
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -45,9 +46,12 @@ public class Listing {
     // location by city so one can search by city later on
     private String location;
 
-    // learn about something like updated_at
+    private List<DateRange> availableDates;
+
     @CreatedDate
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Listing() {
     }
@@ -116,12 +120,12 @@ public class Listing {
         this.location = location;
     }
 
-    public LocalDateTime getCreated_at() {
-        return created_at;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public BigDecimal getPrice_per_night() {
@@ -130,5 +134,63 @@ public class Listing {
 
     public void setPrice_per_night(BigDecimal price_per_night) {
         this.price_per_night = price_per_night;
+    }
+
+    public List<DateRange> getAvailableDates() {
+        return availableDates;
+    }
+
+    public void setAvailableDates(List<DateRange> availableDates) {
+        this.availableDates = availableDates;
+    }
+
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void addAvailableDateRange(DateRange dateRange) {
+
+        DateRange startsWhereNewDateRangeEnds = null;
+        DateRange endWhereNewDateRangeStarts = null;
+
+        for (DateRange availableDateRange : availableDates) {
+            //check if there is overlap with existing dates
+            if (dateRange.hasOverlapWithAnotherDateRange(availableDateRange)) {
+                throw new IllegalArgumentException("dates could not be added, as they overlap with existing available date ranges");
+
+                //if dates are identical to dates in list throw error
+            } else if (dateRange.isIdenticalToAnotherDateRange(availableDateRange)) {
+                throw new IllegalArgumentException("dates could not be added, already in available dates for listing");
+
+                //does dateRange start at the end of exisiting date range
+            } else if (dateRange.getStartDate().isEqual(availableDateRange.getEndDate())) {
+                endWhereNewDateRangeStarts = availableDateRange;
+
+                //does dateRange end at the start of exisiting date range
+            } else if (availableDateRange.getStartDate().isEqual(dateRange.getEndDate())) {
+                startsWhereNewDateRangeEnds = availableDateRange;
+            }
+        }
+
+        //if new dateRange is not adjacent to any exising date range
+        if (startsWhereNewDateRangeEnds == null && endWhereNewDateRangeStarts == null) {
+            availableDates.add(dateRange);
+
+            //if new daterange ends at existing daterange start date, extend existing adjacent daterange
+        } else if (startsWhereNewDateRangeEnds != null && endWhereNewDateRangeStarts == null) {
+            startsWhereNewDateRangeEnds.setStartDate(dateRange.getStartDate());
+            //if new daterange starts at existing daterange end date, extend existing adjacent daterange
+        } else if (startsWhereNewDateRangeEnds == null && endWhereNewDateRangeStarts != null) {
+            endWhereNewDateRangeStarts.setEndDate(dateRange.getEndDate());
+        //if it is adjacent to two existing dateranges
+        } else {
+            endWhereNewDateRangeStarts.setEndDate(startsWhereNewDateRangeEnds.getEndDate());
+            availableDates.remove(startsWhereNewDateRangeEnds);
+        }
     }
 }
