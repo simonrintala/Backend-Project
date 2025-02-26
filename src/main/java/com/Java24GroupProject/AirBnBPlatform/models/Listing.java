@@ -151,6 +151,10 @@ public class Listing {
     }
 
     public void addAvailableDateRange(DateRange dateRange) {
+
+        DateRange startsWhereNewDateRangeEnds = null;
+        DateRange endWhereNewDateRangeStarts = null;
+
         for (DateRange availableDateRange : availableDates) {
             //check if there is overlap with existing dates
             if (dateRange.hasOverlapWithAnotherDateRange(availableDateRange)) {
@@ -159,43 +163,31 @@ public class Listing {
                 //if dates are identical to dates in list throw error
             } else if (dateRange.isIdenticalToAnotherDateRange(availableDateRange)) {
                 throw new IllegalArgumentException("dates could not be added, already in available dates for listing");
+
+                //does dateRange start at the end of exisiting date range
+            } else if (dateRange.getStartDate().isEqual(availableDateRange.getEndDate())) {
+                endWhereNewDateRangeStarts = availableDateRange;
+
+                //does dateRange end at the start of exisiting date range
+            } else if (availableDateRange.getStartDate().isEqual(dateRange.getEndDate())) {
+                startsWhereNewDateRangeEnds = availableDateRange;
             }
         }
 
-        //add dates
-        availableDates.add(dateRange);
+        //if new dateRange is not adjacent to any exising date range
+        if (startsWhereNewDateRangeEnds == null && endWhereNewDateRangeStarts == null) {
+            availableDates.add(dateRange);
 
-        //run through list and fuse any dateRanges that are adjacent
-        boolean continueFuseDateRanges = true;
-        while (continueFuseDateRanges) {
-            continueFuseDateRanges = fuseAdjacentDateRanges();
+            //if new daterange ends at existing daterange start date, extend existing adjacent daterange
+        } else if (startsWhereNewDateRangeEnds != null && endWhereNewDateRangeStarts == null) {
+            startsWhereNewDateRangeEnds.setStartDate(dateRange.getStartDate());
+            //if new daterange starts at existing daterange end date, extend existing adjacent daterange
+        } else if (startsWhereNewDateRangeEnds == null && endWhereNewDateRangeStarts != null) {
+            endWhereNewDateRangeStarts.setEndDate(dateRange.getEndDate());
+        //if it is adjacent to two existing dateranges
+        } else {
+            endWhereNewDateRangeStarts.setEndDate(startsWhereNewDateRangeEnds.getEndDate());
+            availableDates.remove(startsWhereNewDateRangeEnds);
         }
-    }
-
-    public boolean fuseAdjacentDateRanges() {
-        boolean dateRangeFused = false;
-        for (DateRange availableDates1 : availableDates) {
-            for (DateRange availableDates2 : availableDates) {
-                if (availableDates1.isIdenticalToAnotherDateRange(availableDates2)) {
-                    continue;
-                }
-                if (availableDates1.getStartDate().isEqual(availableDates2.getEndDate())) {
-                    availableDates1.setStartDate(availableDates2.getStartDate());
-                    availableDates.remove(availableDates2);
-                    dateRangeFused = true;
-                    break;
-                } else if (availableDates2.getStartDate().isEqual(availableDates1.getEndDate()) || availableDates2.getStartDate().minusDays(1).isEqual(availableDates1.getEndDate())) {
-                    availableDates1.setEndDate(availableDates2.getEndDate());
-                    availableDates.remove(availableDates2);
-                    dateRangeFused = true;
-                    break;
-                }
-            }
-            if (dateRangeFused) {
-                break;
-            }
-
-        }
-        return dateRangeFused;
     }
 }

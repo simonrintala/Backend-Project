@@ -96,13 +96,8 @@ public class BookingService {
         //convert to booking
         Booking updatedBooking = convertRequestToBooking(updatedBookingRequest);
 
-        //owner of booking cannot be changed
-        if (booking.getUser().getId().equals(updatedBooking.getUser().getId())) {
-            throw new IllegalArgumentException("Owner of booking cannot be changed");
-        }
-
         //listing of booking cannot be changed
-        if (booking.getListing().getId().equals(updatedBooking.getListing().getId())) {
+        if (!booking.getListing().getId().equals(updatedBooking.getListing().getId())) {
             throw new IllegalArgumentException("Listing cannot be changed");
         }
 
@@ -113,9 +108,13 @@ public class BookingService {
             //add back the old dates
             Listing listing = validateListingIdAndGetListing(booking);
             listing.addAvailableDateRange(booking.getBookingDates());
+            listingRepository.save(listing);
+
 
             //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking);
+            booking.setBookingDates(updatedBooking.getBookingDates());
+
         }
 
         //update other booking data booking
