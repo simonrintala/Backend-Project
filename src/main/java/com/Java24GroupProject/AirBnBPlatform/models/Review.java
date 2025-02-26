@@ -9,13 +9,81 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Document(collection = "reviews")
 public class Review {
     @Id
     private String id;
 
+    @DBRef
+    @NotNull(message = "A booking is required")
+    private Booking booking;
+
+    @NotNull(message = "A end date is required")
+    private Date endDate;
+
+    @Positive(message = "Review score must be greater than zero")
+    @Min(value = 1, message = "Minimum value must be atleast 1")
+    @Max(value = 5, message = "Maximum value cannot be more than 5")
+    private Double rating;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    public Review() {
+    }
+
+    public Review(String id, Booking booking, LocalDate endDate, Double rating, LocalDateTime createdAt) {
+        this.id = id;
+        this.booking = booking;
+        this.endDate = endDate;
+        this.rating = rating;
+        this.createdAt = createdAt;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public @NotNull(message = "A booking is required") Booking getBooking() {
+        return booking;
+    }
+
+    public void setBooking(@NotNull(message = "A booking is required") Booking booking) {
+        this.booking = booking;
+    }
+
+    public @NotNull(message = "A end date is required") Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(@NotNull(message = "A end date is required") Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public @Positive(message = "Review score must be greater than zero") @Min(value = 1, message = "Minimum value must be atleast 1") @Max(value = 5, message = "Maximum value cannot be more than 5") Double getRating() {
+        return rating;
+    }
+
+    public void setRating(@Positive(message = "Review score must be greater than zero") @Min(value = 1, message = "Minimum value must be atleast 1") @Max(value = 5, message = "Maximum value cannot be more than 5") Double rating) {
+        this.rating = rating;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    /*
     @DBRef
     @NotNull(message = "A listing ID is required")
     private Listing listing;
@@ -95,5 +163,5 @@ public class Review {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
+    } */
 }

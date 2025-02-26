@@ -13,10 +13,15 @@ public class ReveiwController {
     private ReviewService reviewService;
 
     @PostMapping
+    public ResponseEntity<Review> createReview(@RequestParam String bookingId, @RequestParam Double rating) {
+        Review savedReview = reviewService.createReview(bookingId, rating);
+        return ResponseEntity.ok(savedReview);
+    }
+    /*@PostMapping
     public ResponseEntity<Review> createReview(@RequestBody Review review) {
         Review savedReview = reviewService.createReview(review);
         return ResponseEntity.ok(savedReview);
-    }
+    }*/
 
     @GetMapping("/listing/{listingId}")
     public ResponseEntity<List<Review>> getReviewsByListingId(@PathVariable String listingId) {
