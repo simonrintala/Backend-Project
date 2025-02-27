@@ -41,13 +41,11 @@ public class UserController {
         return new ResponseEntity<>(userService.updateUser(id, userRequest), HttpStatus.OK);
     }
 
-    /* commented out, is related to favorites will continue on it
     //adds a listing to users favorites if not already saved, otherwise removes it from favorites
     @PatchMapping("/favorites/{listingId}")
     public ResponseEntity<String> addOrRemoveFavorite(@PathVariable String listingId) {
         return new ResponseEntity<>(userService.addOrRemoveFavorite(listingId), HttpStatus.OK);
     }
 
-     */
 
 }

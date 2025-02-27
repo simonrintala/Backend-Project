@@ -4,7 +4,9 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
+import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
@@ -188,8 +190,6 @@ public class UserService {
     private UserResponse convertUserToUserResponse(User user) {
         //convert list of listings to list of string objects
         List<String> favorites = new ArrayList<>();
-
-        /* commented out, is related to favorties will continue on it
         if (user.getFavorites() != null) {
             if (!user.getFavorites().isEmpty()) {
                 for (Listing listingReference : user.getFavorites()) {
@@ -203,8 +203,6 @@ public class UserService {
                 }
             }
         }
-
-         */
         return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 }
