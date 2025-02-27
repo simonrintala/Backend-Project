@@ -36,15 +36,18 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping
-    public ResponseEntity<UserResponse> updateCurrentUser(@Valid @RequestBody UserRequest userRequest) {
-        return new ResponseEntity<>(userService.updateUser(userRequest), HttpStatus.OK);
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @Valid @RequestBody UserRequest userRequest) {
+        return new ResponseEntity<>(userService.updateUser(id, userRequest), HttpStatus.OK);
     }
 
+    /* commented out, is related to favorites will continue on it
     //adds a listing to users favorites if not already saved, otherwise removes it from favorites
     @PatchMapping("/favorites/{listingId}")
     public ResponseEntity<String> addOrRemoveFavorite(@PathVariable String listingId) {
         return new ResponseEntity<>(userService.addOrRemoveFavorite(listingId), HttpStatus.OK);
     }
+
+     */
 
 }
