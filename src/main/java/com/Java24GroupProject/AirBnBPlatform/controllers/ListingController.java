@@ -42,6 +42,12 @@ public class ListingController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
     
+    @GetMapping("/hostId/{hostId}")
+    public ResponseEntity<List<ListingResponse>> getListingsByHostId(@PathVariable String hostId) {
+        List<ListingResponse> listings = listingService.getAllListingsByHostId(hostId);
+        return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+    
     // search for listing between price range
     @GetMapping("/price")
     public ResponseEntity<List<ListingResponse>> getAllListingsByPrice(@RequestParam double minPrice, @RequestParam double maxPrice) {

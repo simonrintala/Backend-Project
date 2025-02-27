@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ListingRepository extends MongoRepository<Listing, String> {
+    //find based on host
+    List<Listing> findByHostId(String hostId);
+    
     //find based on location (city)
     List<Listing> findByLocation(String location);
     

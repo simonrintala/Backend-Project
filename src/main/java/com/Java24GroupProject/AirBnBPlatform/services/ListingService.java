@@ -54,6 +54,19 @@ public class ListingService {
         return listingRepository.findById(id);
     }
     
+    public List<ListingResponse> getAllListingsByHostId(String hostId) {
+        if (hostId == null || hostId.isEmpty()) {
+            throw new IllegalArgumentException("HostId cannot be empty");
+        }
+        List<Listing> listings = listingRepository.findByHostId(hostId);
+        if (listings.isEmpty()) {
+            throw new ResourceNotFoundException("Listing not found");
+        }
+        return listings.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
     public List<ListingResponse> getListingByPriceRange(double minPrice, double maxPrice) {
         // make sure none of the prices are negative
         if (minPrice < 0 || maxPrice <= 0) {
