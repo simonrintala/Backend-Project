@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,7 @@ public class ListingController {
         return new ResponseEntity<>(listing, HttpStatus.OK);
     }
     
+    // search for listing by id
     @GetMapping("/{id}")
     public ResponseEntity<Listing> getListingById(@PathVariable String id) {
         Optional<Listing> listing = listingService.getListingById(id);
@@ -42,15 +44,29 @@ public class ListingController {
     
     // search for listing between price range
     @GetMapping("/price")
-    public ResponseEntity<List<Listing>> getAllListingsByPrice(@RequestParam BigDecimal minPrice, @RequestParam BigDecimal maxPrice) {
-        List<Listing> listings = listingService.getListingByPriceRange(minPrice, maxPrice);
+    public ResponseEntity<List<ListingResponse>> getAllListingsByPrice(@RequestParam double minPrice, @RequestParam double maxPrice) {
+        List<ListingResponse> listings = listingService.getListingByPriceRange(minPrice, maxPrice);
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
     //search for listing via location (city)
     @GetMapping("/location/{location}")
-    public ResponseEntity<List<Listing>> getAllListingsByLocation(@PathVariable String location) {
-        List<Listing> listings = listingService.getListingByLocation(location);
+    public ResponseEntity<List<ListingResponse>> getAllListingsByLocation(@PathVariable String location) {
+        List<ListingResponse> listings = listingService.getListingByLocation(location);
+        return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+    
+    // search for listing between capacity size
+    @GetMapping("/capacity")
+    public ResponseEntity<List<ListingResponse>> getAllListingsByCapacity(@RequestParam double minCapacity, @RequestParam double maxCapacity) {
+        List<ListingResponse> listing = listingService.getListingByCapacity(minCapacity, maxCapacity);
+        return new ResponseEntity<>(listing, HttpStatus.OK);
+    }
+    
+    // search for listing with matching utilities
+    @GetMapping("/utilities/{utilities}")
+    public ResponseEntity<List<ListingResponse>> getAllListingsByUtilities(@PathVariable String utilities) {
+        List<ListingResponse> listings = listingService.getListingByUtilities(utilities);
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     

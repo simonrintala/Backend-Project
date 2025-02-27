@@ -7,8 +7,11 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -51,14 +54,14 @@ public class ListingService {
         return listingRepository.findById(id);
     }
     
-    public List<Listing> getListingByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+    public List<ListingResponse> getListingByPriceRange(double minPrice, double maxPrice) {
         // make sure none of the prices are negative
-        if (minPrice.compareTo(BigDecimal.ZERO) < 0 || maxPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        if (minPrice < 0 || maxPrice <= 0) {
             throw new IllegalArgumentException("Price cannot be negative");
         }
         
         // make sure minPrice is not greater that maxPrice
-        if (minPrice.compareTo(maxPrice) > 0 ) {
+        if (minPrice > maxPrice ) {
             throw new IllegalArgumentException("Price cannot be greater than maxPrice");
         }
         
@@ -66,18 +69,54 @@ public class ListingService {
         if(listings.isEmpty()) {
             throw new ResourceNotFoundException("Listing not found");
         }
-        return listings;
+        return listings.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
     
-    public List<Listing> getListingByLocation(String location) {
+    public List<ListingResponse> getListingByLocation(String location) {
+        // make sure location isn't empty/null
         if(location == null || location.isEmpty()) {
             throw new IllegalArgumentException("Location cannot be empty or null");
         }
+        
         List<Listing> listings = listingRepository.findByLocation(location);
         if(listings.isEmpty()) {
             throw new ResourceNotFoundException("No listing found for location: " + location);
         }
-        return listings;
+        return listings.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public List<ListingResponse> getListingByCapacity(double minCapacity, double maxCapacity) {
+        if (minCapacity < 0 || maxCapacity <= 0) {
+            throw new IllegalArgumentException("Capacity cannot be negative");
+        }
+        if (minCapacity > maxCapacity) {
+            throw new IllegalArgumentException("minCapacity cannot be greater than maxCapacity");
+        }
+       
+        List<Listing> listings = listingRepository.findByCapacityBetween(minCapacity, maxCapacity);
+        if(listings.isEmpty()) {
+            throw new ResourceNotFoundException("Listing not found");
+        }
+        return listings.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public List<ListingResponse> getListingByUtilities(String utility) {
+        if(utility == null || utility.isEmpty()) {
+            throw new IllegalArgumentException("Utility cannot be empty or null");
+        }
+        List<Listing> listings = listingRepository.findByUtilities(utility);
+        if(listings.isEmpty()) {
+            throw new ResourceNotFoundException("No listing found for utility: " + utility);
+        }
+        return listings.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
     
     // PATCH
@@ -144,8 +183,6 @@ public class ListingService {
         listingResponse.setUtilities(listing.getUtilities());
         listingResponse.setHost(listing.getHost().getUsername());
         
-        
         return listingResponse;
-        
     }
 }
