@@ -24,4 +24,5 @@ public interface ListingRepository extends MongoRepository<Listing, String> {
     List<Listing> findByCapacityBetween(double minCapacity, double maxCapacity);
     
     List<Listing> findByUtilities(String utility);
+    
 }

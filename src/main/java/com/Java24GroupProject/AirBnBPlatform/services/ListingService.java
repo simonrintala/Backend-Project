@@ -50,8 +50,9 @@ public class ListingService {
                 .collect(Collectors.toList());
     }
     
-    public Optional<Listing> getListingById(String id) {
-        return listingRepository.findById(id);
+    public Optional<ListingResponse> getListingById(String id) {
+        return listingRepository.findById(id)
+                .map(this::convertToDTO);
     }
     
     public List<ListingResponse> getAllListingsByHostId(String hostId) {

@@ -36,8 +36,8 @@ public class ListingController {
     
     // search for listing by id
     @GetMapping("/{id}")
-    public ResponseEntity<Listing> getListingById(@PathVariable String id) {
-        Optional<Listing> listing = listingService.getListingById(id);
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String id) {
+        Optional<ListingResponse> listing = listingService.getListingById(id);
         return listing.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
