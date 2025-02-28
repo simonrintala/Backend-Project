@@ -196,7 +196,7 @@ public class ListingService {
         listingResponse.setTitle(listing.getTitle());
         listingResponse.setDescription(listing.getDescription());
         listingResponse.setCapacity(listing.getCapacity());
-        listingResponse.setPrice_per_night(listing.getPricePerNight());
+        listingResponse.setPricePerNight(listing.getPricePerNight());
         listingResponse.setUtilities(listing.getUtilities());
         listingResponse.setHost(listing.getHost().getUsername());
         

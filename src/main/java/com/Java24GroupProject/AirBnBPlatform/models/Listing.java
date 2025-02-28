@@ -27,7 +27,7 @@ public class Listing {
     
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
-    //@Field(targetType = FieldType.DECIMAL128)
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal pricePerNight;
 
     @NotNull(message = "Capacity limit must be set.")

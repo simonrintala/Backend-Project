@@ -9,7 +9,7 @@ import java.util.Set;
 public class ListingResponse {
     private String title;
     private String description;
-    private BigDecimal price_per_night;
+    private BigDecimal pricePerNight;
     private Integer capacity;
     private Set<ListingUtilities> utilities;
     private String host;
@@ -33,12 +33,12 @@ public class ListingResponse {
         this.description = description;
     }
     
-    public BigDecimal getPrice_per_night() {
-        return price_per_night;
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
     }
     
-    public void setPrice_per_night(BigDecimal price_per_night) {
-        this.price_per_night = price_per_night;
+    public void setPricePerNight(BigDecimal pricePerNight) {
+        this.pricePerNight = pricePerNight;
     }
     
     public Integer getCapacity() {

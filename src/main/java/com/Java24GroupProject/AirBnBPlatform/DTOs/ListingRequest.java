@@ -13,7 +13,7 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
-    private BigDecimal perPerNight;
+    private BigDecimal pricePerNight;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
@@ -21,10 +21,10 @@ public class ListingRequest {
     private String location;
     private List<String> image_urls;
     
-    public ListingRequest(String title, BigDecimal perPerNight, String description, Set<ListingUtilities> utilities, Integer capacity, String host, String location, List<String> image_urls) {
+    public ListingRequest(String title, BigDecimal pricePerNight, String description, Set<ListingUtilities> utilities, Integer capacity, String host, String location, List<String> image_urls) {
         this.title = title;
         this.description = description;
-        this.perPerNight = perPerNight;
+        this.pricePerNight= pricePerNight;
         this.utilities = utilities;
         this.capacity = capacity;
         this.host = host;
@@ -52,8 +52,8 @@ public class ListingRequest {
         return host;
     }
     
-    public BigDecimal getPerPerNight() {
-        return perPerNight;
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
     }
     
     public String getLocation() {
