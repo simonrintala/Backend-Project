@@ -134,6 +134,30 @@ public class UserService {
         return message;
     }
 
+    public List<String> getFavorites() {
+        //get current user
+        User user = verifyCookiesAndExtractUser();
+
+        //convert list of listings to list of string objects
+        List<String> favoritesTitles = new ArrayList<>();
+        if (user.getFavorites() != null) {
+            if (!user.getFavorites().isEmpty()) {
+                for (Listing listingReference : user.getFavorites()) {
+                    if (listingRepository.findById(listingReference.getId()).isPresent()) {
+                        Listing listing = listingRepository.findById(listingReference.getId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                        favoritesTitles.add(listing.getTitle());
+                    } else {
+                        //if listing has been removed from database, delete if from favorites
+                        user.removeFavorite(listingReference);
+                        userRepository.save(user);
+                    }
+                }
+            }
+        }
+        return favoritesTitles;
+    }
+
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -199,23 +223,6 @@ public class UserService {
     }
 
     private UserResponse convertUserToUserResponse(User user) {
-        //convert list of listings to list of string objects
-        List<String> favoritesTitles = new ArrayList<>();
-        if (user.getFavorites() != null) {
-            if (!user.getFavorites().isEmpty()) {
-                for (Listing listingReference : user.getFavorites()) {
-                    if (listingRepository.findById(listingReference.getId()).isPresent()) {
-                        Listing listing = listingRepository.findById(listingReference.getId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                        favoritesTitles.add(listing.getTitle());
-                    } else {
-                        //if listing has been removed from database, delete if from favorites
-                        user.removeFavorite(listingReference);
-                        userRepository.save(user);
-                    }
-                }
-            }
-        }
-        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favoritesTitles, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 }
