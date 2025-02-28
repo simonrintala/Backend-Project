@@ -41,7 +41,7 @@ public class UserController {
         return new ResponseEntity<>(userService.updateUser(id, userRequest), HttpStatus.OK);
     }
 
-    //adds a listing to users favorites (current logged in user) if not already saved, otherwise removes it from favorites
+    //adds a listing to users favorites (current logged-in user) if not already saved, otherwise removes it from favorites
     @PatchMapping("/favorites/{listingId}")
     public ResponseEntity<String> addOrRemoveFavorite(@PathVariable String listingId) {
         return new ResponseEntity<>(userService.addOrRemoveFavorite(listingId), HttpStatus.OK);
@@ -52,6 +52,4 @@ public class UserController {
     public ResponseEntity<List<String>> getFavorites() {
         return new ResponseEntity<>(userService.getFavorites(), HttpStatus.OK);
     }
-
-
 }
