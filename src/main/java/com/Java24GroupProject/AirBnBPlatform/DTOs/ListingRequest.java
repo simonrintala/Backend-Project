@@ -1,5 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
+import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 import jakarta.validation.constraints.NotBlank;
 
@@ -12,31 +14,33 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
-    private BigDecimal pricePerNight;
+    private BigDecimal price_per_night;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
-    private String host;
-    private String location;
-    private List<String> image_urls;
-    
-    public ListingRequest(String title, BigDecimal pricePerNight, String description, Set<ListingUtilities> utilities, Integer capacity, String host, String location, List<String> image_urls) {
+    private User host;
+    private List<DateRange> availableDates;
+
+    public ListingRequest(String title, BigDecimal price_per_night, String description, Set<ListingUtilities> utilities, Integer capacity, User host, List<DateRange> availableDates) {
         this.title = title;
+        this.price_per_night = price_per_night;
         this.description = description;
-        this.pricePerNight= pricePerNight;
         this.utilities = utilities;
         this.capacity = capacity;
         this.host = host;
-        this.location = location;
-        this.image_urls = image_urls;
+        this.availableDates = availableDates;
     }
-    
+
     public @NotBlank String getTitle() {
         return title;
     }
     
     public String getDescription() {
         return description;
+    }
+    
+    public @NotBlank BigDecimal getPrice_per_night() {
+        return price_per_night;
     }
     
     public Set<ListingUtilities> getUtilities() {
@@ -47,19 +51,11 @@ public class ListingRequest {
         return capacity;
     }
     
-    public String getHost() {
+    public User getHost() {
         return host;
     }
-    
-    public BigDecimal getPricePerNight() {
-        return pricePerNight;
-    }
-    
-    public String getLocation() {
-        return location;
-    }
-    
-    public List<String> getImage_urls() {
-        return image_urls;
+
+    public List<DateRange> getAvailableDates() {
+        return availableDates;
     }
 }

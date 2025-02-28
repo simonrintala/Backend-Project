@@ -2,10 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.controllers;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.AuthenticationRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.AuthenticationResponse;
-import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterRequest;
-import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
-import com.Java24GroupProject.AirBnBPlatform.models.User;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.services.UserService;
 import com.Java24GroupProject.AirBnBPlatform.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,8 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
-
 //only handles registration of new users and login of users only
 @RestController
 @RequestMapping("/auth")
@@ -42,56 +37,10 @@ public class AuthenticationController {
         this.userService = userService;
     }
 
-    //register a new user, uses the RegisterRequest and RegisterResponse DTOs
-    //NB! currently only registers with username, password, email, phoneNr
+    //register a new user, uses the RegisterRequest DTO
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        //check if username already exists, and if is does, cast error
-        if (userService.existsByUsername(registerRequest.getUsername())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Username already exists in database");
-        }
-
-        //same for email
-        if (userService.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Email already exists in database");
-        }
-
-        //same for phoneNr
-        if (userService.existsByPhoneNr(registerRequest.getPhoneNr())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("PhoneNr already exists in database");
-        }
-
-        //maps the RegisterRequest to a User entity
-        //NOTE: add address, description etc here also when class is expanded upon
-        User user = new User();
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(registerRequest.getPassword());
-        user.setEmail(registerRequest.getEmail());
-        user.setPhoneNr(registerRequest.getPhoneNr());
-
-        //if no roles are provided in RegisterRequest, set to user
-        if(registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
-        } else {
-            user.setRoles(registerRequest.getRoles());
-        }
-
-        //register the user using in database UserService
-        userService.registerUser(user);
-
-        //create response object to return
-        RegisterResponse registerResponse = new RegisterResponse(
-                "user registered successfully",
-                user.getUsername(),
-                user.getRoles());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userRequest));
     }
 
     //login as an existing user, uses the AuthenticationRequest and AuthenticationResponse DTOs

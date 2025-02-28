@@ -1,8 +1,10 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 //The DTO for returning information at successful listing creation
@@ -12,6 +14,7 @@ public class ListingResponse {
     private BigDecimal pricePerNight;
     private Integer capacity;
     private Set<ListingUtilities> utilities;
+    private List<DateRange> availiableDates;
     private String host;
     
     public ListingResponse() {
@@ -63,5 +66,13 @@ public class ListingResponse {
     
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public List<DateRange> getAvailableDates() {
+        return availiableDates;
+    }
+
+    public void setAvailiableDates(List<DateRange> availiableDates) {
+        this.availiableDates = availiableDates;
     }
 }
