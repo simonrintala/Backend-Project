@@ -31,6 +31,8 @@ public class ListingService {
         //convert from RequestDTO to Listing
         Listing listing = convertRequestToListing(listingRequest);
         //save new listing
+        
+        listing.setUpdatedAt(null);
         listingRepository.save(listing);
 
         //return as ResponseDTO
@@ -187,34 +189,47 @@ public class ListingService {
     
     // limit what's shown when grabbing listings
     private ListingResponse convertToListingResponseDTO(Listing listing) {
+        // Retrieve the host (user) based on the host ID in the listing
         User user = userRepository.findById(listing.getHost().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        ListingResponse listingResponse = new ListingResponse();
         
-        listingResponse.setTitle(listing.getTitle());
-        listingResponse.setDescription(listing.getDescription());
-        listingResponse.setCapacity(listing.getCapacity());
-        listingResponse.setPricePerNight(listing.getPricePerNight());
-        listingResponse.setUtilities(listing.getUtilities());
-        listingResponse.setHost(user.getUsername());
-        listingResponse.setAvailiableDates(listing.getAvailableDates());
-
-        return listingResponse;
-        
+        return new ListingResponse(
+                listing.getTitle(),
+                listing.getDescription(),
+                listing.getPricePerNight(),
+                listing.getCapacity(),
+                listing.getUtilities(),
+                listing.getAvailableDates(),
+                user.getUsername(),
+                listing.getLocation(),
+                listing.getImage_urls()
+        );
     }
+    
     
     //convert ListingRequest to Listing
     public Listing convertRequestToListing(ListingRequest listingRequest) {
+        // Create a new Listing object
         Listing listing = new Listing();
+        
+        // Set fields from ListingRequest into Listing
         listing.setTitle(listingRequest.getTitle());
         listing.setDescription(listingRequest.getDescription());
-        listing.setCapacity(listingRequest.getCapacity());
         listing.setPricePerNight(listingRequest.getPricePerNight());
+        listing.setCapacity(listingRequest.getCapacity());
         listing.setUtilities(listingRequest.getUtilities());
-        listing.setHost(listingRequest.getHost());
         listing.setAvailableDates(listingRequest.getAvailableDates());
+        
+        // Set the host (the user creating the listing)
+        listing.setHost(listingRequest.getHost());
+        
+        // set location and image URLs if provided in ListingRequest
+        //listing.setLocation(listingRequest.getLocation());  // Make sure to add a location field in ListingRequest if needed
+        //listing.setImageUrls(listingRequest.getImageUrls());  // Same goes for image URLs
+        
         return listing;
     }
+    
     
     private void validateListing(ListingRequest listingRequest) {
         // check if userId for host is valid
@@ -241,10 +256,5 @@ public class ListingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
         
     }
-    //validate user id and get user object from bookingRequest
-    private User validateUserIdAndGetUser(ListingRequest listingRequest) {
-        return userRepository.findById(listingRequest.getHost().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
-    }
+
 }
