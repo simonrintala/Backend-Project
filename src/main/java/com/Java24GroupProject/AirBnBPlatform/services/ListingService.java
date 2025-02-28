@@ -140,41 +140,20 @@ public class ListingService {
     }
 
     
-    // PATCH
+    // PUT
     public ListingResponse updateListing(String id, Listing listing) {
         //validate listing id and get existing listing
         Listing existingListing = validateListingIdAndGetListing(id);
-       
-        // only non null field will be updated
-        if (listing.getTitle() != null) {
-            existingListing.setTitle(listing.getTitle());
-        }
-        if (listing.getPricePerNight() != null) {
-            existingListing.setPricePerNight(listing.getPricePerNight());
-        }
-        if(listing.getDescription() != null) {
-            existingListing.setDescription(listing.getDescription());
-        }
-        if(listing.getCapacity() != null) {
-            existingListing.setCapacity(listing.getCapacity());
-        }
-        if(!listing.getUtilities().isEmpty()) {
-            existingListing.setUtilities(listing.getUtilities());
-        }
-        if(listing.getImage_urls() != null) {
-            existingListing.setImage_urls(listing.getImage_urls());
-        }
-        if(listing.getLocation() != null) {
-            existingListing.setLocation(listing.getLocation());
-        }
-        if(listing.getAvailableDates() != null) {
-            existingListing.setAvailableDates(listing.getAvailableDates());
-        }
-
-        //update updatedAt
-        listing.setUpdatedAt(LocalDateTime.now());
-
-        //save updated listing
+        
+       existingListing.setTitle(listing.getTitle());
+       existingListing.setDescription(listing.getDescription());
+       existingListing.setPricePerNight(listing.getPricePerNight());
+       existingListing.setCapacity(listing.getCapacity());
+       existingListing.setUtilities(listing.getUtilities());
+       existingListing.setLocation(listing.getLocation());
+       existingListing.setImage_urls(listing.getImage_urls());
+       existingListing.setUpdatedAt(listing.getUpdatedAt());
+       //save updated listing
         listingRepository.save(existingListing);
 
         //return as ResponseDTO

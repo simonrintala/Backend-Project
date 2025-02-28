@@ -15,17 +15,17 @@ public class ListingResponse {
     private BigDecimal pricePerNight;
     private Integer capacity;
     private Set<ListingUtilities> utilities;
-    private List<DateRange> availiableDates;
+    private List<DateRange> availableDates;
     private String location;
     private List<String> image_urls;
     
-    public ListingResponse(String title, String description, BigDecimal pricePerNight, Integer capacity, Set<ListingUtilities> utilities, List<DateRange> availiableDates, String host, String location, List<String> image_urls) {
+    public ListingResponse(String title, String description, BigDecimal pricePerNight, Integer capacity, Set<ListingUtilities> utilities, List<DateRange> availableDates, String host, String location, List<String> image_urls) {
         this.title = title;
         this.description = description;
         this.pricePerNight = pricePerNight;
         this.capacity = capacity;
         this.utilities = utilities;
-        this.availiableDates = availiableDates;
+        this.availableDates = availableDates;
         this.host = host;
         this.location = location;
         this.image_urls = image_urls;
@@ -79,16 +79,12 @@ public class ListingResponse {
         this.host = host;
     }
 
-    public List<DateRange> getAvailableDates() {
-        return availiableDates;
-    }
-
-    public void setAvailiableDates(List<DateRange> availiableDates) {
-        this.availiableDates = availiableDates;
+    public void setAvailableDates(List<DateRange> availableDates) {
+        this.availableDates = availableDates;
     }
     
-    public List<DateRange> getAvailiableDates() {
-        return availiableDates;
+    public List<DateRange> getAvailableDates() {
+        return availableDates;
     }
     
     public String getLocation() {
