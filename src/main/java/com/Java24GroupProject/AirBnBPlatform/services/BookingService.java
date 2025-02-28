@@ -71,7 +71,7 @@ public class BookingService {
     }
 
     //get all bookings for a user
-    public List<BookingResponse> getBookingByUserId(String userId) {
+    public List<BookingResponse> getBookingsByUserId(String userId) {
         //validate user id
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found"));
@@ -79,6 +79,18 @@ public class BookingService {
         //convert toDTO
         List<BookingResponse> userBookingResponses = new ArrayList<>();
         for (Booking booking : bookingRepository.findByUser(user)) {
+            userBookingResponses.add(convertToDTOResponse(booking));
+        }
+        return userBookingResponses;
+    }
+
+    public List<BookingResponse> getBookingsByListingId(String listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
+
+        //convert toDTO
+        List<BookingResponse> userBookingResponses = new ArrayList<>();
+        for (Booking booking : bookingRepository.findByListing(listing)) {
             userBookingResponses.add(convertToDTOResponse(booking));
         }
         return userBookingResponses;
@@ -112,11 +124,9 @@ public class BookingService {
             listing.addAvailableDateRange(booking.getBookingDates());
             listingRepository.save(listing);
 
-
             //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking);
             booking.setBookingDates(updatedBooking.getBookingDates());
-
         }
 
         //update other booking data booking
@@ -142,7 +152,8 @@ public class BookingService {
         }
 
         //get current logged-in user
-        User currentUser = UserService.verifyCookiesAndExtractUser(userRepository);
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+
         //get listing for the booking (to check that the current user is the host of the listing)
         Listing listing = validateListingIdAndGetListing(booking);
 
@@ -202,7 +213,7 @@ public class BookingService {
     }
 
     //convert BookingRequest to Booking
-    public Booking convertRequestToBooking(BookingRequest bookingRequest) {
+    private Booking convertRequestToBooking(BookingRequest bookingRequest) {
                 Booking booking = new Booking();
                 booking.setListing(bookingRequest.getListing());
                 booking.setUser(bookingRequest.getUser());
@@ -212,6 +223,24 @@ public class BookingService {
                 booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
                 calculateAndSetPrice(booking);
                 return booking;
+    }
+
+    //calculate price from nr of booked days and price per night from listing
+    private void calculateAndSetPrice(Booking booking) {
+        //calculate days in between start and end date
+        long daysBetween = ChronoUnit.DAYS.between(
+                booking.getBookingDates().getStartDate(),
+                booking.getBookingDates().getEndDate()
+        );
+
+        //get listing
+        Listing listing = validateListingIdAndGetListing(booking);
+
+        //calculate price using listing price_per_night
+        BigDecimal totalPrice = listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
+
+        //set total price of booking
+        booking.setTotalPrice(totalPrice);
     }
 
     //validate that BookingRequest data is valid
@@ -277,23 +306,6 @@ public class BookingService {
         if(!areBookingDatesAvailable) {
             throw new IllegalArgumentException("booking dates not available on listing");
         }
-    }
-
-    private void calculateAndSetPrice(Booking booking) {
-        //calculate days in between start and end date
-        long daysBetween = ChronoUnit.DAYS.between(
-                booking.getBookingDates().getStartDate(),
-                booking.getBookingDates().getEndDate()
-        );
-
-        //get listing
-        Listing listing = validateListingIdAndGetListing(booking);
-
-        //calculate price using listing price_per_night
-        BigDecimal totalPrice = listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
-
-        //set total price of booking
-        booking.setTotalPrice(totalPrice);
     }
 
     //validate id and get booking object
