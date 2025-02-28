@@ -2,7 +2,9 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -82,13 +84,13 @@ public class BookingService {
         return userBookingResponses;
     }
 
-    public BookingResponse updateBooking (String id, BookingRequest updatedBookingRequest) {
+    public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
         //validate booking id
         Booking booking = validateBookingIdAndGetBooking(id);
 
         //check if status is pending, otherwise cannot be changed
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Confirmed, payed or cancelled bookings cannot be updated");
+            throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
         }
 
         //validate data in new booking
@@ -130,6 +132,34 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
+    public BookingResponse acceptOrDenyBooking(String id, boolean isAccepted) {
+        //get booking from repository
+        Booking booking = validateBookingIdAndGetBooking(id);
+
+        //check that booking status is pending
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
+        }
+
+        //get current logged-in user
+        User currentUser = UserService.verifyCookiesAndExtractUser(userRepository);
+
+        //get listing for the booking (to check that the current user is the host of the listing)
+        Listing listing = validateListingIdAndGetListing(booking);
+
+        //check that current user is the host of the listing the booking refers to, otherwise cast error
+        if (!listing.getHost().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedException("only the host for the listing the booking refers to is allowed to accept/decline the booking");
+        }
+
+        //set new bookingStatus according to boolean in method input argument
+        BookingStatus newBookingStatus = isAccepted ? BookingStatus.CONFIRMED : BookingStatus.DECLINED;
+        booking.setBookingStatus(newBookingStatus);
+        booking.setUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        return convertToDTOResponse(booking);
+    }
 
     public void deleteBooking(String id) {
         //check if id is valid
@@ -264,7 +294,6 @@ public class BookingService {
     private Booking validateBookingIdAndGetBooking(String id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-
     }
 
     //validate listing id and get listing object from booking

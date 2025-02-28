@@ -3,6 +3,7 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -150,7 +151,7 @@ public class UserService {
         }
     }
 
-    private User verifyCookiesAndExtractUser() {
+    public static User verifyCookiesAndExtractUser(UserRepository userRepository) {
         //check that user is logged in
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {

@@ -31,8 +31,6 @@ public class BookingController {
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
         List<BookingResponse> bookingResponses = bookingService.getAllBookings();
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
-
-        //return new ResponseEntity<>(bookingService.getAllBookings(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -53,12 +51,21 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
+    @PatchMapping("/accept/{id}")
+    public ResponseEntity<BookingResponse> confirmBooking(@PathVariable String id) {
+        BookingResponse bookingResponse = bookingService.acceptOrDenyBooking(id, true);
+        return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
+    }
+
+    @PatchMapping("/accept/{id}")
+    public ResponseEntity<BookingResponse> declineBooking(@PathVariable String id) {
+        BookingResponse bookingResponse = bookingService.acceptOrDenyBooking(id, false);
+        return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable String id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }
