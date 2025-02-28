@@ -59,15 +59,15 @@ public class ReviewService {
     }
 
     public List<Review> getReviewsByListing(String listingId) {
-        return reviewRepository.findByListing_Id(listingId);
+        return reviewRepository.findByBooking_Listing_Id(listingId);
     }
 
     public List<Review> getReviewsByUser(String userId) {
-        return reviewRepository.findByUser_Id(userId);
+        return reviewRepository.findByBooking_User_Id(userId);
     }
 
     private void updateListingAverageRating(String listingId) {
-        List<Review> reviews = reviewRepository.findByListing_Id(listingId);
+        List<Review> reviews = reviewRepository.findByBooking_Listing_Id(listingId);
 
         if (!reviews.isEmpty()) {
             double avgRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);

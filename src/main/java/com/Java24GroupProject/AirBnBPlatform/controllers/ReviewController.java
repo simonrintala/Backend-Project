@@ -1,5 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewRequest;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.services.ReviewService;
 import org.springframework.http.ResponseEntity;
@@ -9,23 +10,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/reviews")
-public class ReveiwController {
-    private ReviewService reviewService;
+public class ReviewController {
+    private final ReviewService reviewService;
 
-    public ReveiwController(ReviewService reviewService) {
+    public ReviewController(ReviewService reviewService) {
         this.reviewService = reviewService;
     }
 
     @PostMapping
-    public ResponseEntity<Review> createReview(@RequestParam String bookingId, @RequestParam Double rating) {
-        Review savedReview = reviewService.createReview(bookingId, rating);
+    public ResponseEntity<Review> createReview(@RequestBody ReviewRequest reviewRequest) {
+        Review savedReview = reviewService.createReview(reviewRequest.getBookingId(), reviewRequest.getRating());
         return ResponseEntity.ok(savedReview);
     }
-    /*@PostMapping
-    public ResponseEntity<Review> createReview(@RequestBody Review review) {
-        Review savedReview = reviewService.createReview(review);
-        return ResponseEntity.ok(savedReview);
-    }*/
 
     @GetMapping("/listing/{listingId}")
     public ResponseEntity<List<Review>> getReviewsByListingId(@PathVariable String listingId) {
