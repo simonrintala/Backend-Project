@@ -7,7 +7,7 @@ target/
 src/main/resources/application.yml
 docker-compose.yml
 Dockerfile
-.gitignore
+
 
 ### STS ###
 .apt_generated
