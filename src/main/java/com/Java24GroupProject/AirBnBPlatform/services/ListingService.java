@@ -1,8 +1,11 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
+import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
@@ -198,5 +201,18 @@ public class ListingService {
         listingResponse.setHost(listing.getHost().getUsername());
         
         return listingResponse;
+    }
+    
+    public ListingRequest convertToDTORequest(Listing listing) {
+        return new ListingRequest(
+                listing.getTitle(),
+                listing.getPricePerNight(),
+                listing.getDescription(),
+                listing.getUtilities(),
+                listing.getCapacity(),
+                listing.getHost().getUsername(),
+                listing.getLocation(),
+                listing.getImage_urls()
+                );
     }
 }

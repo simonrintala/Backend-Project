@@ -5,6 +5,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilit
 import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 //The DTO for receiving information for listing creation
@@ -12,19 +13,23 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
-    private BigDecimal price_per_night;
+    private BigDecimal perPerNight;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
-    private User host;
+    private String host;
+    private String location;
+    private List<String> image_urls;
     
-    public ListingRequest(String title, String description, BigDecimal price_per_night, Set<ListingUtilities> utilities, Integer capacity, User host) {
+    public ListingRequest(String title, BigDecimal perPerNight, String description, Set<ListingUtilities> utilities, Integer capacity, String host, String location, List<String> image_urls) {
         this.title = title;
         this.description = description;
-        this.price_per_night = price_per_night;
+        this.perPerNight = perPerNight;
         this.utilities = utilities;
         this.capacity = capacity;
         this.host = host;
+        this.location = location;
+        this.image_urls = image_urls;
     }
     
     public @NotBlank String getTitle() {
@@ -35,10 +40,6 @@ public class ListingRequest {
         return description;
     }
     
-    public @NotBlank BigDecimal getPrice_per_night() {
-        return price_per_night;
-    }
-    
     public Set<ListingUtilities> getUtilities() {
         return utilities;
     }
@@ -47,7 +48,19 @@ public class ListingRequest {
         return capacity;
     }
     
-    public User getHost() {
+    public String getHost() {
         return host;
+    }
+    
+    public BigDecimal getPerPerNight() {
+        return perPerNight;
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+    
+    public List<String> getImage_urls() {
+        return image_urls;
     }
 }

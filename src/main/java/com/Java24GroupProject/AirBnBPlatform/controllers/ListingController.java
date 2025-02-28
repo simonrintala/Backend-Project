@@ -1,5 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
@@ -23,9 +24,10 @@ public class ListingController {
     }
     
     @PostMapping
-    public ResponseEntity<Listing> createListing(@Valid @RequestBody Listing listing) {
+    public ResponseEntity<ListingRequest> createListing(@Valid @RequestBody Listing listing) {
         Listing newListing = listingService.createListing(listing);
-        return new ResponseEntity<>(newListing, HttpStatus.CREATED);
+        ListingRequest request = listingService.convertToDTORequest(newListing);
+        return new ResponseEntity<>(request, HttpStatus.CREATED);
     }
     
     @GetMapping
