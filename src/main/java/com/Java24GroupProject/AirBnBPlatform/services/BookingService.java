@@ -254,7 +254,7 @@ public class BookingService {
         Listing listing = validateListingIdAndGetListing(booking);
 
         //calculate price using listing price_per_night
-        BigDecimal totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
+        BigDecimal totalPrice = listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
 
         //set total price of booking
         booking.setTotalPrice(totalPrice);

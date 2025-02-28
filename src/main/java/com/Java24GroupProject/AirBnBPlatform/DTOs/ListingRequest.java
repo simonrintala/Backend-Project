@@ -14,16 +14,16 @@ public class ListingRequest {
     @NotBlank
     private String title;
     @NotBlank
-    private BigDecimal price_per_night;
+    private BigDecimal pricePerNight;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
     private User host;
     private List<DateRange> availableDates;
 
-    public ListingRequest(String title, BigDecimal price_per_night, String description, Set<ListingUtilities> utilities, Integer capacity, User host, List<DateRange> availableDates) {
+    public ListingRequest(String title, BigDecimal pricePerNight, String description, Set<ListingUtilities> utilities, Integer capacity, User host, List<DateRange> availableDates) {
         this.title = title;
-        this.price_per_night = price_per_night;
+        this.pricePerNight = pricePerNight;
         this.description = description;
         this.utilities = utilities;
         this.capacity = capacity;
@@ -39,8 +39,8 @@ public class ListingRequest {
         return description;
     }
     
-    public @NotBlank BigDecimal getPrice_per_night() {
-        return price_per_night;
+    public @NotBlank BigDecimal getPricePerNight() {
+        return getPricePerNight();
     }
     
     public Set<ListingUtilities> getUtilities() {

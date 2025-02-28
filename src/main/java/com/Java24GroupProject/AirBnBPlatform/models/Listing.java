@@ -9,6 +9,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,10 +25,11 @@ public class Listing {
     private String title;
 
     private String description;
-
+    
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
-    private BigDecimal price_per_night;
+    @Field(targetType = FieldType.DECIMAL128)
+    private BigDecimal pricePerNight;
 
     @NotNull(message = "Capacity limit must be set.")
     @Positive(message = "Capacity must be greater than zero")
@@ -124,13 +127,13 @@ public class Listing {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-    public BigDecimal getPrice_per_night() {
-        return price_per_night;
+    
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
     }
-
-    public void setPrice_per_night(BigDecimal price_per_night) {
-        this.price_per_night = price_per_night;
+    
+    public void setPricePerNight(BigDecimal pricePerNight) {
+        this.pricePerNight = pricePerNight;
     }
 
     public List<DateRange> getAvailableDates() {
