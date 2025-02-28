@@ -8,24 +8,19 @@ import java.util.List;
 import java.util.Set;
 
 public class UserResponse {
-
         private String username;
-        private String hashedPassword;
         private String email;
-
         private String phoneNr;
         private UserAddress address;
         private String profilePictureURL;
-
         private String description;
         private List<String> favorites;
         private Set<Role> roles;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-    public UserResponse(String username, String hashedPassword, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, List<String> favorites, Set<Role> roles, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserResponse(String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, List<String> favorites, Set<Role> roles, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.username = username;
-        this.hashedPassword = hashedPassword;
         this.email = email;
         this.phoneNr = phoneNr;
         this.address = address;
@@ -43,14 +38,6 @@ public class UserResponse {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getHashedPassword() {
-        return hashedPassword;
-    }
-
-    public void setHashedPassword(String hashedPassword) {
-        this.hashedPassword = hashedPassword;
     }
 
     public String getEmail() {

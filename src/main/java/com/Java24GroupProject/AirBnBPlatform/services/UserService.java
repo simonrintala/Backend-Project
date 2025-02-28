@@ -6,6 +6,7 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
@@ -92,36 +93,46 @@ public class UserService {
     }
 
     //add or remove a listing using listing id as an input variable
-    //to do with favorites, commented out for now
-    /*
     public String addOrRemoveFavorite(String listingId) {
-        Listing listing = listingRepository.findById(listingId)
+        Listing newListing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
 
-        String message = "'"+listing.getTitle()+"'";
+        String message = "'"+ newListing.getTitle()+"'";
+        //get current user
         User user = verifyCookiesAndExtractUser();
 
         boolean isRemoved = false;
+        //loop through favorites to check if newListing is already saved
         for (Listing listingReference : user.getFavorites()) {
-            Listing listingInFavorites = listingRepository.findById(listingReference.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-            if (listingInFavorites.getId().equals(listing.getId())) {
+            if (listingRepository.findById(listingReference.getId()).isPresent()) {
+                Listing listingInFavorites = listingRepository.findById(listingReference.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                //if listing is already in favorites, remove from favorites
+                if (listingInFavorites.getId().equals(newListing.getId())) {
+                    user.removeFavorite(listingReference);
+                    message = message + " has been removed from favorites";
+                    isRemoved = true;
+                    break;
+                }
+            //if listing has been deleted, remove from favorites
+            } else {
                 user.removeFavorite(listingReference);
-                message = message +" has been removed from favorites";
-                isRemoved = true;
-                break;
+
             }
         }
 
         if (!isRemoved) {
-            user.addFavorite(listing);
+            //check that
+            if (user.getFavorites().size() > 20) {
+                throw new UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
+            }
+            user.addFavorite(newListing);
             message = message +" has been added to favorites";
         }
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return message;
     }
-    */
 
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
     public User findByUsername(String username) {
@@ -189,20 +200,22 @@ public class UserService {
 
     private UserResponse convertUserToUserResponse(User user) {
         //convert list of listings to list of string objects
-        List<String> favorites = new ArrayList<>();
+        List<String> favoritesTitles = new ArrayList<>();
         if (user.getFavorites() != null) {
             if (!user.getFavorites().isEmpty()) {
                 for (Listing listingReference : user.getFavorites()) {
                     if (listingRepository.findById(listingReference.getId()).isPresent()) {
                         Listing listing = listingRepository.findById(listingReference.getId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                        favorites.add(listing.getTitle());
+                        favoritesTitles.add(listing.getTitle());
                     } else {
-                        favorites.add("[deleted listing]");
+                        //if listing has been removed from database, delete if from favorites
+                        user.removeFavorite(listingReference);
+                        userRepository.save(user);
                     }
                 }
             }
         }
-        return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favoritesTitles, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 }
