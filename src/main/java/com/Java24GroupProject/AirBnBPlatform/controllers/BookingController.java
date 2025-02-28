@@ -51,13 +51,13 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
-    @PatchMapping("/accept/{id}")
+    @PatchMapping("/confirm/{id}")
     public ResponseEntity<BookingResponse> confirmBooking(@PathVariable String id) {
         BookingResponse bookingResponse = bookingService.acceptOrDenyBooking(id, true);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
-    @PatchMapping("/accept/{id}")
+    @PatchMapping("/decline/{id}")
     public ResponseEntity<BookingResponse> declineBooking(@PathVariable String id) {
         BookingResponse bookingResponse = bookingService.acceptOrDenyBooking(id, false);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);

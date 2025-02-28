@@ -167,11 +167,11 @@ public class Listing {
             } else if (dateRange.isIdenticalToAnotherDateRange(availableDateRange)) {
                 throw new IllegalArgumentException("dates could not be added, already in available dates for listing");
 
-                //does dateRange start at the end of exisiting date range
+                //does dateRange start at the end of existing date range
             } else if (dateRange.getStartDate().isEqual(availableDateRange.getEndDate())) {
                 endWhereNewDateRangeStarts = availableDateRange;
 
-                //does dateRange end at the start of exisiting date range
+                //does dateRange end at the start of existing date range
             } else if (availableDateRange.getStartDate().isEqual(dateRange.getEndDate())) {
                 startsWhereNewDateRangeEnds = availableDateRange;
             }

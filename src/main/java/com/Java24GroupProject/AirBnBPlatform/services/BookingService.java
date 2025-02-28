@@ -143,7 +143,6 @@ public class BookingService {
 
         //get current logged-in user
         User currentUser = UserService.verifyCookiesAndExtractUser(userRepository);
-
         //get listing for the booking (to check that the current user is the host of the listing)
         Listing listing = validateListingIdAndGetListing(booking);
 
@@ -152,9 +151,16 @@ public class BookingService {
             throw new UnauthorizedException("only the host for the listing the booking refers to is allowed to accept/decline the booking");
         }
 
-        //set new bookingStatus according to boolean in method input argument
-        BookingStatus newBookingStatus = isAccepted ? BookingStatus.CONFIRMED : BookingStatus.DECLINED;
-        booking.setBookingStatus(newBookingStatus);
+        //if booking is accepted change status to confirmed
+        if (isAccepted) {
+            booking.setBookingStatus(BookingStatus.CONFIRMED);
+        //if the booking is denied, add back the booking dates to available dates and change status to declined
+        } else {
+            listing.addAvailableDateRange(booking.getBookingDates());
+            booking.setBookingStatus(BookingStatus.DECLINED);
+        }
+
+        //save updated booking
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
