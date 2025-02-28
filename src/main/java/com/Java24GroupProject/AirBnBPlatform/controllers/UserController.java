@@ -6,9 +6,11 @@ import com.Java24GroupProject.AirBnBPlatform.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /*registration of new users is handled by AuthenticationController*/
 @RestController
@@ -30,9 +32,10 @@ public class UserController {
         return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> deleteUserById(@PathVariable String id) {
+        userService.deleteUserById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -49,7 +52,7 @@ public class UserController {
 
     //get favorites for current users
     @GetMapping("/favorites")
-    public ResponseEntity<List<String>> getFavorites() {
+    public ResponseEntity<Map<String,String>> getFavorites() {
         return new ResponseEntity<>(userService.getFavorites(), HttpStatus.OK);
     }
 }

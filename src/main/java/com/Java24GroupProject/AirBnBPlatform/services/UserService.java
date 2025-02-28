@@ -22,9 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 //NOTE: not finished, just made what needed to be there for Security implementation.
 
@@ -47,7 +45,6 @@ public class UserService {
         //validate that username, email and phoneNr is unique
         validateUniqueFields(userRequest);
 
-
         //maps the RegisterRequest to a new User entity
         User user = transferUserRequestToUser(userRequest, new User());
 
@@ -55,28 +52,26 @@ public class UserService {
         user.setFavorites(new ArrayList<>());
         user.setUpdatedAt(null);
 
+        //save new user
         userRepository.save(user);
 
-        return new RegisterResponse(
-                "user registered successfully",
-                user.getUsername(),
-                user.getRoles());
+        return new RegisterResponse("user registered successfully", user.getUsername(), user.getRoles());
     }
 
     public List<UserResponse> getAllUsers() {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userRepository.findAll()) {
-            userResponseList.add(convertUserToUserResponse(user));
+            userResponseList.add(new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt()));
         }
         return userResponseList;
     }
 
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
-        return convertUserToUserResponse(user);
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 
-    public void deleteUser(String id) {
+    public void deleteUserById(String id) {
         userRepository.delete(validateUserIdAndReturnUser(id));
     }
 
@@ -89,10 +84,11 @@ public class UserService {
         userRepository.save(existingUser);
 
         //convert to a responseDTO and return
-        return convertUserToUserResponse(existingUser);
+        return new UserResponse(existingUser.getUsername(), existingUser.getEmail(), existingUser.getPhoneNr(), existingUser.getAddress(), existingUser.getProfilePictureURL(), existingUser.getDescription(), getFavorites(), existingUser.getRoles(), existingUser.getCreatedAt(), existingUser.getUpdatedAt());
+
     }
 
-    //add or remove a listing using listing id as an input variable
+    //add or remove a listing from current users saved favorites using listing id as an input variable
     public String addOrRemoveFavorite(String listingId) {
         Listing newListing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
@@ -123,7 +119,7 @@ public class UserService {
 
         if (!isRemoved) {
             //check that
-            if (user.getFavorites().size() > 20) {
+            if (user.getFavorites().size() >= 20) {
                 throw new UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
             }
             user.addFavorite(newListing);
@@ -134,28 +130,26 @@ public class UserService {
         return message;
     }
 
-    public List<String> getFavorites() {
+    public Map<String, String> getFavorites() {
         //get current user
         User user = verifyCookiesAndExtractUser();
 
         //convert list of listings to list of string objects
-        List<String> favoritesTitles = new ArrayList<>();
-        if (user.getFavorites() != null) {
-            if (!user.getFavorites().isEmpty()) {
-                for (Listing listingReference : user.getFavorites()) {
-                    if (listingRepository.findById(listingReference.getId()).isPresent()) {
-                        Listing listing = listingRepository.findById(listingReference.getId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                        favoritesTitles.add(listing.getTitle());
-                    } else {
-                        //if listing has been removed from database, delete if from favorites
-                        user.removeFavorite(listingReference);
-                        userRepository.save(user);
+        Map<String, String> favoritesResponse = new HashMap<>();
+        if (!user.getFavorites().isEmpty()) {
+            for (Listing listingReference : user.getFavorites()) {
+                if (listingRepository.findById(listingReference.getId()).isPresent()) {
+                    Listing listing = listingRepository.findById(listingReference.getId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                    favoritesResponse.put(listing.getId(), listing.getTitle());
+                } else {
+                    //if listing has been removed from database, delete if from favorites
+                    user.removeFavorite(listingReference);
+                    userRepository.save(user);
                     }
                 }
             }
-        }
-        return favoritesTitles;
+        return favoritesResponse;
     }
 
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
@@ -163,6 +157,7 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
 
     //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
     private User validateUserIdAndReturnUser(String id) {
@@ -222,7 +217,4 @@ public class UserService {
         return user;
     }
 
-    private UserResponse convertUserToUserResponse(User user) {
-        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
-    }
 }
