@@ -4,8 +4,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
-import java.awt.print.Pageable;
-import java.math.BigDecimal;
 import java.util.List;
 
 public interface ListingRepository extends MongoRepository<Listing, String> {

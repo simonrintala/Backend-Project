@@ -1,6 +1,5 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
-import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 import jakarta.validation.constraints.NotBlank;
 
