@@ -2,14 +2,15 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,48 +35,28 @@ public class ReviewService {
 
         }
         Booking booking = optionalBooking.get();
+        DateRange dateRange = booking.getBookingDates();
+        LocalDate endDate = dateRange.getEndDate();
 
-        if (booking.getEndDate().after(new Date())) {
+        if (endDate.isAfter(LocalDate.now())) {
                 throw new RuntimeException("You can only review after your stay is over.");
             }
+        if (rating < 1 || rating > 5) {
+            throw new RuntimeException("Rating should be between 1 and 5");
+        } //dubbel med annoteringarna i models?
 
         Review review = new Review();
         review.setBooking(booking);
-        review.setEndDate(booking.getEndDate());
         review.setRating(rating);
         review.setCreatedAt(LocalDateTime.now());
 
         Review savedReview = reviewRepository.save(review);
 
-        updateListingAverageRating(booking.getListing().getId());
+        updateListingAverageRating(booking.getListing().getHost().getId());
 
         return savedReview;
         
     }
-    /*public Review createReview(Review review) {
-    //kan endast skapa om bokning är avslutad
-        if (review.getEndDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("You can only review after your stay");
-        }
-
-        Optional<Listing> optionalListing = listingRepository.findById(review.getListing().getId());
-        if (optionalListing.isEmpty()) {
-            throw new RuntimeException("Listing not found");
-        }
-
-        Optional<User> optionalUser = userRepository.findById(review.getUser().getId());
-        if (optionalUser.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-
-        review.setCreatedAt(LocalDateTime.now());
-
-        Review savedReview = reviewRepository.save(review);
-
-        updateListingAverageRating(review.getListing().getId());
-
-        return savedReview;
-    }*/
 
     public List<Review> getReviewsByListing(String listingId) {
         return reviewRepository.findByListing_Id(listingId);
@@ -91,6 +72,15 @@ public class ReviewService {
         if (!reviews.isEmpty()) {
             double avgRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
             listingRepository.updateAverageRating(listingId, avgRating);
+        }
+    }
+
+    private void updateHostAverageRating(String hostId) {
+        List<Review> reviews = reviewRepository.findByBooking_Listing_Host_Id(hostId);
+
+        if (!reviews.isEmpty()) {
+            double avgRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
+            userRepository.updateAverageRating(hostId, avgRating);
         }
     }
 }

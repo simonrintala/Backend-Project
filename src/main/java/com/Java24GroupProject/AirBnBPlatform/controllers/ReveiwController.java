@@ -12,6 +12,10 @@ import java.util.List;
 public class ReveiwController {
     private ReviewService reviewService;
 
+    public ReveiwController(ReviewService reviewService) {
+        this.reviewService = reviewService;
+    }
+
     @PostMapping
     public ResponseEntity<Review> createReview(@RequestParam String bookingId, @RequestParam Double rating) {
         Review savedReview = reviewService.createReview(bookingId, rating);
