@@ -57,14 +57,14 @@ public class UserService {
     public List<UserResponse> getAllUsers() {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userRepository.findAll()) {
-            userResponseList.add(new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt()));
+            userResponseList.add(transferUserToUserResponse(user));
         }
         return userResponseList;
     }
 
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
-        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
+        return transferUserToUserResponse(user);
     }
 
     public void deleteUserById(String id) {
@@ -80,8 +80,7 @@ public class UserService {
         userRepository.save(existingUser);
 
         //convert to a responseDTO and return
-        return new UserResponse(existingUser.getUsername(), existingUser.getEmail(), existingUser.getPhoneNr(), existingUser.getAddress(), existingUser.getProfilePictureURL(), existingUser.getDescription(), getFavorites(), existingUser.getRoles(), existingUser.getCreatedAt(), existingUser.getUpdatedAt());
-
+        return transferUserToUserResponse(existingUser);
     }
 
     //add or remove a listing from current users saved favorites using listing id as an input variable
@@ -114,7 +113,7 @@ public class UserService {
         }
 
         if (!isRemoved) {
-            //check that
+            //check that does not already have max amount of saved favorites (max allowed = 20)
             if (user.getFavorites().size() >= 20) {
                 throw new com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
             }
@@ -200,6 +199,10 @@ public class UserService {
         }
 
         return user;
+    }
+
+    public UserResponse transferUserToUserResponse(User user) {
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 
     //verify and get current user from jwtToken/cookies
