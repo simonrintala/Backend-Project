@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+
 @Document(collection = "listings")
 public class Listing {
     @Id

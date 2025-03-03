@@ -3,7 +3,6 @@ package com.Java24GroupProject.AirBnBPlatform.DTOs;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
-import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,27 +10,20 @@ import java.util.Set;
 
 //The DTO for receiving information for listing creation
 public class ListingRequest {
-    @NotBlank
+ 
     private String title;
-    @NotBlank
     private BigDecimal pricePerNight;
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
     private User host;
     private List<DateRange> availableDates;
+    private String location;
 
-    public ListingRequest(String title, BigDecimal pricePerNight, String description, Set<ListingUtilities> utilities, Integer capacity, User host, List<DateRange> availableDates) {
-        this.title = title;
-        this.pricePerNight = pricePerNight;
-        this.description = description;
-        this.utilities = utilities;
-        this.capacity = capacity;
-        this.host = host;
-        this.availableDates = availableDates;
+    public ListingRequest() {
     }
 
-    public @NotBlank String getTitle() {
+    public String getTitle() {
         return title;
     }
     
@@ -39,8 +31,8 @@ public class ListingRequest {
         return description;
     }
     
-    public @NotBlank BigDecimal getPricePerNight() {
-        return getPricePerNight();
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
     }
     
     public Set<ListingUtilities> getUtilities() {
@@ -57,5 +49,9 @@ public class ListingRequest {
 
     public List<DateRange> getAvailableDates() {
         return availableDates;
+    }
+    
+    public String getLocation() {
+        return location;
     }
 }
