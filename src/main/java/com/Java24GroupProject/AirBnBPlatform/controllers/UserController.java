@@ -6,9 +6,11 @@ import com.Java24GroupProject.AirBnBPlatform.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /*registration of new users is handled by AuthenticationController*/
 @RestController
@@ -30,9 +32,10 @@ public class UserController {
         return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> deleteUserById(@PathVariable String id) {
+        userService.deleteUserById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -41,13 +44,15 @@ public class UserController {
         return new ResponseEntity<>(userService.updateUser(id, userRequest), HttpStatus.OK);
     }
 
-    /* commented out, is related to favorites will continue on it
-    //adds a listing to users favorites if not already saved, otherwise removes it from favorites
+    //adds a listing to users favorites (current logged-in user) if not already saved, otherwise removes it from favorites
     @PatchMapping("/favorites/{listingId}")
     public ResponseEntity<String> addOrRemoveFavorite(@PathVariable String listingId) {
         return new ResponseEntity<>(userService.addOrRemoveFavorite(listingId), HttpStatus.OK);
     }
 
-     */
-
+    //get favorites for current users
+    @GetMapping("/favorites")
+    public ResponseEntity<Map<String,String>> getFavorites() {
+        return new ResponseEntity<>(userService.getFavorites(), HttpStatus.OK);
+    }
 }

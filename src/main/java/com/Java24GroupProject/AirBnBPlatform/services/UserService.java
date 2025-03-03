@@ -4,7 +4,10 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
+import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
@@ -19,9 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 //NOTE: not finished, just made what needed to be there for Security implementation.
 
@@ -44,7 +45,6 @@ public class UserService {
         //validate that username, email and phoneNr is unique
         validateUniqueFields(userRequest);
 
-
         //maps the RegisterRequest to a new User entity
         User user = transferUserRequestToUser(userRequest, new User());
 
@@ -52,28 +52,26 @@ public class UserService {
         user.setFavorites(new ArrayList<>());
         user.setUpdatedAt(null);
 
+        //save new user
         userRepository.save(user);
 
-        return new RegisterResponse(
-                "user registered successfully",
-                user.getUsername(),
-                user.getRoles());
+        return new RegisterResponse("user registered successfully", user.getUsername(), user.getRoles());
     }
 
     public List<UserResponse> getAllUsers() {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userRepository.findAll()) {
-            userResponseList.add(convertUserToUserResponse(user));
+            userResponseList.add(new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt()));
         }
         return userResponseList;
     }
 
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
-        return convertUserToUserResponse(user);
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
 
-    public void deleteUser(String id) {
+    public void deleteUserById(String id) {
         userRepository.delete(validateUserIdAndReturnUser(id));
     }
 
@@ -86,46 +84,80 @@ public class UserService {
         userRepository.save(existingUser);
 
         //convert to a responseDTO and return
-        return convertUserToUserResponse(existingUser);
+        return new UserResponse(existingUser.getUsername(), existingUser.getEmail(), existingUser.getPhoneNr(), existingUser.getAddress(), existingUser.getProfilePictureURL(), existingUser.getDescription(), getFavorites(), existingUser.getRoles(), existingUser.getCreatedAt(), existingUser.getUpdatedAt());
+
     }
 
-    //add or remove a listing using listing id as an input variable
-    //to do with favorites, commented out for now
-    /*
+    //add or remove a listing from current users saved favorites using listing id as an input variable
     public String addOrRemoveFavorite(String listingId) {
-        Listing listing = listingRepository.findById(listingId)
+        Listing newListing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
 
-        String message = "'"+listing.getTitle()+"'";
+        String message = "'"+ newListing.getTitle()+"'";
+        //get current user
         User user = verifyCookiesAndExtractUser();
 
         boolean isRemoved = false;
+        //loop through favorites to check if newListing is already saved
         for (Listing listingReference : user.getFavorites()) {
-            Listing listingInFavorites = listingRepository.findById(listingReference.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-            if (listingInFavorites.getId().equals(listing.getId())) {
+            if (listingRepository.findById(listingReference.getId()).isPresent()) {
+                Listing listingInFavorites = listingRepository.findById(listingReference.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                //if listing is already in favorites, remove from favorites
+                if (listingInFavorites.getId().equals(newListing.getId())) {
+                    user.removeFavorite(listingReference);
+                    message = message + " has been removed from favorites";
+                    isRemoved = true;
+                    break;
+                }
+            //if listing has been deleted, remove from favorites
+            } else {
                 user.removeFavorite(listingReference);
-                message = message +" has been removed from favorites";
-                isRemoved = true;
-                break;
+
             }
         }
 
         if (!isRemoved) {
-            user.addFavorite(listing);
+            //check that
+            if (user.getFavorites().size() >= 20) {
+                throw new UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
+            }
+            user.addFavorite(newListing);
             message = message +" has been added to favorites";
         }
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return message;
     }
-    */
+
+    public Map<String, String> getFavorites() {
+        //get current user
+        User user = verifyCookiesAndExtractUser();
+
+        //convert list of listings to list of string objects
+        Map<String, String> favoritesResponse = new HashMap<>();
+        if (!user.getFavorites().isEmpty()) {
+            for (Listing listingReference : user.getFavorites()) {
+                if (listingRepository.findById(listingReference.getId()).isPresent()) {
+                    Listing listing = listingRepository.findById(listingReference.getId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                    favoritesResponse.put(listing.getId(), listing.getTitle());
+                } else {
+                    //if listing has been removed from database, delete if from favorites
+                    user.removeFavorite(listingReference);
+                    userRepository.save(user);
+                    }
+                }
+            }
+        return favoritesResponse;
+    }
 
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
 
     //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
     private User validateUserIdAndReturnUser(String id) {
@@ -185,26 +217,4 @@ public class UserService {
         return user;
     }
 
-    private UserResponse convertUserToUserResponse(User user) {
-        //convert list of listings to list of string objects
-        List<String> favorites = new ArrayList<>();
-
-        /* commented out, is related to favorties will continue on it
-        if (user.getFavorites() != null) {
-            if (!user.getFavorites().isEmpty()) {
-                for (Listing listingReference : user.getFavorites()) {
-                    if (listingRepository.findById(listingReference.getId()).isPresent()) {
-                        Listing listing = listingRepository.findById(listingReference.getId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                        favorites.add(listing.getTitle());
-                    } else {
-                        favorites.add("[deleted listing]");
-                    }
-                }
-            }
-        }
-
-         */
-        return new UserResponse(user.getUsername(), user.getPassword(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), favorites, user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
-    }
 }
