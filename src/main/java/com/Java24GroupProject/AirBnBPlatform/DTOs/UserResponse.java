@@ -8,19 +8,18 @@ import java.util.Map;
 import java.util.Set;
 
 public class UserResponse {
-
         private String username;
         private String email;
         private String phoneNr;
         private UserAddress address;
         private String profilePictureURL;
         private String description;
-        private Map<String, String> favorites;
+        private Map<String,String> favorites;
         private Set<Role> roles;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-    public UserResponse(String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Map<String, String> favorites, Set<Role> roles, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserResponse(String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Map<String,String> favorites, Set<Role> roles, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.username = username;
         this.email = email;
         this.phoneNr = phoneNr;
@@ -81,11 +80,11 @@ public class UserResponse {
         this.description = description;
     }
 
-    public Map<String, String> getFavorites() {
+    public Map<String,String> getFavorites() {
         return favorites;
     }
 
-    public void setFavorites(Map<String, String> favorites) {
+    public void setFavorites(Map<String,String> favorites) {
         this.favorites = favorites;
     }
 
