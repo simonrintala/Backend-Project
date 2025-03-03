@@ -51,7 +51,8 @@ public class User {
     private String profilePictureURL;
 
     private String description;
-
+    
+    
     @DBRef
     private List<Listing> favorites;
 
