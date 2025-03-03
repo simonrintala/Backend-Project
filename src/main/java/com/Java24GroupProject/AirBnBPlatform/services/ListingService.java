@@ -153,6 +153,7 @@ public class ListingService {
        existingListing.setLocation(listing.getLocation());
        existingListing.setImage_urls(listing.getImage_urls());
        existingListing.setUpdatedAt(listing.getUpdatedAt());
+       existingListing.setCreatedAt(listing.getCreatedAt());
        //save updated listing
         listingRepository.save(existingListing);
 
@@ -198,6 +199,7 @@ public class ListingService {
         listing.setCapacity(listingRequest.getCapacity());
         listing.setUtilities(listingRequest.getUtilities());
         listing.setAvailableDates(listingRequest.getAvailableDates());
+        listing.setLocation(listingRequest.getLocation());
         
         // Set the host (the user creating the listing)
         listing.setHost(listingRequest.getHost());

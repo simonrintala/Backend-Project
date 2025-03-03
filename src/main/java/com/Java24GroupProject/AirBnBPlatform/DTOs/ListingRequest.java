@@ -18,6 +18,7 @@ public class ListingRequest {
     private Integer capacity;
     private User host;
     private List<DateRange> availableDates;
+    private String location;
 
     public ListingRequest() {
     }
@@ -48,5 +49,9 @@ public class ListingRequest {
 
     public List<DateRange> getAvailableDates() {
         return availableDates;
+    }
+    
+    public String getLocation() {
+        return location;
     }
 }
