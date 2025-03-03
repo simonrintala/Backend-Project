@@ -10,4 +10,6 @@ import java.util.List;
 public interface BookingRepository extends MongoRepository<Booking, String> {
     List<Booking> findByUser(User user);
     List<Booking> findByListing(Listing listing);
+    Long deleteByListing(Listing listing);
+    List<Booking> deleteByUser(User user);
 }

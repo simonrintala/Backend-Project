@@ -6,7 +6,6 @@ import com.Java24GroupProject.AirBnBPlatform.services.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,18 +31,17 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 
-    //get all bookings, should only be accessible by admin
-    @PreAuthorize("hasRole('ADMIN')")
+
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable String id) {
         BookingResponse bookingResponse = bookingService.getBookingById(id);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
-    //get all bookings current user
+    //get all bookings ny userid
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponse>> getBookingsByUserId(@PathVariable String userId) {
-        List<BookingResponse> bookingResponses = bookingService.getBookingsCurrentUser(userId);
+        List<BookingResponse> bookingResponses = bookingService.getBookingsUser(userId);
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 
@@ -59,14 +57,14 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
-    @PatchMapping("/confirm/{id}")
-    public ResponseEntity<BookingResponse> confirmBooking(@PathVariable String id) {
+    @PatchMapping("/accept/{id}")
+    public ResponseEntity<BookingResponse> acceptBooking(@PathVariable String id) {
         BookingResponse bookingResponse = bookingService.acceptOrDenyBooking(id, true);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
-    @PatchMapping("/decline/{id}")
-    public ResponseEntity<BookingResponse> declineBooking(@PathVariable String id) {
+    @PatchMapping("/deny/{id}")
+    public ResponseEntity<BookingResponse> denyBooking(@PathVariable String id) {
         BookingResponse bookingResponse = bookingService.acceptOrDenyBooking(id, false);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }

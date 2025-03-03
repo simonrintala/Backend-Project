@@ -1,6 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.repositories;
 
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
+import com.Java24GroupProject.AirBnBPlatform.models.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -12,6 +13,9 @@ public interface ListingRepository extends MongoRepository<Listing, String> {
     
     //find based on location (city)
     List<Listing> findByLocation(String location);
+
+    //delete by user
+    List<Listing> deleteByHost(User user);
     
     //find based on price interval
     // query to get listings that matches min/max price. https://stackoverflow.com/questions/32846996/mongodb-query-using-gte-and-lte-in-java

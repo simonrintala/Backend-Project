@@ -5,6 +5,7 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -72,7 +73,7 @@ public class BookingService {
     }
 
     //get bookings for a single user
-    public List<BookingResponse> getBookingsCurrentUser(String userId) {
+    public List<BookingResponse> getBookingsUser(String userId) {
         //validate user id
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -160,7 +161,7 @@ public class BookingService {
 
         //check that current user is the host of the listing the booking refers to, otherwise cast error
         if (!listing.getHost().getId().equals(currentUser.getId())) {
-            throw new UnauthorizedException("only the host for the listing the booking refers to is allowed to accept/decline the booking");
+            throw new UnauthorizedException("only the listing host can accept/deny the booking");
         }
 
         //if booking is accepted change status to confirmed
@@ -169,6 +170,8 @@ public class BookingService {
         //if the booking is denied, add back the booking dates to available dates and change status to declined
         } else {
             listing.addAvailableDateRange(booking.getBookingDates());
+            listing.setUpdatedAt(LocalDateTime.now());
+            listingRepository.save(listing);
             booking.setBookingStatus(BookingStatus.DECLINED);
         }
 
@@ -186,9 +189,13 @@ public class BookingService {
         //get listing
         Listing listing = validateListingIdAndGetListing(booking);
 
-        //add back the booked dates to the listing
-        listing.addAvailableDateRange(booking.getBookingDates());
-        listingRepository.save(listing);
+        //if booking does not have status denied, add back the booked dates to the listing
+        if(booking.getBookingStatus() != BookingStatus.DECLINED) {
+            listing.addAvailableDateRange(booking.getBookingDates());
+            listing.setUpdatedAt(LocalDateTime.now());
+            listingRepository.save(listing);
+        }
+
 
         //delete booking
         bookingRepository.deleteById(id);
@@ -208,8 +215,7 @@ public class BookingService {
                 booking.getBookingDates().getEndDate().toString(),
                 booking.getNumberOfGuests(),
                 booking.getTotalPrice(),
-                booking.getBookingStatus(),
-                booking.getCreatedAt()
+                booking.getBookingStatus()
         );
     }
 

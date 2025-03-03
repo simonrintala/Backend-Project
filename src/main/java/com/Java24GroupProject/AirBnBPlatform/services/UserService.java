@@ -6,10 +6,13 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
+import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
+import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -28,12 +31,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ListingRepository listingRepository;
+    private final BookingRepository bookingRepository;
 
     //constructor injection
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.listingRepository = listingRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     //register a new user, used by AuthenticationController
@@ -70,8 +75,33 @@ public class UserService {
     }
 
     //delete single user using id
-    public void deleteUserById(String id) {
-        userRepository.delete(validateUserIdAndReturnUser(id));
+    public String deleteUserById(String id) {
+        User user = validateUserIdAndReturnUser(id);
+
+        //get and delete user listings
+        List<Listing> userListings= listingRepository.deleteByHost(user);
+
+        //delete bookings for the deleted listings
+        Long nrOfTotalListingBookings = 0L;
+        for (Listing listing : userListings) {
+            Long nrOfListingBookings = bookingRepository.deleteByListing(listing);
+            nrOfTotalListingBookings += nrOfListingBookings;
+        }
+
+        //get and delete bookings belonging to the user
+        List<Booking> userBookings = bookingRepository.deleteByUser(user);
+        //loop bookings and add back dates to listing if booking is pending
+        for (Booking booking : userBookings) {
+            if (booking.getBookingStatus() == BookingStatus.PENDING) {
+                Listing listing = listingRepository.findById(booking.getListing().getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                listing.addAvailableDateRange(booking.getBookingDates());
+                listing.setUpdatedAt(LocalDateTime.now());
+                listingRepository.save(listing);
+                }
+            }
+        userRepository.delete(user);
+        return("The user, "+userListings.size()+" user listings, "+ userBookings.size() +" user bookings and "+nrOfTotalListingBookings+" bookings belonging to the user listings have been deleted");
     }
 
     //update single user using id, return as UserResponseDTO
@@ -206,7 +236,7 @@ public class UserService {
 
     //transfer User to UserResponse, used when returning user data to UserController
     public UserResponse transferUserToUserResponse(User user) {
-        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles());
     }
 
     //verify and get current user from jwtToken/cookies
