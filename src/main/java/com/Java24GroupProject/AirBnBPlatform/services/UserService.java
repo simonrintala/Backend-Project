@@ -36,7 +36,7 @@ public class UserService {
         this.listingRepository = listingRepository;
     }
 
-    //method for registering a new user
+    //register a new user, used by AuthenticationController
     public RegisterResponse registerUser(UserRequest userRequest) {
         //validate that username, email and phoneNr is unique
         validateUniqueFields(userRequest);
@@ -54,6 +54,7 @@ public class UserService {
         return new RegisterResponse("user registered successfully", user.getUsername(), user.getRoles());
     }
 
+    //get all users, return as UserResponseDTO
     public List<UserResponse> getAllUsers() {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userRepository.findAll()) {
@@ -62,15 +63,18 @@ public class UserService {
         return userResponseList;
     }
 
+    //get single user using id, return as UserResponse
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
         return transferUserToUserResponse(user);
     }
 
+    //delete single user using id
     public void deleteUserById(String id) {
         userRepository.delete(validateUserIdAndReturnUser(id));
     }
 
+    //update single user using id, return as UserResponseDTO
     public UserResponse updateUser(String id, UserRequest userRequest) {
         //validate user id and get and update existing user
         User existingUser = transferUserRequestToUser(userRequest, validateUserIdAndReturnUser(id));
@@ -160,6 +164,7 @@ public class UserService {
                 .orElseThrow(() -> new java.lang.IllegalArgumentException("User id does not exist in database"));
     }
 
+    //validate that username, email and phoneNr are not already taken by another user in database
     private void validateUniqueFields(UserRequest userRequest) {
         //check if username already exists, and if is does, cast error
         if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
@@ -177,30 +182,29 @@ public class UserService {
         }
     }
 
-    //convert incoming DTO (from UserController) to User
+    //convert incoming DTO (from UserController) to User object
     private User transferUserRequestToUser(UserRequest userRequest, User user) {
-        user.setUsername(userRequest.getUsername());
 
+        user.setUsername(userRequest.getUsername());
         //encodes the password
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         user.setEmail(userRequest.getEmail());
         user.setPhoneNr(userRequest.getPhoneNr());
-
         //create UserAddress from String variables from the UserRequest
         user.setAddress(new UserAddress(userRequest.getStreet(), userRequest.getZipCode(), userRequest.getCity(), userRequest.getCountry()));
         user.setProfilePictureURL(userRequest.getProfilePictureURL());
         user.setDescription(userRequest.getDescription());
 
-        //assign the role USER if not roles are specified
+        //assign the role USER if no roles are specified in UserRequest
         if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
             user.setRoles(Set.of(Role.USER));
         } else {
             user.setRoles(userRequest.getRoles());
         }
-
         return user;
     }
 
+    //transfer User to UserResponse, used when returning user data to UserController
     public UserResponse transferUserToUserResponse(User user) {
         return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
     }
