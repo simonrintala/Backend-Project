@@ -21,7 +21,6 @@ public class BookingController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'HOST', 'ADMIN')")
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest bookingRequest) {
         BookingResponse bookingResponse = bookingService.createBooking(bookingRequest);
         return new ResponseEntity<>(bookingResponse, HttpStatus.CREATED);
@@ -33,15 +32,18 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 
+    //get all bookings, should only be accessible by admin
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable String id) {
         BookingResponse bookingResponse = bookingService.getBookingById(id);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
+    //get all bookings current user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponse>> getBookingsByUserId(@PathVariable String userId) {
-        List<BookingResponse> bookingResponses = bookingService.getBookingsByUserId(userId);
+        List<BookingResponse> bookingResponses = bookingService.getBookingsCurrentUser(userId);
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 

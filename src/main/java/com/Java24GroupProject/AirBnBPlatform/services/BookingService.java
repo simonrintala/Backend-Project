@@ -53,7 +53,7 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
-    //get booking by id
+    //get bookings by id
     public BookingResponse getBookingById(String id) {
         Booking booking = validateBookingIdAndGetBooking(id);
 
@@ -61,6 +61,7 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
+    //get all bookings
     public List<BookingResponse> getAllBookings() {
         List<BookingResponse> bookingResponses = new ArrayList<>();
         //convert toDTO
@@ -70,11 +71,11 @@ public class BookingService {
         return bookingResponses;
     }
 
-    //get all bookings for a user
-    public List<BookingResponse> getBookingsByUserId(String userId) {
+    //get bookings for a single user
+    public List<BookingResponse> getBookingsCurrentUser(String userId) {
         //validate user id
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         //convert toDTO
         List<BookingResponse> userBookingResponses = new ArrayList<>();
