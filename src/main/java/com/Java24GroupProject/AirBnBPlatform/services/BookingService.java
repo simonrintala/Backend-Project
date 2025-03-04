@@ -73,7 +73,7 @@ public class BookingService {
     }
 
     //get bookings for a single user
-    public List<BookingResponse> getBookingsUser(String userId) {
+    public List<BookingResponse> getBookingsByUserId(String userId) {
         //validate user id
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
