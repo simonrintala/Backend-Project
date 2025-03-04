@@ -83,8 +83,8 @@ public class ListingController {
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('HOST','ADMIN')")
-    public ResponseEntity<String> deleteListing(@PathVariable String id) {
-        String deleteMessage = listingService.deleteListing(id);
-        return ResponseEntity.ok(deleteMessage);
+    public ResponseEntity<Void> deleteListing(@PathVariable String id) {
+        listingService.deleteListing(id);
+        return ResponseEntity.noContent().build();
     }
 }

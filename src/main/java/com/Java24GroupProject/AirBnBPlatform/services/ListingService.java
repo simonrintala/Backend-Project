@@ -4,7 +4,6 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
-import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
@@ -167,13 +166,11 @@ public class ListingService {
         return convertToListingResponseDTO(existingListing);
     }
 
-    //validate listing id exists in database and delete listing
-    public String deleteListing(String id) {
+    //validate listing id exists in database and delete listing and bookings for the listing
+    public void deleteListing(String id) {
         Listing listing = validateListingIdAndGetListing(id);
-        Long nrOfListingBookings = bookingRepository.deleteByListing(listing);
+        bookingRepository.deleteByListing(listing);
         listingRepository.delete(listing);
-
-        return("Listing and "+nrOfListingBookings+" bookings belonging to the listing has been deleted");
     }
     
     // limit what's shown when grabbing listings

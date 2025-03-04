@@ -144,7 +144,7 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
-    public BookingResponse acceptOrDenyBooking(String id, boolean isAccepted) {
+    public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
         //get booking from repository
         Booking booking = validateBookingIdAndGetBooking(id);
 
@@ -161,18 +161,18 @@ public class BookingService {
 
         //check that current user is the host of the listing the booking refers to, otherwise cast error
         if (!listing.getHost().getId().equals(currentUser.getId())) {
-            throw new UnauthorizedException("only the listing host can accept/deny the booking");
+            throw new UnauthorizedException("only the listing host can accept/reject a booking");
         }
 
-        //if booking is accepted change status to confirmed
+        //if booking is accepted change status to accepted
         if (isAccepted) {
-            booking.setBookingStatus(BookingStatus.CONFIRMED);
-        //if the booking is denied, add back the booking dates to available dates and change status to declined
+            booking.setBookingStatus(BookingStatus.ACCEPTED);
+        //if the booking is rejected, add back the booking dates to available dates and change status to rejected
         } else {
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
             listingRepository.save(listing);
-            booking.setBookingStatus(BookingStatus.DECLINED);
+            booking.setBookingStatus(BookingStatus.REJECTED);
         }
 
         //save updated booking
@@ -190,7 +190,7 @@ public class BookingService {
         Listing listing = validateListingIdAndGetListing(booking);
 
         //if booking does not have status denied, add back the booked dates to the listing
-        if(booking.getBookingStatus() != BookingStatus.DECLINED) {
+        if(booking.getBookingStatus() != BookingStatus.REJECTED) {
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
             listingRepository.save(listing);

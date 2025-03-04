@@ -75,17 +75,15 @@ public class UserService {
     }
 
     //delete single user using id
-    public String deleteUserById(String id) {
+    public void deleteUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
 
         //get and delete user listings
         List<Listing> userListings= listingRepository.deleteByHost(user);
 
         //delete bookings for the deleted listings
-        Long nrOfTotalListingBookings = 0L;
         for (Listing listing : userListings) {
-            Long nrOfListingBookings = bookingRepository.deleteByListing(listing);
-            nrOfTotalListingBookings += nrOfListingBookings;
+            bookingRepository.deleteByListing(listing);
         }
 
         //get and delete bookings belonging to the user
@@ -101,7 +99,6 @@ public class UserService {
                 }
             }
         userRepository.delete(user);
-        return("The user, "+userListings.size()+" user listings, "+ userBookings.size() +" user bookings and "+nrOfTotalListingBookings+" bookings belonging to the user listings have been deleted");
     }
 
     //update single user using id, return as UserResponseDTO
