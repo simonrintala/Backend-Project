@@ -65,4 +65,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
+    // Update an existing user
+    public void updateUser(User host) {
+        userRepository.save(host);
+        System.out.println("User saved with average rating: " + host.getAverageRating());
+    }
+
 }

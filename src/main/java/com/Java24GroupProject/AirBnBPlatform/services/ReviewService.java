@@ -23,16 +23,16 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
     private final ListingService listingService;
+    private final UserRepository userRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserRepository userRepository, UserService userService, ListingService listingService) {
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserService userService, ListingService listingService, UserRepository userRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
         this.listingService = listingService;
+        this.userRepository = userRepository;
     }
 
     // Create a review
@@ -79,11 +79,18 @@ public class ReviewService {
         review.setEndDate(booking.getBookingDates().getEndDate());
         review.setCreatedAt(LocalDateTime.now());
 
+        //sending correct host but not updating???
+        System.out.println("Creating review for listing: " + reviewRequest.getListingId());
+        System.out.println("Host ID: " + reviewRequest.getHostId());
+
         // Save the review
         Review savedReview = reviewRepository.save(review);
 
         // Update host and listing avg ratings
+        //updating correct host but doesnt show in postman????
+        System.out.println("Updating average rating for host: " + reviewRequest.getHostId());
         updateAverageHostRating(reviewRequest.getHostId());
+        System.out.println("Updating average rating for listing: " + reviewRequest.getListingId());
         updateAverageListingRating(reviewRequest.getListingId());
 
         ReviewResponse reviewResponse = mapToReviewResponse(savedReview);
@@ -93,20 +100,43 @@ public class ReviewService {
 
     // Update the average rating of a host
     public void updateAverageHostRating(String hostId) {
+        System.out.println("Fetching reviews for host: " + hostId);
+
+        // Fetch all reviews for listings owned by the host
         List<Review> reviews = reviewRepository.findByListing_Host_Id(hostId);
+
+        System.out.println("Number of reviews found: " + reviews.size());
+
+        // Log the reviews
+        for (Review review : reviews) {
+            System.out.println("Review ID: " + review.getId() + ", Rating: " + review.getRating());
+        }
+
+        // Calculate the average rating
         double averageRating = reviews.stream()
                 .mapToDouble(Review::getRating)
                 .average()
                 .orElse(0.0);
 
+        System.out.println("Calculated average rating: " + averageRating);
+
+        // Fetch the host
         User host = userService.getUserById(hostId);
+        if (host == null) {
+            throw new ResourceNotFoundException("Host not found with ID: " + hostId);
+        }
+
+        // Update the host's average rating
         host.setAverageRating(averageRating);
-        userService.registerUser(host); // Save the updated user
+        userService.updateUser(host); // Save the updated host
+
+        System.out.println("Updated average rating for host " + hostId + ": " + averageRating);
     }
 
     // Update the average rating of a listing
     public void updateAverageListingRating(String listingId) {
         List<Review> reviews = reviewRepository.findByListing_Id(listingId);
+
         double averageRating = reviews.stream()
                 .mapToDouble(Review::getRating)
                 .average()
@@ -153,9 +183,15 @@ public class ReviewService {
         updateAverageHostRating(review.getListing().getHost().getId());
     }
 
+
+
     public List<ReviewResponse> getReviewsByHost(String hostId) {
+        System.out.println("Fetching reviews for host: " + hostId);
+
         // Fetch all reviews for listings owned by the host
         List<Review> reviews = reviewRepository.findByListing_Host_Id(hostId);
+
+        System.out.println("Number of reviews found: " + reviews.size());
 
         // Map the reviews to ReviewResponse DTOs
         return reviews.stream()
