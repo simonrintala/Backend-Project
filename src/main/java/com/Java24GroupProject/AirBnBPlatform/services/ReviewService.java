@@ -9,7 +9,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -25,14 +24,12 @@ public class ReviewService {
     private final BookingRepository bookingRepository;
     private final UserService userService;
     private final ListingService listingService;
-    private final UserRepository userRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserService userService, ListingService listingService, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserService userService, ListingService listingService) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.userService = userService;
         this.listingService = listingService;
-        this.userRepository = userRepository;
     }
 
     // Create a review

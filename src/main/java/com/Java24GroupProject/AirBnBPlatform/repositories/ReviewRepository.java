@@ -13,7 +13,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     List<Review> findByUser_Id(String userId);
 
     // Find all reviews for a specific host (via the listing's host)
-    @Query("{ 'listing.host.$id': ?0 }")
+    @Query("{ 'listing.host.$id.$oid': ?0 }")
     List<Review> findByListing_Host_Id(String hostId);
 
 }
