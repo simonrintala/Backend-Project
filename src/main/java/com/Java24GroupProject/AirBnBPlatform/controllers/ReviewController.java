@@ -1,8 +1,9 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewRequest;
-import com.Java24GroupProject.AirBnBPlatform.models.Review;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewResponse;
 import com.Java24GroupProject.AirBnBPlatform.services.ReviewService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,22 +18,24 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
+    // Create a new review
     @PostMapping
-    public ResponseEntity<Review> createReview(@RequestBody ReviewRequest reviewRequest) {
-        Review savedReview = reviewService.createReview(reviewRequest.getBookingId(), reviewRequest.getRating());
-        return ResponseEntity.ok(savedReview);
+    public ResponseEntity<ReviewResponse> createReview(@RequestBody ReviewRequest reviewRequest) {
+        ReviewResponse reviewResponse = reviewService.createReview(reviewRequest);
+        return new ResponseEntity<>(reviewResponse, HttpStatus.CREATED);
     }
 
+    // Get all reviews for a specific listing
     @GetMapping("/listing/{listingId}")
-    public ResponseEntity<List<Review>> getReviewsByListingId(@PathVariable String listingId) {
-        List<Review> reviews = reviewService.getReviewsByListing(listingId);
-        return ResponseEntity.ok(reviews);
+    public ResponseEntity<List<ReviewResponse>> getReviewsByListing(@PathVariable String listingId) {
+        List<ReviewResponse> reviewResponses = reviewService.getReviewsByListing(listingId);
+        return new ResponseEntity<>(reviewResponses, HttpStatus.OK);
     }
 
+    // Get all reviews made by a specific user
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Review>> getReviewsByUserId(@PathVariable String userId) {
-        List<Review> reviews = reviewService.getReviewsByUser(userId);
-        return ResponseEntity.ok(reviews);
+    public ResponseEntity<List<ReviewResponse>> getReviewsByUser(@PathVariable String userId) {
+        List<ReviewResponse> reviewResponses = reviewService.getReviewsByUser(userId);
+        return new ResponseEntity<>(reviewResponses, HttpStatus.OK);
     }
-
 }

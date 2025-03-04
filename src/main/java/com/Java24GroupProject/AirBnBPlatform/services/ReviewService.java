@@ -1,86 +1,163 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewRequest;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
+import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
+import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
     private final ReviewRepository reviewRepository;
-    private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
-    private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ListingService listingService;
 
-    public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
+    @Autowired
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserRepository userRepository, UserService userService, ListingService listingService) {
         this.reviewRepository = reviewRepository;
-        this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
-        this.listingRepository = listingRepository;
+        this.userRepository = userRepository;
+        this.userService = userService;
+        this.listingService = listingService;
     }
 
-    public  Review createReview (String bookingId, Double rating) {
-        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
-        if (optionalBooking.isEmpty()) {
-            throw new RuntimeException("Booking not found");
+    // Create a review
+    public ReviewResponse createReview(ReviewRequest reviewRequest) {
+        // Get the logged in users username from the JWT token
+        String loggedInUsername = getLoggedInUsername();
 
+        // Fetch the logged in user by username
+        User loggedInUser = userService.findByUsername(loggedInUsername);
+        if (loggedInUser == null) {
+            throw new ResourceNotFoundException("User not found with username: " + loggedInUsername);
         }
-        Booking booking = optionalBooking.get();
-        DateRange dateRange = booking.getBookingDates();
-        LocalDate endDate = dateRange.getEndDate();
 
-        if (endDate.isAfter(LocalDate.now())) {
-                throw new RuntimeException("You can only review after your stay is over.");
-            }
-        if (rating < 1 || rating > 5) {
-            throw new RuntimeException("Rating should be between 1 and 5");
-        } //dubbel med annoteringarna i models?
+        // Validate the listing
+        Listing listing = listingService.validateListingIdAndGetListing(reviewRequest.getListingId());
+        if (listing == null) {
+            throw new ResourceNotFoundException("Listing not found with ID: " + reviewRequest.getListingId());
+        }
 
+        // Validate the host
+        User host = userService.getUserById(reviewRequest.getHostId());
+        if (host == null) {
+            throw new ResourceNotFoundException("Host not found with ID: " + reviewRequest.getHostId());
+        }
+
+        // Check if the booking exists and the end date has passed
+        Booking booking = bookingRepository.findByUserAndListing(loggedInUser, listing)
+                .orElseThrow(() -> new IllegalArgumentException("No booking found for this user and listing."));
+
+        if (booking.getBookingDates().getEndDate().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Cannot leave a review before the stay has ended.");
+        }
+
+        // Validate the rating
+        if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5.");
+        }
+
+        // Create the review
         Review review = new Review();
-        review.setBooking(booking);
-        review.setRating(rating);
+        review.setListing(listing);
+        review.setUser(loggedInUser);
+        review.setRating(reviewRequest.getRating());
+        review.setEndDate(booking.getBookingDates().getEndDate());
         review.setCreatedAt(LocalDateTime.now());
 
+        // Save the review
         Review savedReview = reviewRepository.save(review);
 
-        updateListingAverageRating(booking.getListing().getHost().getId());
+        // Update host and listing avg ratings
+        updateAverageHostRating(reviewRequest.getHostId());
+        updateAverageListingRating(reviewRequest.getListingId());
 
-        return savedReview;
-        
+        ReviewResponse reviewResponse = mapToReviewResponse(savedReview);
+
+        return reviewResponse;
     }
 
-    public List<Review> getReviewsByListing(String listingId) {
-        return reviewRepository.findByBooking_Listing_Id(listingId);
+    // Update the average rating of a host
+    public void updateAverageHostRating(String hostId) {
+        List<Review> reviews = reviewRepository.findByListing_Host_Id(hostId);
+        double averageRating = reviews.stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        User host = userService.getUserById(hostId);
+        host.setAverageRating(averageRating);
+        userService.registerUser(host); // Save the updated user
     }
 
-    public List<Review> getReviewsByUser(String userId) {
-        return reviewRepository.findByBooking_User_Id(userId);
+    // Update the average rating of a listing
+    public void updateAverageListingRating(String listingId) {
+        List<Review> reviews = reviewRepository.findByListing_Id(listingId);
+        double averageRating = reviews.stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        Listing listing = listingService.validateListingIdAndGetListing(listingId);
+        listing.setAverageRating(averageRating);
+        listingService.createListing(listing); // Save the updated listing
     }
 
-    private void updateListingAverageRating(String listingId) {
-        List<Review> reviews = reviewRepository.findByBooking_Listing_Id(listingId);
+    public List<ReviewResponse> getReviewsByListing(String listingId) {
+        // Fetch all reviews for the listing
+        List<Review> reviews = reviewRepository.findByListing_Id(listingId);
 
-        if (!reviews.isEmpty()) {
-            double avgRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
-            listingRepository.updateAverageRating(listingId, avgRating);
+        // Update the average rating for the listing
+        updateAverageListingRating(listingId);
+
+        // Map the reviews to ReviewResponse DTOs
+        return reviews.stream()
+                .map(this::mapToReviewResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewResponse> getReviewsByUser(String userId) {
+        List<Review> reviews = reviewRepository.findByUser_Id(userId);
+
+        updateAverageHostRating(userId);
+
+        return reviews.stream()
+                .map(this::mapToReviewResponse)
+                .collect(Collectors.toList());
+    } //same as getReviewsByListing
+
+    public String getLoggedInUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername(); // Extract username
+        } else {
+            throw new IllegalStateException("User not authenticated.");
         }
     }
 
-    private void updateHostAverageRating(String hostId) {
-        List<Review> reviews = reviewRepository.findByBooking_Listing_Host_Id(hostId);
-
-        if (!reviews.isEmpty()) {
-            double avgRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
-            userRepository.updateAverageRating(hostId, avgRating);
-        }
+    // method to map Review to ReviewResponse
+    private ReviewResponse mapToReviewResponse(Review review) {
+        ReviewResponse reviewResponse = new ReviewResponse();
+        reviewResponse.setId(review.getId());
+        reviewResponse.setTitle(review.getListing().getTitle());
+        reviewResponse.setRating(review.getRating());
+        reviewResponse.setCreatedAt(review.getCreatedAt());
+        return reviewResponse;
     }
 }

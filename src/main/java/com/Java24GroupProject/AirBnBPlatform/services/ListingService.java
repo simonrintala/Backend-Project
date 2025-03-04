@@ -146,7 +146,7 @@ public class ListingService {
         
     }
 
-    private Listing validateListingIdAndGetListing(String id) {
+    Listing validateListingIdAndGetListing(String id) {
         return listingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
 

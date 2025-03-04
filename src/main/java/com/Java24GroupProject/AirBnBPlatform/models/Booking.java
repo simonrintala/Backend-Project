@@ -26,8 +26,6 @@ public class Booking {
     @NotNull(message = "A user is required")
     private User user;
 
-//    @DBRef
-//    private User username
 
     private DateRange bookingDates;
 

@@ -48,6 +48,8 @@ public class Listing {
 
     private List<DateRange> availableDates;
 
+    private Double averageRating;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -151,6 +153,14 @@ public class Listing {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 
     public void addAvailableDateRange(DateRange dateRange) {

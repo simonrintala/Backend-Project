@@ -1,5 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
+import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
@@ -56,6 +57,12 @@ public class UserService {
     //check if phone number already exists in database
     public boolean existsByPhoneNr(String phoneNr) {
         return userRepository.findByPhoneNr(phoneNr).isPresent();
+    }
+
+    //Get user by id for reviews
+    public User getUserById(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
 }

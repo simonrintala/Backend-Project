@@ -32,6 +32,8 @@ public class User {
     private String phoneNr;
 
     private Set<Role> roles;
+
+    private Double averageRating;
     
     @CreatedDate
     private Date createdAt;
@@ -103,6 +105,14 @@ public class User {
     
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 }
 
