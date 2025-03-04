@@ -38,4 +38,30 @@ public class ReviewController {
         List<ReviewResponse> reviewResponses = reviewService.getReviewsByUser(userId);
         return new ResponseEntity<>(reviewResponses, HttpStatus.OK);
     }
+
+    @GetMapping("/host/{hostId}")
+    public ResponseEntity<List<ReviewResponse>> getReviewsByHost(@PathVariable String hostId) {
+        List<ReviewResponse> reviewResponses = reviewService.getReviewsByHost(hostId);
+        return new ResponseEntity<>(reviewResponses, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> deleteReview(@PathVariable String reviewId) {
+        reviewService.deleteReview(reviewId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/listing/{listingId}/avgrating")
+    public ResponseEntity<Double> getAverageRatingForListing(@PathVariable String listingId) {
+        double averageRating = reviewService.getAverageRatingForListing(listingId);
+        return new ResponseEntity<>(averageRating, HttpStatus.OK);
+    }
+
+    @GetMapping("/host/{hostId}/avgrating")
+    public ResponseEntity<Double> getAverageRatingForHost(@PathVariable String hostId) {
+        double averageRating = reviewService.getAverageRatingForHost(hostId);
+        return new ResponseEntity<>(averageRating, HttpStatus.OK);
+    }
+
+
 }

@@ -10,7 +10,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ public class ReviewService {
     private final UserService userService;
     private final ListingService listingService;
 
-    @Autowired
     public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserRepository userRepository, UserService userService, ListingService listingService) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
@@ -133,14 +131,46 @@ public class ReviewService {
     }
 
     public List<ReviewResponse> getReviewsByUser(String userId) {
+        // Fetch all reviews for the user
         List<Review> reviews = reviewRepository.findByUser_Id(userId);
 
-        updateAverageHostRating(userId);
-
+        // Map the reviews to ReviewResponse DTOs
         return reviews.stream()
                 .map(this::mapToReviewResponse)
                 .collect(Collectors.toList());
     } //same as getReviewsByListing
+
+    public void deleteReview(String reviewId) {
+        // Check if the review exists
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + reviewId));
+
+        // Delete the review
+        reviewRepository.delete(review);
+
+        // Update the average rating for the listing and host
+        updateAverageListingRating(review.getListing().getId());
+        updateAverageHostRating(review.getListing().getHost().getId());
+    }
+
+    public List<ReviewResponse> getReviewsByHost(String hostId) {
+        // Fetch all reviews for listings owned by the host
+        List<Review> reviews = reviewRepository.findByListing_Host_Id(hostId);
+
+        // Map the reviews to ReviewResponse DTOs
+        return reviews.stream()
+                .map(this::mapToReviewResponse)
+                .collect(Collectors.toList());
+    }
+
+    public double getAverageRatingForListing(String listingId) {
+        Listing listing = listingService.validateListingIdAndGetListing(listingId);
+        return listing.getAverageRating();
+    }
+    public double getAverageRatingForHost(String hostId) {
+        User host = userService.getUserById(hostId);
+        return host.getAverageRating();
+    }
 
     public String getLoggedInUsername() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
