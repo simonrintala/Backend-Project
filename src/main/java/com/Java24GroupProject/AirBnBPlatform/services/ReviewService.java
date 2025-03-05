@@ -76,16 +76,13 @@ public class ReviewService {
         review.setEndDate(booking.getBookingDates().getEndDate());
         review.setCreatedAt(LocalDateTime.now());
 
-
         // Save the review
         Review savedReview = reviewRepository.save(review);
 
         // listing avg ratings
         //updateAverageHostRating(reviewRequest.getHostId());
         updateAverageListingRating(reviewRequest.getListingId());
-
         ReviewResponse reviewResponse = mapToReviewResponse(savedReview);
-
         return reviewResponse;
     }
 
@@ -217,6 +214,5 @@ public class ReviewService {
 
         System.out.println("Updated average rating for host " + hostId + ": " + averageRating);
     }
-
   */
 }
