@@ -3,7 +3,6 @@ package com.Java24GroupProject.AirBnBPlatform.DTOs;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,10 +15,8 @@ public class UserResponse {
         private String description;
         private Map<String,String> favorites;
         private Set<Role> roles;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
 
-    public UserResponse(String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Map<String,String> favorites, Set<Role> roles, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserResponse(String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Map<String,String> favorites, Set<Role> roles) {
         this.username = username;
         this.email = email;
         this.phoneNr = phoneNr;
@@ -28,8 +25,6 @@ public class UserResponse {
         this.description = description;
         this.favorites = favorites;
         this.roles = roles;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public String getUsername() {
@@ -94,21 +89,5 @@ public class UserResponse {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

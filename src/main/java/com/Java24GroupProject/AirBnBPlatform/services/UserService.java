@@ -6,11 +6,13 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
+import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
+import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -24,23 +26,22 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 
-//NOTE: not finished, just made what needed to be there for Security implementation.
-
-//This class has methods relating to Spring security, but should also be expanded to contain methods relevant to user CRUD etc.
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ListingRepository listingRepository;
+    private final BookingRepository bookingRepository;
 
     //constructor injection
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.listingRepository = listingRepository;
+        this.bookingRepository = bookingRepository;
     }
 
-    //method for registering a new user
+    //register a new user, used by AuthenticationController
     public RegisterResponse registerUser(UserRequest userRequest) {
         //validate that username, email and phoneNr is unique
         validateUniqueFields(userRequest);
@@ -58,23 +59,49 @@ public class UserService {
         return new RegisterResponse("user registered successfully", user.getUsername(), user.getRoles());
     }
 
+    //get all users, return as UserResponseDTO
     public List<UserResponse> getAllUsers() {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userRepository.findAll()) {
-            userResponseList.add(new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt()));
+            userResponseList.add(transferUserToUserResponse(user));
         }
         return userResponseList;
     }
 
+    //get single user using id, return as UserResponse
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
-        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles(), user.getCreatedAt(), user.getUpdatedAt());
+        return transferUserToUserResponse(user);
     }
 
+    //delete single user using id
     public void deleteUserById(String id) {
-        userRepository.delete(validateUserIdAndReturnUser(id));
+        User user = validateUserIdAndReturnUser(id);
+
+        //get and delete user listings
+        List<Listing> userListings= listingRepository.deleteByHost(user);
+
+        //delete bookings for the deleted listings
+        for (Listing listing : userListings) {
+            bookingRepository.deleteByListing(listing);
+        }
+
+        //get and delete bookings belonging to the user
+        List<Booking> userBookings = bookingRepository.deleteByUser(user);
+        //loop bookings and add back dates to listing if booking is pending
+        for (Booking booking : userBookings) {
+            if (booking.getBookingStatus() == BookingStatus.PENDING) {
+                Listing listing = listingRepository.findById(booking.getListing().getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                listing.addAvailableDateRange(booking.getBookingDates());
+                listing.setUpdatedAt(LocalDateTime.now());
+                listingRepository.save(listing);
+                }
+            }
+        userRepository.delete(user);
     }
 
+    //update single user using id, return as UserResponseDTO
     public UserResponse updateUser(String id, UserRequest userRequest) {
         //validate user id and get and update existing user
         User existingUser = transferUserRequestToUser(userRequest, validateUserIdAndReturnUser(id));
@@ -84,18 +111,17 @@ public class UserService {
         userRepository.save(existingUser);
 
         //convert to a responseDTO and return
-        return new UserResponse(existingUser.getUsername(), existingUser.getEmail(), existingUser.getPhoneNr(), existingUser.getAddress(), existingUser.getProfilePictureURL(), existingUser.getDescription(), getFavorites(), existingUser.getRoles(), existingUser.getCreatedAt(), existingUser.getUpdatedAt());
-
+        return transferUserToUserResponse(existingUser);
     }
 
     //add or remove a listing from current users saved favorites using listing id as an input variable
     public String addOrRemoveFavorite(String listingId) {
         Listing newListing = listingRepository.findById(listingId)
-                .orElseThrow(() -> new IllegalArgumentException("Listing id does not exist in database"));
+                .orElseThrow(() -> new java.lang.IllegalArgumentException("Listing id does not exist in database"));
 
         String message = "'"+ newListing.getTitle()+"'";
         //get current user
-        User user = verifyCookiesAndExtractUser();
+        User user = verifyAuthenticationAndExtractUser(userRepository);
 
         boolean isRemoved = false;
         //loop through favorites to check if newListing is already saved
@@ -110,7 +136,7 @@ public class UserService {
                     isRemoved = true;
                     break;
                 }
-            //if listing has been deleted, remove from favorites
+                //if listing has been deleted, remove from favorites
             } else {
                 user.removeFavorite(listingReference);
 
@@ -118,9 +144,9 @@ public class UserService {
         }
 
         if (!isRemoved) {
-            //check that
+            //check that does not already have max amount of saved favorites (max allowed = 20)
             if (user.getFavorites().size() >= 20) {
-                throw new UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
+                throw new com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
             }
             user.addFavorite(newListing);
             message = message +" has been added to favorites";
@@ -130,9 +156,10 @@ public class UserService {
         return message;
     }
 
+    //get favorites for current user
     public Map<String, String> getFavorites() {
         //get current user
-        User user = verifyCookiesAndExtractUser();
+        User user = verifyAuthenticationAndExtractUser(userRepository);
 
         //convert list of listings to list of string objects
         Map<String, String> favoritesResponse = new HashMap<>();
@@ -146,9 +173,9 @@ public class UserService {
                     //if listing has been removed from database, delete if from favorites
                     user.removeFavorite(listingReference);
                     userRepository.save(user);
-                    }
                 }
             }
+        }
         return favoritesResponse;
     }
 
@@ -158,13 +185,13 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-
     //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
     private User validateUserIdAndReturnUser(String id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User id does not exist in database"));
+                .orElseThrow(() -> new java.lang.IllegalArgumentException("User id does not exist in database"));
     }
 
+    //validate that username, email and phoneNr are not already taken by another user in database
     private void validateUniqueFields(UserRequest userRequest) {
         //check if username already exists, and if is does, cast error
         if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
@@ -182,7 +209,35 @@ public class UserService {
         }
     }
 
-    private User verifyCookiesAndExtractUser() {
+    //convert incoming DTO (from UserController) to User object
+    private User transferUserRequestToUser(UserRequest userRequest, User user) {
+
+        user.setUsername(userRequest.getUsername());
+        //encodes the password
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setEmail(userRequest.getEmail());
+        user.setPhoneNr(userRequest.getPhoneNr());
+        //create UserAddress from String variables from the UserRequest
+        user.setAddress(new UserAddress(userRequest.getStreet(), userRequest.getZipCode(), userRequest.getCity(), userRequest.getCountry()));
+        user.setProfilePictureURL(userRequest.getProfilePictureURL());
+        user.setDescription(userRequest.getDescription());
+
+        //assign the role USER if no roles are specified in UserRequest
+        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
+            user.setRoles(Set.of(Role.USER));
+        } else {
+            user.setRoles(userRequest.getRoles());
+        }
+        return user;
+    }
+
+    //transfer User to UserResponse, used when returning user data to UserController
+    public UserResponse transferUserToUserResponse(User user) {
+        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles());
+    }
+
+    //verify and get current user from jwtToken/cookies
+    public static User verifyAuthenticationAndExtractUser(UserRepository userRepository) {
         //check that user is logged in
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
@@ -193,28 +248,4 @@ public class UserService {
         return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
-
-    private User transferUserRequestToUser(UserRequest userRequest, User user) {
-        user.setUsername(userRequest.getUsername());
-
-        //encodes the password
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user.setEmail(userRequest.getEmail());
-        user.setPhoneNr(userRequest.getPhoneNr());
-
-        //create UserAddress from String variables from the UserRequest
-        user.setAddress(new UserAddress(userRequest.getStreet(), userRequest.getZipCode(), userRequest.getCity(), userRequest.getCountry()));
-        user.setProfilePictureURL(userRequest.getProfilePictureURL());
-        user.setDescription(userRequest.getDescription());
-
-        //assign the role USER if not roles are specified
-        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
-        } else {
-            user.setRoles(userRequest.getRoles());
-        }
-
-        return user;
-    }
-
 }

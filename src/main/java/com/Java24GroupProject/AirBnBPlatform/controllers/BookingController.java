@@ -6,7 +6,6 @@ import com.Java24GroupProject.AirBnBPlatform.services.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +20,6 @@ public class BookingController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'HOST', 'ADMIN')")
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest bookingRequest) {
         BookingResponse bookingResponse = bookingService.createBooking(bookingRequest);
         return new ResponseEntity<>(bookingResponse, HttpStatus.CREATED);
@@ -31,9 +29,8 @@ public class BookingController {
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
         List<BookingResponse> bookingResponses = bookingService.getAllBookings();
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
-
-        //return new ResponseEntity<>(bookingService.getAllBookings(), HttpStatus.OK);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable String id) {
@@ -41,9 +38,16 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
+    //get all bookings ny userid
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponse>> getBookingsByUserId(@PathVariable String userId) {
-        List<BookingResponse> bookingResponses = bookingService.getBookingByUserId(userId);
+        List<BookingResponse> bookingResponses = bookingService.getBookingsByUserId(userId);
+        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
+    }
+
+    @GetMapping("/listing/{listingId}")
+    public ResponseEntity<List<BookingResponse>> getBookingsByListingId(@PathVariable String listingId) {
+        List<BookingResponse> bookingResponses = bookingService.getBookingsByListingId(listingId);
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 
@@ -53,12 +57,21 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
+    @PatchMapping("/accept/{id}")
+    public ResponseEntity<BookingResponse> acceptBooking(@PathVariable String id) {
+        BookingResponse bookingResponse = bookingService.acceptOrRejectBooking(id, true);
+        return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
+    }
+
+    @PatchMapping("/reject/{id}")
+    public ResponseEntity<BookingResponse> rejectBooking(@PathVariable String id) {
+        BookingResponse bookingResponse = bookingService.acceptOrRejectBooking(id, false);
+        return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable String id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }

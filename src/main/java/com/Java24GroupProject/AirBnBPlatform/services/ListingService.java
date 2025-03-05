@@ -2,12 +2,15 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,10 +21,12 @@ import java.util.List;
 public class ListingService {
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
-    public ListingService(ListingRepository listingRepository, UserRepository userRepository) {
+    public ListingService(ListingRepository listingRepository, UserRepository userRepository, BookingRepository bookingRepository) {
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     public ListingResponse createListing(ListingRequest listingRequest) {
@@ -145,25 +150,26 @@ public class ListingService {
         //validate listing id and get existing listing
         Listing existingListing = validateListingIdAndGetListing(id);
         
-       existingListing.setTitle(listing.getTitle());
-       existingListing.setDescription(listing.getDescription());
-       existingListing.setPricePerNight(listing.getPricePerNight());
-       existingListing.setCapacity(listing.getCapacity());
-       existingListing.setUtilities(listing.getUtilities());
-       existingListing.setLocation(listing.getLocation());
-       existingListing.setImage_urls(listing.getImage_urls());
-       existingListing.setUpdatedAt(listing.getUpdatedAt());
-       existingListing.setCreatedAt(listing.getCreatedAt());
-       //save updated listing
+        existingListing.setTitle(listing.getTitle());
+        existingListing.setDescription(listing.getDescription());
+        existingListing.setPricePerNight(listing.getPricePerNight());
+        existingListing.setCapacity(listing.getCapacity());
+        existingListing.setUtilities(listing.getUtilities());
+        existingListing.setLocation(listing.getLocation());
+        existingListing.setImage_urls(listing.getImage_urls());
+
+        //save updated listing
+        existingListing.setUpdatedAt(LocalDateTime.now());
         listingRepository.save(existingListing);
 
         //return as ResponseDTO
         return convertToListingResponseDTO(existingListing);
     }
 
-    //validate listing id exists in database and delete listing
+    //validate listing id exists in database and delete listing and bookings for the listing
     public void deleteListing(String id) {
         Listing listing = validateListingIdAndGetListing(id);
+        bookingRepository.deleteByListing(listing);
         listingRepository.delete(listing);
     }
     
