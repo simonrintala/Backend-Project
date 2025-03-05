@@ -2,7 +2,10 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -51,7 +54,7 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
-    //get booking by id
+    //get bookings by id
     public BookingResponse getBookingById(String id) {
         Booking booking = validateBookingIdAndGetBooking(id);
 
@@ -59,6 +62,7 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
+    //get all bookings
     public List<BookingResponse> getAllBookings() {
         List<BookingResponse> bookingResponses = new ArrayList<>();
         //convert toDTO
@@ -68,11 +72,11 @@ public class BookingService {
         return bookingResponses;
     }
 
-    //get all bookings for a user
-    public List<BookingResponse> getBookingByUserId(String userId) {
+    //get bookings for a single user
+    public List<BookingResponse> getBookingsByUserId(String userId) {
         //validate user id
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         //convert toDTO
         List<BookingResponse> userBookingResponses = new ArrayList<>();
@@ -82,13 +86,25 @@ public class BookingService {
         return userBookingResponses;
     }
 
-    public BookingResponse updateBooking (String id, BookingRequest updatedBookingRequest) {
+    public List<BookingResponse> getBookingsByListingId(String listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
+
+        //convert toDTO
+        List<BookingResponse> userBookingResponses = new ArrayList<>();
+        for (Booking booking : bookingRepository.findByListing(listing)) {
+            userBookingResponses.add(convertToDTOResponse(booking));
+        }
+        return userBookingResponses;
+    }
+
+    public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
         //validate booking id
         Booking booking = validateBookingIdAndGetBooking(id);
 
         //check if status is pending, otherwise cannot be changed
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Confirmed, payed or cancelled bookings cannot be updated");
+            throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
         }
 
         //validate data in new booking
@@ -110,11 +126,9 @@ public class BookingService {
             listing.addAvailableDateRange(booking.getBookingDates());
             listingRepository.save(listing);
 
-
             //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking);
             booking.setBookingDates(updatedBooking.getBookingDates());
-
         }
 
         //update other booking data booking
@@ -130,6 +144,43 @@ public class BookingService {
         return convertToDTOResponse(booking);
     }
 
+    public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
+        //get booking from repository
+        Booking booking = validateBookingIdAndGetBooking(id);
+
+        //check that booking status is pending
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
+        }
+
+        //get current logged-in user
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+
+        //get listing for the booking (to check that the current user is the host of the listing)
+        Listing listing = validateListingIdAndGetListing(booking);
+
+        //check that current user is the host of the listing the booking refers to, otherwise cast error
+        if (!listing.getHost().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedException("only the listing host can accept/reject a booking");
+        }
+
+        //if booking is accepted change status to accepted
+        if (isAccepted) {
+            booking.setBookingStatus(BookingStatus.ACCEPTED);
+        //if the booking is rejected, add back the booking dates to available dates and change status to rejected
+        } else {
+            listing.addAvailableDateRange(booking.getBookingDates());
+            listing.setUpdatedAt(LocalDateTime.now());
+            listingRepository.save(listing);
+            booking.setBookingStatus(BookingStatus.REJECTED);
+        }
+
+        //save updated booking
+        booking.setUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        return convertToDTOResponse(booking);
+    }
 
     public void deleteBooking(String id) {
         //check if id is valid
@@ -138,9 +189,13 @@ public class BookingService {
         //get listing
         Listing listing = validateListingIdAndGetListing(booking);
 
-        //add back the booked dates to the listing
-        listing.addAvailableDateRange(booking.getBookingDates());
-        listingRepository.save(listing);
+        //if booking does not have status denied, add back the booked dates to the listing
+        if(booking.getBookingStatus() != BookingStatus.REJECTED) {
+            listing.addAvailableDateRange(booking.getBookingDates());
+            listing.setUpdatedAt(LocalDateTime.now());
+            listingRepository.save(listing);
+        }
+
 
         //delete booking
         bookingRepository.deleteById(id);
@@ -160,13 +215,12 @@ public class BookingService {
                 booking.getBookingDates().getEndDate().toString(),
                 booking.getNumberOfGuests(),
                 booking.getTotalPrice(),
-                booking.getBookingStatus(),
-                booking.getCreatedAt()
+                booking.getBookingStatus()
         );
     }
 
     //convert BookingRequest to Booking
-    public Booking convertRequestToBooking(BookingRequest bookingRequest) {
+    private Booking convertRequestToBooking(BookingRequest bookingRequest) {
                 Booking booking = new Booking();
                 booking.setListing(bookingRequest.getListing());
                 booking.setUser(bookingRequest.getUser());
@@ -176,6 +230,24 @@ public class BookingService {
                 booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
                 calculateAndSetPrice(booking);
                 return booking;
+    }
+
+    //calculate price from nr of booked days and price per night from listing
+    private void calculateAndSetPrice(Booking booking) {
+        //calculate days in between start and end date
+        long daysBetween = ChronoUnit.DAYS.between(
+                booking.getBookingDates().getStartDate(),
+                booking.getBookingDates().getEndDate()
+        );
+
+        //get listing
+        Listing listing = validateListingIdAndGetListing(booking);
+
+        //calculate price using listing price_per_night
+        BigDecimal totalPrice = listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
+
+        //set total price of booking
+        booking.setTotalPrice(totalPrice);
     }
 
     //validate that BookingRequest data is valid
@@ -243,28 +315,10 @@ public class BookingService {
         }
     }
 
-    private void calculateAndSetPrice(Booking booking) {
-        //calculate days in between start and end date
-        long daysBetween = ChronoUnit.DAYS.between(
-                booking.getBookingDates().getStartDate(),
-                booking.getBookingDates().getEndDate()
-        );
-
-        //get listing
-        Listing listing = validateListingIdAndGetListing(booking);
-
-        //calculate price using listing price_per_night
-        BigDecimal totalPrice = listing.getPrice_per_night().multiply(BigDecimal.valueOf(daysBetween));
-
-        //set total price of booking
-        booking.setTotalPrice(totalPrice);
-    }
-
     //validate id and get booking object
     private Booking validateBookingIdAndGetBooking(String id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-
     }
 
     //validate listing id and get listing object from booking

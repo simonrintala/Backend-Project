@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+
 @Document(collection = "listings")
 public class Listing {
     @Id
@@ -29,7 +30,7 @@ public class Listing {
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
     @Field(targetType = FieldType.DECIMAL128)
-    private BigDecimal price_per_night;
+    private BigDecimal pricePerNight;
 
     @NotNull(message = "Capacity limit must be set.")
     @Positive(message = "Capacity must be greater than zero")
@@ -130,12 +131,12 @@ public class Listing {
         this.createdAt = createdAt;
     }
 
-    public BigDecimal getPrice_per_night() {
-        return price_per_night;
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
     }
 
-    public void setPrice_per_night(BigDecimal price_per_night) {
-        this.price_per_night = price_per_night;
+    public void setPricePerNight(BigDecimal pricePerNight) {
+        this.pricePerNight = pricePerNight;
     }
 
     public List<DateRange> getAvailableDates() {
@@ -177,11 +178,11 @@ public class Listing {
             } else if (dateRange.isIdenticalToAnotherDateRange(availableDateRange)) {
                 throw new IllegalArgumentException("dates could not be added, already in available dates for listing");
 
-                //does dateRange start at the end of exisiting date range
+                //does dateRange start at the end of existing date range
             } else if (dateRange.getStartDate().isEqual(availableDateRange.getEndDate())) {
                 endWhereNewDateRangeStarts = availableDateRange;
 
-                //does dateRange end at the start of exisiting date range
+                //does dateRange end at the start of existing date range
             } else if (availableDateRange.getStartDate().isEqual(dateRange.getEndDate())) {
                 startsWhereNewDateRangeEnds = availableDateRange;
             }

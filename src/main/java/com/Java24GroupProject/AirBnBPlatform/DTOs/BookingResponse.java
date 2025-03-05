@@ -3,7 +3,6 @@ package com.Java24GroupProject.AirBnBPlatform.DTOs;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class BookingResponse {
     private String listingTitle;
@@ -15,9 +14,8 @@ public class BookingResponse {
     private Integer numberOfGuests;
     private BigDecimal totalPrice;
     private BookingStatus status;
-    private LocalDateTime createdAt;
 
-    public BookingResponse(String listingTitle, String username, String email, String phoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status, LocalDateTime createdAt) {
+    public BookingResponse(String listingTitle, String username, String email, String phoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status) {
         this.listingTitle = listingTitle;
         this.username = username;
         this.email = email;
@@ -27,7 +25,6 @@ public class BookingResponse {
         this.numberOfGuests = numberOfGuests;
         this.totalPrice = totalPrice;
         this.status = status;
-        this.createdAt = createdAt;
     }
 
     public String getListingTitle() {
@@ -92,14 +89,6 @@ public class BookingResponse {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
     public BookingStatus getStatus() {

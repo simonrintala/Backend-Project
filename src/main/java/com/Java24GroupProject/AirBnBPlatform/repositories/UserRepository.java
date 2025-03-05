@@ -3,7 +3,6 @@ package com.Java24GroupProject.AirBnBPlatform.repositories;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 //NOTE: not finished, just made what needed to be there for Security implementation.
@@ -13,9 +12,5 @@ public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByPhoneNr(String phoneNr);
     Optional<User> findById(String id);
 
-
-
-    // Find all users with a minimum average rating (for hosts)
-    List<User> findByAverageRatingGreaterThanEqual(double minRating);
 
 }
