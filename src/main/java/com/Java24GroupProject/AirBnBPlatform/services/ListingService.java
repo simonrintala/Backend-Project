@@ -64,16 +64,18 @@ public class ListingService {
     }
 
     //get all listings users by hosts id
-    public List<ListingResponse> getAllListingsByHostId(String id) {
+    public List<ListingResponse> getListingsByHostId(String id) {
         //check if user is valid
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByHostId(user.getId())) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        return getListingsByUser(user);
+    }
+
+    //get all listings current user
+    public List<ListingResponse> getListingsCurrentUser() {
+        //get current user
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        return getListingsByUser(currentUser);
     }
     
     // get listings by price interval
@@ -156,7 +158,7 @@ public class ListingService {
         existingListing.setCapacity(listing.getCapacity());
         existingListing.setUtilities(listing.getUtilities());
         existingListing.setLocation(listing.getLocation());
-        existingListing.setImage_urls(listing.getImage_urls());
+        existingListing.setImageUrls(listing.getImageUrls());
 
         //save updated listing
         existingListing.setUpdatedAt(LocalDateTime.now());
@@ -188,15 +190,18 @@ public class ListingService {
                 listing.getAvailableDates(),
                 user.getUsername(),
                 listing.getLocation(),
-                listing.getImage_urls()
+                listing.getImageUrls()
         );
     }
 
 
     //convert ListingRequest to Listing
-    public Listing convertRequestToListing(ListingRequest listingRequest) {
+    private Listing convertRequestToListing(ListingRequest listingRequest) {
         // Create a new Listing object
         Listing listing = new Listing();
+
+        // Set the host the current user
+        listing.setHost(UserService.verifyAuthenticationAndExtractUser(userRepository));
         
         // Set fields from ListingRequest into Listing
         listing.setTitle(listingRequest.getTitle());
@@ -206,24 +211,14 @@ public class ListingService {
         listing.setUtilities(listingRequest.getUtilities());
         listing.setAvailableDates(listingRequest.getAvailableDates());
         listing.setLocation(listingRequest.getLocation());
-
-        // Set the host (the user creating the listing)
-        listing.setHost(listingRequest.getHost());
-
-        // set location and image URLs if provided in ListingRequest
-        //listing.setLocation(listingRequest.getLocation());  // Make sure to add a location field in ListingRequest if needed
-        //listing.setImageUrls(listingRequest.getImageUrls());  // Same goes for image URLs
+        listing.setImageUrls(listingRequest.getImageUrls());
 
         return listing;
     }
 
 
     private void validateListing(ListingRequest listingRequest) {
-        // check if userId for host is valid
-        userRepository.findById(listingRequest.getHost().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        // check if utilities exists
-
+        //MAKE THESE INTO ANNOTATIONS?
         // check if title is empty/null
         if (listingRequest.getTitle() == null || listingRequest.getTitle().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty");
@@ -237,6 +232,15 @@ public class ListingService {
             throw new IllegalArgumentException("capacity must be greater than 0");
         }
     }
+
+    private List<ListingResponse> getListingsByUser(User user) {
+    //convert to DTO
+    List<ListingResponse> listingResponses = new ArrayList<>();
+        for (Listing listing : listingRepository.findByHostId(user.getId())) {
+        listingResponses.add(convertToListingResponseDTO(listing));
+    }
+        return listingResponses;
+}
 
     Listing validateListingIdAndGetListing(String id) {
         return listingRepository.findById(id)

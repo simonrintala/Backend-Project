@@ -1,6 +1,5 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
-import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 
@@ -16,9 +15,9 @@ public class ListingRequest {
     private String description;
     private Set<ListingUtilities> utilities;
     private Integer capacity;
-    private User host;
     private List<DateRange> availableDates;
     private String location;
+    private List<String> imageUrls;
 
     public ListingRequest() {
     }
@@ -42,10 +41,6 @@ public class ListingRequest {
     public Integer getCapacity() {
         return capacity;
     }
-    
-    public User getHost() {
-        return host;
-    }
 
     public List<DateRange> getAvailableDates() {
         return availableDates;
@@ -53,5 +48,9 @@ public class ListingRequest {
     
     public String getLocation() {
         return location;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
     }
 }

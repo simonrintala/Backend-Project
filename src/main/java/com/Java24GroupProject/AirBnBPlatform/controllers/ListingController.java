@@ -20,15 +20,8 @@ public class ListingController {
     public ListingController(ListingService listingService) {
         this.listingService = listingService;
     }
-    
-    @PostMapping
-    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
-    public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody ListingRequest listingRequest) {
-        ListingResponse listingResponse = listingService.createListing(listingRequest);
-        return new ResponseEntity<>(listingResponse, HttpStatus.CREATED);
-    }
-    
-    @GetMapping
+
+    @GetMapping("/all")
     public ResponseEntity<List<ListingResponse>> getAllListings() {
         List<ListingResponse> listings = listingService.getAllListings();
         return new ResponseEntity<>(listings, HttpStatus.OK);
@@ -43,7 +36,7 @@ public class ListingController {
     
     @GetMapping("/hostId/{hostId}")
     public ResponseEntity<List<ListingResponse>> getListingsByHostId(@PathVariable String hostId) {
-        List<ListingResponse> listings = listingService.getAllListingsByHostId(hostId);
+        List<ListingResponse> listings = listingService.getListingsByHostId(hostId);
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
     
@@ -74,7 +67,20 @@ public class ListingController {
         List<ListingResponse> listings = listingService.getListingByUtilities(utilities);
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
-    
+
+    @GetMapping
+    public ResponseEntity<List<ListingResponse>> getListingsCurrentUser() {
+        List<ListingResponse> listingResponses = listingService.getListingsCurrentUser();
+        return new ResponseEntity<>(listingResponses, HttpStatus.OK);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
+    public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody ListingRequest listingRequest) {
+        ListingResponse listingResponse = listingService.createListing(listingRequest);
+        return new ResponseEntity<>(listingResponse, HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('HOST','ADMIN')")
     public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {

@@ -42,7 +42,7 @@ public class Listing {
     @DBRef
     private User host;
 
-    private List<String> image_urls;
+    private List<String> imageUrls;
 
     // location by city so one can search by city later on
     private String location;
@@ -107,12 +107,12 @@ public class Listing {
         this.utilities = utilities;
     }
 
-    public List<String> getImage_urls() {
-        return image_urls;
+    public List<String> getImageUrls() {
+        return imageUrls;
     }
 
-    public void setImage_urls(List<String> image_urls) {
-        this.image_urls = image_urls;
+    public void setImageUrls(List<String> image_urls) {
+        this.imageUrls = image_urls;
     }
 
     public String getLocation() {

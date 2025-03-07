@@ -164,6 +164,7 @@ public class ReviewService {
         reviewResponse.setCreatedAt(review.getCreatedAt());
         return reviewResponse;
     }
+
  /*
     public double getAverageRatingForHost(String hostId) {
         User host = userService.getUserById(hostId);
