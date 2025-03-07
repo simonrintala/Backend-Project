@@ -36,7 +36,7 @@ public class ListingService {
         //convert from RequestDTO to Listing
         Listing listing = convertRequestToListing(listingRequest);
         //save new listing
-        
+
         listing.setUpdatedAt(null);
         listingRepository.save(listing);
 
@@ -48,21 +48,21 @@ public class ListingService {
     //get all listings
     public List<ListingResponse> getAllListings() {
         List<ListingResponse> listingResponses = new ArrayList<>();
-        
+
         // convert Listing to ListingResponseDTO
         for (Listing listing : listingRepository.findAll()) {
             listingResponses.add(convertToListingResponseDTO(listing));
         }
         return listingResponses;
     }
-    
+
     //get listing by id
     public ListingResponse getListingById(String id) {
         Listing listing = validateListingIdAndGetListing(id);
-        
+
         return convertToListingResponseDTO(listing);
     }
-    
+
     //get all listings users by hosts id
     public List<ListingResponse> getAllListingsByHostId(String id) {
         //check if user is valid
@@ -82,7 +82,7 @@ public class ListingService {
         if (minPrice < 0 || maxPrice <= 0) {
             throw new IllegalArgumentException("Price cannot be negative");
         }
-        
+
         // make sure minPrice is not greater that maxPrice
         if (minPrice > maxPrice ) {
             throw new IllegalArgumentException("Price cannot be greater than maxPrice");
@@ -95,14 +95,14 @@ public class ListingService {
         }
         return listingResponses;
     }
-    
+
     //get listings by location
     public List<ListingResponse> getListingByLocation(String location) {
         // make sure location isn't empty/null
         if(location == null || location.isEmpty()) {
             throw new IllegalArgumentException("Location cannot be empty or null");
         }
-        
+
         //convert to DTO
         List<ListingResponse> listingResponses = new ArrayList<>();
         for (Listing listing : listingRepository.findByLocation(location)) {
@@ -110,7 +110,7 @@ public class ListingService {
         }
         return listingResponses;
     }
-    
+
     //get listings by capacity interval
     public List<ListingResponse> getListingByCapacity(double minCapacity, double maxCapacity) {
         //checks so capacity isn't negative
@@ -121,21 +121,21 @@ public class ListingService {
         if (minCapacity > maxCapacity) {
             throw new IllegalArgumentException("minCapacity cannot be greater than maxCapacity");
         }
-        
+
         List<ListingResponse> listingResponses = new ArrayList<>();
         for (Listing listing : listingRepository.findByCapacityBetween(minCapacity, maxCapacity)) {
             listingResponses.add(convertToListingResponseDTO(listing));
         }
         return listingResponses;
     }
-    
+
     //get listing by utilities
     public List<ListingResponse> getListingByUtilities(String utility) {
         //make sure utility isn't empty
         if(utility == null || utility.isEmpty()) {
             throw new IllegalArgumentException("Utility cannot be empty or null");
         }
-        
+
         //convert to DTO
         List<ListingResponse> listingResponses = new ArrayList<>();
         for (Listing listing : listingRepository.findByUtilities(utility)) {
@@ -144,12 +144,12 @@ public class ListingService {
         return listingResponses;
     }
 
-    
+
     // PUT
     public ListingResponse updateListing(String id, Listing listing) {
         //validate listing id and get existing listing
         Listing existingListing = validateListingIdAndGetListing(id);
-        
+
         existingListing.setTitle(listing.getTitle());
         existingListing.setDescription(listing.getDescription());
         existingListing.setPricePerNight(listing.getPricePerNight());
@@ -172,7 +172,7 @@ public class ListingService {
         bookingRepository.deleteByListing(listing);
         listingRepository.delete(listing);
     }
-    
+
     // limit what's shown when grabbing listings
     private ListingResponse convertToListingResponseDTO(Listing listing) {
         // Retrieve the host (user) based on the host ID in the listing
@@ -191,8 +191,8 @@ public class ListingService {
                 listing.getImage_urls()
         );
     }
-    
-    
+
+
     //convert ListingRequest to Listing
     public Listing convertRequestToListing(ListingRequest listingRequest) {
         // Create a new Listing object
@@ -206,24 +206,24 @@ public class ListingService {
         listing.setUtilities(listingRequest.getUtilities());
         listing.setAvailableDates(listingRequest.getAvailableDates());
         listing.setLocation(listingRequest.getLocation());
-        
+
         // Set the host (the user creating the listing)
         listing.setHost(listingRequest.getHost());
-        
+
         // set location and image URLs if provided in ListingRequest
         //listing.setLocation(listingRequest.getLocation());  // Make sure to add a location field in ListingRequest if needed
         //listing.setImageUrls(listingRequest.getImageUrls());  // Same goes for image URLs
-        
+
         return listing;
     }
-    
-    
+
+
     private void validateListing(ListingRequest listingRequest) {
         // check if userId for host is valid
         userRepository.findById(listingRequest.getHost().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         // check if utilities exists
-        
+
         // check if title is empty/null
         if (listingRequest.getTitle() == null || listingRequest.getTitle().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty");
@@ -237,11 +237,11 @@ public class ListingService {
             throw new IllegalArgumentException("capacity must be greater than 0");
         }
     }
-    
-    private Listing validateListingIdAndGetListing(String id) {
+
+    Listing validateListingIdAndGetListing(String id) {
         return listingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-        
+
     }
 
 }

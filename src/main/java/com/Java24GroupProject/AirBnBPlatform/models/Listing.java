@@ -26,7 +26,7 @@ public class Listing {
     private String title;
 
     private String description;
-    
+
     @NotNull(message = "A price per night is required.")
     @Positive(message = "Price per night must be greater than zero")
     @Field(targetType = FieldType.DECIMAL128)
@@ -48,6 +48,8 @@ public class Listing {
     private String location;
 
     private List<DateRange> availableDates;
+
+    private Double averageRating;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -128,11 +130,11 @@ public class Listing {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-    
+
     public BigDecimal getPricePerNight() {
         return pricePerNight;
     }
-    
+
     public void setPricePerNight(BigDecimal pricePerNight) {
         this.pricePerNight = pricePerNight;
     }
@@ -152,6 +154,14 @@ public class Listing {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 
     public void addAvailableDateRange(DateRange dateRange) {
