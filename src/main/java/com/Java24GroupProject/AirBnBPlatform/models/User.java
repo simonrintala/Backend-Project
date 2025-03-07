@@ -58,8 +58,6 @@ public class User {
 
     private Set<Role> roles;
 
-    private Double averageRating;
-
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -161,14 +159,6 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Double getAverageRating() {
-        return averageRating;
-    }
-
-    public void setAverageRating(Double averageRating) {
-        this.averageRating = averageRating;
     }
 
     public LocalDateTime getUpdatedAt() {

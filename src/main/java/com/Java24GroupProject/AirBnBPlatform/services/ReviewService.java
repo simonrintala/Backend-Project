@@ -49,11 +49,13 @@ public class ReviewService {
             throw new ResourceNotFoundException("Listing not found with ID: " + reviewRequest.getListingId());
         }
 
-        // Validate the host
+        /*
         User host = userService.getUserByIdReview(reviewRequest.getHostId());
         if (host == null) {
             throw new ResourceNotFoundException("Host not found with ID: " + reviewRequest.getHostId());
         }
+
+         */
 
         // Check if the booking exists and the end date has passed
         Booking booking = bookingRepository.findByUserAndListing(loggedInUser, listing)

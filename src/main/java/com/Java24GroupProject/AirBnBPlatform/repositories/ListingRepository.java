@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ListingRepository extends MongoRepository<Listing, String> {
     //find based on host
@@ -22,7 +21,6 @@ public interface ListingRepository extends MongoRepository<Listing, String> {
     @Query("{ 'capacity': { $gte:  ?0, $lte:  ?1 } }")
     List<Listing> findByCapacityBetween(double minCapacity, double maxCapacity);
     List<Listing> findByUtilities(String utility);
-    // Find a listing by ID
-    Optional<Listing> findById(String id);
+
 
 }

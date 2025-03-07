@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface BookingRepository extends MongoRepository<Booking, String> {
     List<Booking> findByUser(User user);
     List<Booking> findByListing(Listing listing);
-    Long deleteByListing(Listing listing);
+    void deleteByListing(Listing listing);
     List<Booking> deleteByUser(User user);
     // Find a booking by user and listing
     Optional<Booking> findByUserAndListing(User user, Listing listing);
