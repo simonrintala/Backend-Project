@@ -44,13 +44,33 @@ public class UserService {
     //register a new user, used by AuthenticationController
     public RegisterResponse registerUser(UserRequest userRequest) {
         //validate that username, email and phoneNr is unique
-        validateUniqueFields(userRequest);
+        //check if username already exists, and if is does, cast error
+        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
+            throw new NameAlreadyBoundException("Username already exists in database");
+        }
+
+        //same for email
+        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+            throw new NameAlreadyBoundException("Email already exists in database");
+        }
+
+        //same for phoneNr
+        if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
+            throw new NameAlreadyBoundException("PhoneNr already exists in database");
+        }
 
         //maps the RegisterRequest to a new User entity
         User user = transferUserRequestToUser(userRequest, new User());
-
         //empty listing-favorites array list for a new user
         user.setFavorites(new ArrayList<>());
+
+        //assign the role USER if no roles are specified in UserRequest
+        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
+            user.setRoles(Set.of(Role.USER));
+        } else {
+            user.setRoles(userRequest.getRoles());
+        }
+
         user.setUpdatedAt(null);
 
         //save new user
@@ -68,50 +88,65 @@ public class UserService {
         return userResponseList;
     }
 
+    //get current user
+    public UserResponse getCurrentUser() {
+        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        return transferUserToUserResponse(currentUser);
+    }
+
     //get single user using id, return as UserResponse
     public UserResponse getUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
         return transferUserToUserResponse(user);
     }
 
+    //delete current user
+    public void deleteCurrentUser() {
+        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        deleteUser(currentUser);
+    }
+
     //delete single user using id
     public void deleteUserById(String id) {
         User user = validateUserIdAndReturnUser(id);
-
-        //get and delete user listings
-        List<Listing> userListings= listingRepository.deleteByHost(user);
-
-        //delete bookings for the deleted listings
-        for (Listing listing : userListings) {
-            bookingRepository.deleteByListing(listing);
-        }
-
-        //get and delete bookings belonging to the user
-        List<Booking> userBookings = bookingRepository.deleteByUser(user);
-        //loop bookings and add back dates to listing if booking is pending
-        for (Booking booking : userBookings) {
-            if (booking.getBookingStatus() == BookingStatus.PENDING) {
-                Listing listing = listingRepository.findById(booking.getListing().getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                listing.addAvailableDateRange(booking.getBookingDates());
-                listing.setUpdatedAt(LocalDateTime.now());
-                listingRepository.save(listing);
-                }
-            }
-        userRepository.delete(user);
+        deleteUser(user);
     }
 
-    //update single user using id, return as UserResponseDTO
-    public UserResponse updateUser(String id, UserRequest userRequest) {
-        //validate user id and get and update existing user
-        User existingUser = transferUserRequestToUser(userRequest, validateUserIdAndReturnUser(id));
+    //update current user data
+    public UserResponse updateCurrentUser(UserRequest userRequest) {
+        //get current user
+        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+
+        //if username is changed, check that username is not taken
+        if (!currentUser.getUsername().equals(userRequest.getUsername())) {
+            if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
+                throw new NameAlreadyBoundException("Username already exists in database");
+            }
+        }
+
+        //same for email
+        if (!currentUser.getEmail().equals(userRequest.getEmail())) {
+            if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+                throw new NameAlreadyBoundException("Email already exists in database");
+            }
+        }
+
+        //same for phoneNr
+        if (!currentUser.getPhoneNr().equals(userRequest.getPhoneNr())) {
+            if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
+                throw new NameAlreadyBoundException("PhoneNr already exists in database");
+            }
+        }
+
+        //update current user
+        currentUser = transferUserRequestToUser(userRequest, currentUser);
 
         //set updated at to current time
-        existingUser.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(existingUser);
+        currentUser.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(currentUser);
 
         //convert to a responseDTO and return
-        return transferUserToUserResponse(existingUser);
+        return transferUserToUserResponse(currentUser);
     }
 
     //add or remove a listing from current users saved favorites using listing id as an input variable
@@ -191,22 +226,29 @@ public class UserService {
                 .orElseThrow(() -> new java.lang.IllegalArgumentException("User id does not exist in database"));
     }
 
-    //validate that username, email and phoneNr are not already taken by another user in database
-    private void validateUniqueFields(UserRequest userRequest) {
-        //check if username already exists, and if is does, cast error
-        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            throw new NameAlreadyBoundException("Username already exists in database");
+    private void deleteUser(User user) {
+        //get and delete user listings
+        List<Listing> userListings= listingRepository.deleteByHost(user);
+
+        //delete bookings for the deleted listings
+        for (Listing listing : userListings) {
+            bookingRepository.deleteByListing(listing);
         }
 
-        //same for email
-        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
-            throw new NameAlreadyBoundException("Email already exists in database");
+        //get and delete bookings belonging to the user
+        List<Booking> userBookings = bookingRepository.deleteByUser(user);
+        //loop bookings and add back dates to listing if booking is pending
+        for (Booking booking : userBookings) {
+            if (booking.getBookingStatus() == BookingStatus.PENDING) {
+                Listing listing = listingRepository.findById(booking.getListing().getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                listing.addAvailableDateRange(booking.getBookingDates());
+                listing.setUpdatedAt(LocalDateTime.now());
+                listingRepository.save(listing);
+            }
         }
+        userRepository.delete(user);
 
-        //same for phoneNr
-        if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
-            throw new NameAlreadyBoundException("PhoneNr already exists in database");
-        }
     }
 
     //convert incoming DTO (from UserController) to User object
@@ -222,12 +264,6 @@ public class UserService {
         user.setProfilePictureURL(userRequest.getProfilePictureURL());
         user.setDescription(userRequest.getDescription());
 
-        //assign the role USER if no roles are specified in UserRequest
-        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
-        } else {
-            user.setRoles(userRequest.getRoles());
-        }
         return user;
     }
 
@@ -247,17 +283,6 @@ public class UserService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    }
-    //Get user by id for reviews
-    public User getUserByIdReview(String userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-    }
-
-    // Update an existing user
-    public void updateUser(User host) {
-        userRepository.save(host);
-        System.out.println("User saved with average rating: " + host.getAverageRating());
     }
 
 }

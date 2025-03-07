@@ -212,7 +212,7 @@ public class ReviewService {
 
         // Update the host's average rating
         host.setAverageRating(averageRating);
-        userService.updateUser(host); // Save the updated host
+        userService.updateCurrentUser(host); // Save the updated host
 
         System.out.println("Updated average rating for host " + hostId + ": " + averageRating);
     }
