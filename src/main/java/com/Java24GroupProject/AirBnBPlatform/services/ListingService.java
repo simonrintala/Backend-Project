@@ -4,14 +4,15 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,21 +30,7 @@ public class ListingService {
         this.bookingRepository = bookingRepository;
     }
 
-    public ListingResponse createListing(ListingRequest listingRequest) {
-        // validate listing data
-        validateListing(listingRequest);
-
-        //convert from RequestDTO to Listing
-        Listing listing = convertRequestToListing(listingRequest);
-        //save new listing
-
-        listing.setUpdatedAt(null);
-        listingRepository.save(listing);
-
-        //return as ResponseDTO
-        return convertToListingResponseDTO(listing);
-
-    }
+    //METHODS used by LISTING CONTROLLER CLASS -----------------------------------------------------------------------
 
     //get all listings
     public List<ListingResponse> getAllListings() {
@@ -63,7 +50,7 @@ public class ListingService {
         return convertToListingResponseDTO(listing);
     }
 
-    //get all listings users by hosts id
+    //get all listings for a host, using hosts id
     public List<ListingResponse> getListingsByHostId(String id) {
         //check if user is valid
         User user = userRepository.findById(id)
@@ -71,7 +58,7 @@ public class ListingService {
         return getListingsByUser(user);
     }
 
-    //get all listings current user
+    //get all listings for the current user
     public List<ListingResponse> getListingsCurrentUser() {
         //get current user
         User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
@@ -146,11 +133,31 @@ public class ListingService {
         return listingResponses;
     }
 
+    //create new listing with current user as host
+    public ListingResponse createListing(ListingRequest listingRequest) {
 
-    // PUT
+        //convert from RequestDTO to Listing
+        Listing listing = convertRequestToListing(listingRequest);
+
+        //save new listing
+        listing.setAverageRating(0D);
+        listing.setUpdatedAt(null);
+        listingRepository.save(listing);
+
+        //return as ResponseDTO
+        return convertToListingResponseDTO(listing);
+    }
+
+    //update a listing
     public ListingResponse updateListing(String id, Listing listing) {
         //validate listing id and get existing listing
         Listing existingListing = validateListingIdAndGetListing(id);
+
+        //validate that the user is host of the listing
+        String currentUserId = UserService.verifyAuthenticationAndExtractUser(userRepository).getId();
+        if (!currentUserId.equals(existingListing.getHost().getId())) {
+            throw new UnauthorizedException("User is not the host of the listing, operation not allowed");
+        }
 
         existingListing.setTitle(listing.getTitle());
         existingListing.setDescription(listing.getDescription());
@@ -171,9 +178,19 @@ public class ListingService {
     //validate listing id exists in database and delete listing and bookings for the listing
     public void deleteListing(String id) {
         Listing listing = validateListingIdAndGetListing(id);
+
+        //validate that the user is host of the listing or admin
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedException("User is not the host of the listing nor admin, operation not allowed");
+        }
+
         bookingRepository.deleteByListing(listing);
         listingRepository.delete(listing);
     }
+
+
+    //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
 
     // limit what's shown when grabbing listings
     private ListingResponse convertToListingResponseDTO(Listing listing) {
@@ -182,18 +199,20 @@ public class ListingService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         return new ListingResponse(
+                listing.getId(),
                 listing.getTitle(),
+                user.getId(),
+                user.getUsername(),
                 listing.getDescription(),
                 listing.getPricePerNight(),
                 listing.getCapacity(),
                 listing.getUtilities(),
                 listing.getAvailableDates(),
-                user.getUsername(),
                 listing.getLocation(),
-                listing.getImageUrls()
+                listing.getImageUrls(),
+                listing.getAverageRating()
         );
     }
-
 
     //convert ListingRequest to Listing
     private Listing convertRequestToListing(ListingRequest listingRequest) {
@@ -216,23 +235,7 @@ public class ListingService {
         return listing;
     }
 
-
-    private void validateListing(ListingRequest listingRequest) {
-        //MAKE THESE INTO ANNOTATIONS?
-        // check if title is empty/null
-        if (listingRequest.getTitle() == null || listingRequest.getTitle().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-        // check if pricePerNight is empty/null
-        if (listingRequest.getPricePerNight() == null || listingRequest.getPricePerNight().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Price per night must be greater than 0");
-        }
-        //check if capacity is greater than 0
-        if (listingRequest.getCapacity() <= 0) {
-            throw new IllegalArgumentException("capacity must be greater than 0");
-        }
-    }
-
+    //used by get listings for current user and for any user methods in this class
     private List<ListingResponse> getListingsByUser(User user) {
     //convert to DTO
     List<ListingResponse> listingResponses = new ArrayList<>();

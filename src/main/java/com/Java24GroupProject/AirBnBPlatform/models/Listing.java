@@ -3,6 +3,8 @@ package com.Java24GroupProject.AirBnBPlatform.models;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.data.annotation.CreatedDate;
@@ -23,6 +25,9 @@ public class Listing {
     @Id
     private String id;
 
+    @NotNull(message = "listing title is a required field")
+    @NotEmpty(message = "listing title is a required field")
+    @NotBlank(message = "listing title is a required field")
     private String title;
 
     private String description;
@@ -44,7 +49,6 @@ public class Listing {
 
     private List<String> imageUrls;
 
-    // location by city so one can search by city later on
     private String location;
 
     private List<DateRange> availableDates;
@@ -67,11 +71,11 @@ public class Listing {
         this.id = id;
     }
 
-    public String getTitle() {
+    public @NotNull(message = "listing title is a required field") @NotEmpty(message = "listing title is a required field") @NotBlank(message = "listing title is a required field") String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(@NotNull(message = "listing title is a required field") @NotEmpty(message = "listing title is a required field") @NotBlank(message = "listing title is a required field") String title) {
         this.title = title;
     }
 
@@ -83,20 +87,20 @@ public class Listing {
         this.description = description;
     }
 
-    public Integer getCapacity() {
+    public @NotNull(message = "A price per night is required.") @Positive(message = "Price per night must be greater than zero") BigDecimal getPricePerNight() {
+        return pricePerNight;
+    }
+
+    public void setPricePerNight(@NotNull(message = "A price per night is required.") @Positive(message = "Price per night must be greater than zero") BigDecimal pricePerNight) {
+        this.pricePerNight = pricePerNight;
+    }
+
+    public @NotNull(message = "Capacity limit must be set.") @Positive(message = "Capacity must be greater than zero") Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(Integer capacity) {
+    public void setCapacity(@NotNull(message = "Capacity limit must be set.") @Positive(message = "Capacity must be greater than zero") Integer capacity) {
         this.capacity = capacity;
-    }
-
-    public User getHost() {
-        return host;
-    }
-
-    public void setHost(User hosts) {
-        this.host = hosts;
     }
 
     public Set<ListingUtilities> getUtilities() {
@@ -107,12 +111,20 @@ public class Listing {
         this.utilities = utilities;
     }
 
+    public @NotNull(message = "Listing must have at least one host.") User getHost() {
+        return host;
+    }
+
+    public void setHost(@NotNull(message = "Listing must have at least one host.") User host) {
+        this.host = host;
+    }
+
     public List<String> getImageUrls() {
         return imageUrls;
     }
 
-    public void setImageUrls(List<String> image_urls) {
-        this.imageUrls = image_urls;
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 
     public String getLocation() {
@@ -123,22 +135,6 @@ public class Listing {
         this.location = location;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public BigDecimal getPricePerNight() {
-        return pricePerNight;
-    }
-
-    public void setPricePerNight(BigDecimal pricePerNight) {
-        this.pricePerNight = pricePerNight;
-    }
-
     public List<DateRange> getAvailableDates() {
         return availableDates;
     }
@@ -147,6 +143,21 @@ public class Listing {
         this.availableDates = availableDates;
     }
 
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
@@ -154,14 +165,6 @@ public class Listing {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public Double getAverageRating() {
-        return averageRating;
-    }
-
-    public void setAverageRating(Double averageRating) {
-        this.averageRating = averageRating;
     }
 
     public void addAvailableDateRange(DateRange dateRange) {

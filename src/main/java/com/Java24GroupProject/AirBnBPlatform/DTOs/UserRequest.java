@@ -36,6 +36,7 @@ public class UserRequest {
     @Indexed(unique = true)
     private String phoneNr;
 
+    //address
     private String street;
     private String zipCode;
     private String city;

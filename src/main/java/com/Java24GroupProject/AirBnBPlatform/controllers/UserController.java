@@ -22,6 +22,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    //USER endpoints  ------------------------------------------------------------------
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable String id) {
         return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
@@ -54,6 +55,8 @@ public class UserController {
     public ResponseEntity<Map<String,String>> getFavorites() {
         return new ResponseEntity<>(userService.getFavorites(), HttpStatus.OK);
     }
+
+    //ADMIN endpoints ---------------------------------------------------------------------
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")

@@ -52,7 +52,6 @@ public class User {
 
     private String description;
 
-
     @DBRef
     private List<Listing> favorites;
 

@@ -3,28 +3,35 @@ package com.Java24GroupProject.AirBnBPlatform.DTOs;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
 
-import java.util.Map;
 import java.util.Set;
 
 public class UserResponse {
+        private String id;
         private String username;
         private String email;
         private String phoneNr;
         private UserAddress address;
         private String profilePictureURL;
         private String description;
-        private Map<String,String> favorites;
         private Set<Role> roles;
 
-    public UserResponse(String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Map<String,String> favorites, Set<Role> roles) {
+    public UserResponse(String id, String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Set<Role> roles) {
+        this.id = id;
         this.username = username;
         this.email = email;
         this.phoneNr = phoneNr;
         this.address = address;
         this.profilePictureURL = profilePictureURL;
         this.description = description;
-        this.favorites = favorites;
         this.roles = roles;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -73,14 +80,6 @@ public class UserResponse {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Map<String,String> getFavorites() {
-        return favorites;
-    }
-
-    public void setFavorites(Map<String,String> favorites) {
-        this.favorites = favorites;
     }
 
     public Set<Role> getRoles() {

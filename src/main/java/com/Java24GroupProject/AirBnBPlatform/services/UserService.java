@@ -41,6 +41,8 @@ public class UserService {
         this.bookingRepository = bookingRepository;
     }
 
+    //METHODS used by USER CONTROLLER CLASS -----------------------------------------------------------------------
+
     //register a new user, used by AuthenticationController
     public RegisterResponse registerUser(UserRequest userRequest) {
         //validate that username, email and phoneNr is unique
@@ -214,6 +216,8 @@ public class UserService {
         return favoritesResponse;
     }
 
+    //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
+
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -269,7 +273,7 @@ public class UserService {
 
     //transfer User to UserResponse, used when returning user data to UserController
     public UserResponse transferUserToUserResponse(User user) {
-        return new UserResponse(user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), getFavorites(), user.getRoles());
+        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), user.getRoles());
     }
 
     //verify and get current user from jwtToken/cookies

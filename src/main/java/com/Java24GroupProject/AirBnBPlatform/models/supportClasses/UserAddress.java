@@ -1,5 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.models.supportClasses;
 
+//help class for User model class, holds String objects with address data
 public class UserAddress {
     private String street;
     private String zipCode;

@@ -11,6 +11,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
@@ -34,6 +35,8 @@ public class BookingService {
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
     }
+
+    //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
 
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         //validate that bookingRequest data is valid
@@ -72,23 +75,31 @@ public class BookingService {
         return bookingResponses;
     }
 
-    //get bookings for a single user
+    //get bookings any user
     public List<BookingResponse> getBookingsByUserId(String userId) {
         //validate user id
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        //convert toDTO
-        List<BookingResponse> userBookingResponses = new ArrayList<>();
-        for (Booking booking : bookingRepository.findByUser(user)) {
-            userBookingResponses.add(convertToDTOResponse(booking));
-        }
-        return userBookingResponses;
+        return getUserBookings(user);
+    }
+
+    //get bookings current user
+    public List<BookingResponse> getBookingsCurrentUser() {
+        //get current user
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        return getUserBookings(currentUser);
     }
 
     public List<BookingResponse> getBookingsByListingId(String listingId) {
         Listing listing = listingRepository.findById(listingId)
-                .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Listing with id " + listingId + "not found"));
+
+        //check that current user is owner of listing or admin
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
+        }
 
         //convert toDTO
         List<BookingResponse> userBookingResponses = new ArrayList<>();
@@ -102,20 +113,27 @@ public class BookingService {
         //validate booking id
         Booking booking = validateBookingIdAndGetBooking(id);
 
+        //check that current user is owner of booking
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        if (!currentUser.getId().equals(booking.getUser().getId())) {
+            throw new UnauthorizedException("Only the owner of the booking can update the booking");
+        }
+
         //check if status is pending, otherwise cannot be changed
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
             throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
         }
 
-        //validate data in new booking
-        validateBooking(updatedBookingRequest);
-        //convert to booking
-        Booking updatedBooking = convertRequestToBooking(updatedBookingRequest);
-
         //listing of booking cannot be changed
-        if (!booking.getListing().getId().equals(updatedBooking.getListing().getId())) {
+        if (!booking.getListing().getId().equals(updatedBookingRequest.getListingId())) {
             throw new IllegalArgumentException("Listing cannot be changed");
         }
+
+        //validate data in new booking
+        validateBooking(updatedBookingRequest);
+
+        //convert DTO to booking object
+        Booking updatedBooking = convertRequestToBooking(updatedBookingRequest);
 
         //if booking dates are changed
         if (!booking.getBookingDates().getStartDate().equals(updatedBooking.getBookingDates().getStartDate()) ||
@@ -186,6 +204,12 @@ public class BookingService {
         //check if id is valid
         Booking booking = validateBookingIdAndGetBooking(id);
 
+        //check that current user is owner of booking or admin
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        if (!currentUser.getId().equals(booking.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedException("Only the owner of the booking or admin can delete the booking");
+        }
+
         //get listing
         Listing listing = validateListingIdAndGetListing(booking);
 
@@ -196,9 +220,21 @@ public class BookingService {
             listingRepository.save(listing);
         }
 
-
         //delete booking
         bookingRepository.deleteById(id);
+    }
+
+
+    //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
+
+    //get bookings current user
+    private List<BookingResponse> getUserBookings(User user) {
+        //convert toDTO
+        List<BookingResponse> userBookingResponses = new ArrayList<>();
+        for (Booking booking : bookingRepository.findByUser(user)) {
+            userBookingResponses.add(convertToDTOResponse(booking));
+        }
+        return userBookingResponses;
     }
 
     private BookingResponse convertToDTOResponse(Booking booking) {
@@ -207,6 +243,7 @@ public class BookingService {
         User user = validateUserIdAndGetUser(booking);
 
         return new BookingResponse(
+                booking.getId(),
                 listing.getTitle(),
                 user.getUsername(),
                 user.getEmail(),
@@ -222,8 +259,9 @@ public class BookingService {
     //convert BookingRequest to Booking
     private Booking convertRequestToBooking(BookingRequest bookingRequest) {
                 Booking booking = new Booking();
-                booking.setListing(bookingRequest.getListing());
-                booking.setUser(bookingRequest.getUser());
+                booking.setListing(validateListingIdAndGetListing(bookingRequest));
+                //set current user as the user for the booking
+                booking.setUser(UserService.verifyAuthenticationAndExtractUser(userRepository));
                 booking.setBookingDates(new DateRange(
                         LocalDate.parse(bookingRequest.getStartDate()),
                         LocalDate.parse(bookingRequest.getEndDate())));
@@ -252,20 +290,14 @@ public class BookingService {
 
     //validate that BookingRequest data is valid
     private void validateBooking(BookingRequest bookingRequest) {
-        //check that user id is valid
-        User user = validateUserIdAndGetUser(bookingRequest);
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
 
         //check that listing id is valid
         Listing listing = validateListingIdAndGetListing(bookingRequest);
 
         //check that the user for the booking is not also the host of the listing
-        if (user.getId().equals(listing.getHost().getId())) {
+        if (currentUser.getId().equals(listing.getHost().getId())) {
             throw new IllegalArgumentException("user not allowed to make booking for their own listing");
-        }
-
-        //check that request had dates
-        if (bookingRequest.getStartDate() == null || bookingRequest.getEndDate() == null) {
-            throw new IllegalArgumentException("booking must have start and end date");
         }
 
         //check that nrOfGuest does not exceed listing capacity
@@ -325,12 +357,11 @@ public class BookingService {
     private Listing validateListingIdAndGetListing(Booking booking) {
         return listingRepository.findById(booking.getListing().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-
     }
 
     //validate listing id and get listing object from bookingRequest
     private Listing validateListingIdAndGetListing(BookingRequest bookingRequest) {
-        return listingRepository.findById(bookingRequest.getListing().getId())
+        return listingRepository.findById(bookingRequest.getListingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
 
     }
@@ -338,13 +369,6 @@ public class BookingService {
     //validate user id and get user object from booking
     private User validateUserIdAndGetUser(Booking booking) {
         return userRepository.findById(booking.getUser().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    }
-
-    //validate user id and get user object from bookingRequest
-    private User validateUserIdAndGetUser(BookingRequest bookingRequest) {
-        return userRepository.findById(bookingRequest.getUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     }

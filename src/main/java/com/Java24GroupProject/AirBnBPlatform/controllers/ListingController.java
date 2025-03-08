@@ -21,6 +21,8 @@ public class ListingController {
         this.listingService = listingService;
     }
 
+    //GET-endpoints for listing search, accessible w/o logging in -------------------------------------------
+
     @GetMapping("/all")
     public ResponseEntity<List<ListingResponse>> getAllListings() {
         List<ListingResponse> listings = listingService.getAllListings();
@@ -68,7 +70,10 @@ public class ListingController {
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
 
+    //HOST or ADMIN-specific endpoints ----------------------------------------------------------------------------
+
     @GetMapping
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
     public ResponseEntity<List<ListingResponse>> getListingsCurrentUser() {
         List<ListingResponse> listingResponses = listingService.getListingsCurrentUser();
         return new ResponseEntity<>(listingResponses, HttpStatus.OK);

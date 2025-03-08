@@ -6,6 +6,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,12 +26,6 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.CREATED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<BookingResponse>> getAllBookings() {
-        List<BookingResponse> bookingResponses = bookingService.getAllBookings();
-        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
-    }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable String id) {
@@ -38,16 +33,17 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
-    //get all bookings ny userid
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingResponse>> getBookingsByUserId(@PathVariable String userId) {
-        List<BookingResponse> bookingResponses = bookingService.getBookingsByUserId(userId);
-        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
-    }
-
+    //get all bookings for a listing
     @GetMapping("/listing/{listingId}")
     public ResponseEntity<List<BookingResponse>> getBookingsByListingId(@PathVariable String listingId) {
         List<BookingResponse> bookingResponses = bookingService.getBookingsByListingId(listingId);
+        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
+    }
+
+    //get all bookings for current user
+    @GetMapping("/user")
+    public ResponseEntity<List<BookingResponse>> getBookingsCurrentUser() {
+        List<BookingResponse> bookingResponses = bookingService.getBookingsCurrentUser();
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 
@@ -73,5 +69,22 @@ public class BookingController {
     public ResponseEntity<Void> deleteBooking(@PathVariable String id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
+    }
+
+    //ADMIN-specific endpoints ----------------------------------------------------------------------------
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<BookingResponse>> getAllBookings() {
+        List<BookingResponse> bookingResponses = bookingService.getAllBookings();
+        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
+    }
+
+    //get all user bookings by userid
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<BookingResponse>> getBookingsByUserId(@PathVariable String userId) {
+        List<BookingResponse> bookingResponses = bookingService.getBookingsByUserId(userId);
+        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 }

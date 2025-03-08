@@ -26,17 +26,17 @@ public class Booking {
     @NotNull(message = "A user is required")
     private User user;
 
-
+    @NotNull(message = "booking dates are required")
     private DateRange bookingDates;
 
     @NotNull(message = "Number of guests is required")
     @Positive(message = "Amount of guests must be greater than 0")
     private Integer numberOfGuests;
 
-    //@NotNull(message = "A total price is required")
+    // (number of days) * (price per night)
+    @NotNull(message = "A total price is required")
     @Positive(message = "Total price must be greater than 0")
     private BigDecimal totalPrice;
-    // (number of days) * (price per night)
 
     private BookingStatus bookingStatus;
 
