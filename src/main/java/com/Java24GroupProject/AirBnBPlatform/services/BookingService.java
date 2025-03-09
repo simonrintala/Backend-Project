@@ -91,6 +91,7 @@ public class BookingService {
         return getUserBookings(currentUser);
     }
 
+    //get current listings bookingId
     public List<BookingResponse> getBookingsByListingId(String listingId) {
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(()-> new ResourceNotFoundException("Listing with id " + listingId + "not found"));
