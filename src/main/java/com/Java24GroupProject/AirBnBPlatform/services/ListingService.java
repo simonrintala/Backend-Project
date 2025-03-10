@@ -10,6 +10,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
+import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +24,13 @@ public class ListingService {
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final ReviewRepository reviewRepository;
 
-    public ListingService(ListingRepository listingRepository, UserRepository userRepository, BookingRepository bookingRepository) {
+    public ListingService(ListingRepository listingRepository, UserRepository userRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     //METHODS used by LISTING CONTROLLER CLASS -----------------------------------------------------------------------
@@ -174,8 +177,7 @@ public class ListingService {
         return convertToListingResponseDTO(existingListing);
     }
 
-    //validate listing id exists in database and delete listing and bookings for the listing
-    //must be host of the listing or admin to delete a listings
+    //validate listing id exists in database and delete the listing (incl. listing bookings and reviews)
     public void deleteListing(String id) {
         Listing listing = validateListingIdAndGetListing(id, listingRepository);
 
@@ -186,6 +188,7 @@ public class ListingService {
         }
 
         bookingRepository.deleteByListing(listing);
+        reviewRepository.deleteByListing(listing);
         listingRepository.delete(listing);
     }
 

@@ -1,4 +1,4 @@
 package com.Java24GroupProject.AirBnBPlatform.models.supportClasses;
 
-public record IdAndName(String id, String entityName) {
+public record IdAndName(String id, String name) {
 }
