@@ -21,8 +21,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
@@ -67,12 +67,10 @@ public class BookingService {
 
     //get all bookings
     public List<BookingResponse> getAllBookings() {
-        List<BookingResponse> bookingResponses = new ArrayList<>();
-        //convert toDTO
-        for (Booking booking : bookingRepository.findAll()) {
-            bookingResponses.add(convertToDTOResponse(booking));
-        }
-        return bookingResponses;
+        List<Booking> bookings = bookingRepository.findAll();
+        return bookings.stream()
+                .map(this::convertToDTOResponse)
+                .collect(Collectors.toList());
     }
 
     //get bookings any user
@@ -99,12 +97,11 @@ public class BookingService {
             throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
         }
 
-        //convert toDTO
-        List<BookingResponse> userBookingResponses = new ArrayList<>();
-        for (Booking booking : bookingRepository.findByListing(listing)) {
-            userBookingResponses.add(convertToDTOResponse(booking));
-        }
-        return userBookingResponses;
+        //convert toDTO and return
+        List<Booking> bookings = bookingRepository.findByListing(listing);
+        return bookings.stream()
+                .map(this::convertToDTOResponse)
+                .collect(Collectors.toList());
     }
 
     public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
@@ -225,14 +222,14 @@ public class BookingService {
 
     //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
 
-    //get bookings current user
+    //get bookings for a user, used by getBookingsByUserId and getBookingsCurrentUser methods
     private List<BookingResponse> getUserBookings(User user) {
-        //convert toDTO
-        List<BookingResponse> userBookingResponses = new ArrayList<>();
-        for (Booking booking : bookingRepository.findByUser(user)) {
-            userBookingResponses.add(convertToDTOResponse(booking));
-        }
-        return userBookingResponses;
+
+        //convert toDTO and return
+        List<Booking> bookings = bookingRepository.findByUser(user);
+        return bookings.stream()
+                .map(this::convertToDTOResponse)
+                .collect(Collectors.toList());
     }
 
     private BookingResponse convertToDTOResponse(Booking booking) {
@@ -350,7 +347,7 @@ public class BookingService {
     //validate id and get booking object
     private Booking validateBookingIdAndGetBooking(String id) {
         return bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking with id "+id+" not in database"));
+                .orElseThrow(() -> new ResourceNotFoundException("No booking with id "+id+" in database"));
     }
 
     //validate listing id and get listing object from booking

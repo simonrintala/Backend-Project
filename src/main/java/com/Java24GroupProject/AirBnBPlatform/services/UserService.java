@@ -8,12 +8,14 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundExceptio
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
+import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
+import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -32,13 +35,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ListingRepository listingRepository;
     private final BookingRepository bookingRepository;
+    private final ReviewRepository reviewRepository;
 
     //constructor injection
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     //METHODS used by USER CONTROLLER CLASS -----------------------------------------------------------------------
@@ -74,11 +79,10 @@ public class UserService {
 
     //get all users, return as UserResponseDTO
     public List<UserResponse> getAllUsers() {
-        List<UserResponse> userResponseList = new ArrayList<>();
-        for (User user : userRepository.findAll()) {
-            userResponseList.add(transferUserToUserResponse(user));
-        }
-        return userResponseList;
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::transferUserToUserResponse)
+                .collect(Collectors.toList());
     }
 
     //get current user
@@ -212,6 +216,7 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    //used by class methods deleteUserById and deleteCurrentUser
     private void deleteUser(User user) {
         //get and delete user listings
         List<Listing> userListings= listingRepository.deleteByHost(user);
@@ -223,18 +228,27 @@ public class UserService {
 
         //get and delete bookings belonging to the user
         List<Booking> userBookings = bookingRepository.deleteByUser(user);
+
         //loop bookings and add back dates to listing if booking is pending
         for (Booking booking : userBookings) {
             if (booking.getBookingStatus() == BookingStatus.PENDING) {
-                Listing listing = listingRepository.findById(booking.getListing().getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
+                Listing listing = ListingService.validateListingIdAndGetListing(booking.getListing().getId(), listingRepository);
                 listing.addAvailableDateRange(booking.getBookingDates());
                 listing.setUpdatedAt(LocalDateTime.now());
                 listingRepository.save(listing);
             }
         }
-        userRepository.delete(user);
 
+        //delete user from reviews (reviews are not deleted, but user is set to null)
+        List<Review> userReviews = reviewRepository.findByUser(user);
+        if (!userReviews.isEmpty()) {
+            for (Review userReview : userReviews) {
+                userReview.setUser(null);
+                userReview.setUsername("[deleted user]");
+            }
+        }
+        userRepository.delete(user);
     }
 
     //convert incoming DTO (from UserController) to User object
@@ -275,13 +289,13 @@ public class UserService {
     }
 
     //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
-    public static User validateUserIdAndReturnUser(String id, UserRepository userRepository) {
+    static User validateUserIdAndReturnUser(String id, UserRepository userRepository) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new java.lang.IllegalArgumentException("User with id "+ id + "not in database"));
+                .orElseThrow(() -> new java.lang.IllegalArgumentException("No user with id "+ id + " in database"));
     }
 
     //verify and get current user from jwtToken/cookies
-    public static User verifyAuthenticationAndExtractUser(UserRepository userRepository) {
+    static User verifyAuthenticationAndExtractUser(UserRepository userRepository) {
         //check that user is logged in
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {

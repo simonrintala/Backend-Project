@@ -3,10 +3,12 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
@@ -22,19 +24,17 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
-    private final UserService userService;
-    private final ListingService listingService;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserService userService, ListingService listingService, ListingRepository listingRepository, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
-        this.userService = userService;
-        this.listingService = listingService;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
     }
+
+    //METHODS used by REVIEW CONTROLLER CLASS -----------------------------------------------------------------------
 
     // Create a review
     public ReviewResponse createReview(ReviewRequest reviewRequest) {
@@ -52,15 +52,11 @@ public class ReviewService {
             throw new IllegalArgumentException("Cannot leave a review before the stay has ended.");
         }
 
-        // Validate the rating
-        if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5.");
-        }
-
         // Create the review
         Review review = new Review();
         review.setListing(listing);
         review.setUser(currentUser);
+        review.setUsername(currentUser.getUsername());
         review.setRating(reviewRequest.getRating());
         review.setEndDate(booking.getBookingDates().getEndDate());
 
@@ -72,14 +68,11 @@ public class ReviewService {
         return mapToReviewResponse(savedReview);
     }
 
-
+    //get all reviews for a listing
     public List<ReviewResponse> getReviewsByListing(String listingId) {
 
         // Fetch all reviews for the listing
         List<Review> reviews = reviewRepository.findByListing_Id(listingId);
-
-        // Update the average rating for the listing
-        updateAverageListingRating(listingId);
 
         // Map the reviews to ReviewResponse DTOs
         return reviews.stream()
@@ -87,37 +80,41 @@ public class ReviewService {
                 .collect(Collectors.toList());
     }
 
+    //get reviews made by the current logged in user
     public List<ReviewResponse> getReviewsCurrentUser() {
         User user = UserService.verifyAuthenticationAndExtractUser(userRepository);
-
         return getUserReviews(user);
     }
 
+    //get reviews by user id
     public List<ReviewResponse> getReviewsByUserId(String userId) {
         User user = UserService.validateUserIdAndReturnUser(userId, userRepository);
 
         return getUserReviews(user);
     }
 
+    //delete review
     public void deleteReview(String reviewId) {
         // Check if the review exists
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + reviewId));
+                .orElseThrow(() -> new ResourceNotFoundException("No review with id " + reviewId + " in database."));
+
+        //check that current user is the owner of the review or admin
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        if (!currentUser.getId().equals(review.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedException("Review cannot be deleted by current user.\n Only the user who created the review or an admin user can delete a review.");
+        }
 
         // Delete the review
         reviewRepository.delete(review);
 
-        // Update the average rating for the listing and host
+        // Update the average rating for the listing
         updateAverageListingRating(review.getListing().getId());
-        // Not used at the moment.
-        // updateAverageHostRating(review.getListing().getHost().getId());
     }
 
-    public double getAverageRatingForListing(String listingId) {
-        Listing listing = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
-        return listing.getAverageRating();
-    }
+    //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
 
+    //get reviews posted by a user, used by getReviewsByUserId and getReviewsCurrentUser methods in this class
     private List<ReviewResponse> getUserReviews(User user) {
             // Fetch all reviews for the user
             List<Review> reviews = reviewRepository.findByUser_Id(user.getId());
@@ -148,9 +145,14 @@ public class ReviewService {
 
     // method to map Review to ReviewResponse
     private ReviewResponse mapToReviewResponse(Review review) {
+        /*if the user has been deleted, the user will have been set to null for that users reviews
+        and review.getUser().getId() will cause an error. Check if this is the case and set userId
+        to null in the new ReviewResponse object if there is not user in the review entity.*/
+        String userId = review.getUser() == null ? null : review.getUser().getId();
+
         return new ReviewResponse(review.getId(),
                 review.getListing().getId(),
-                review.getUser().getId(),
+                userId,
                 review.getUsername(),
                 review.getRating(),
                 review.getCreatedAt(),

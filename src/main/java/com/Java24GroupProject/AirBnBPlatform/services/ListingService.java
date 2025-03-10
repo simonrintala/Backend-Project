@@ -1,5 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.HostResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
@@ -7,6 +8,7 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundExceptio
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.IdAndName;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -37,13 +40,11 @@ public class ListingService {
 
     //get all listings
     public List<ListingResponse> getAllListings() {
-        List<ListingResponse> listingResponses = new ArrayList<>();
 
-        // convert Listing to ListingResponseDTO
-        for (Listing listing : listingRepository.findAll()) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        List<Listing> listings = listingRepository.findAll();
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listing by id
@@ -72,12 +73,11 @@ public class ListingService {
             throw new IllegalArgumentException("Price cannot be greater than maxPrice");
         }
 
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByPricePerNightBetween(minPrice, maxPrice)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByPricePerNightBetween(minPrice, maxPrice);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listings by location
@@ -87,12 +87,11 @@ public class ListingService {
             throw new IllegalArgumentException("Location cannot be empty or null");
         }
 
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByLocation(location)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByLocation(location);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listings by capacity interval
@@ -106,11 +105,11 @@ public class ListingService {
             throw new IllegalArgumentException("minCapacity cannot be greater than maxCapacity");
         }
 
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByCapacityBetween(minCapacity, maxCapacity)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByCapacityBetween(minCapacity, maxCapacity);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listing by utilities
@@ -120,12 +119,11 @@ public class ListingService {
             throw new IllegalArgumentException("Utility cannot be empty or null");
         }
 
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByUtilities(utility)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByUtilities(utility);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //create new listing with current user as host
@@ -192,8 +190,29 @@ public class ListingService {
         listingRepository.delete(listing);
     }
 
+    public HostResponse getHostProfile(String userId) {
+        User host = UserService.validateUserIdAndReturnUser(userId, userRepository);
+        List<IdAndName> hostListingsForHostResponse = new ArrayList<>();
+        for (Listing listing : listingRepository.findByHost(host)) {
+            hostListingsForHostResponse.add(new IdAndName(listing.getId(), listing.getTitle()));
+        }
+        return new HostResponse(host.getId(),
+                host.getUsername(),
+                host.getProfilePictureURL(),
+                host.getDescription(),
+                hostListingsForHostResponse);
+    }
+
 
     //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
+
+    //used by get listings for a single user, used by getListingsByUserId and getListingsCurrentUser methods in this class
+    private List<ListingResponse> getListingsByUser(User user) {
+        List<Listing> userListings = listingRepository.findByHost(user);
+        return userListings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
+    }
 
     // limit what's shown when grabbing listings
     private ListingResponse convertToListingResponseDTO(Listing listing) {
@@ -239,19 +258,9 @@ public class ListingService {
         return listing;
     }
 
-    //used by get listings for current user and for any user methods in this class
-    private List<ListingResponse> getListingsByUser(User user) {
-    //convert to DTO
-    List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByHostId(user.getId())) {
-        listingResponses.add(convertToListingResponseDTO(listing));
-    }
-        return listingResponses;
-}
-
-    public static Listing validateListingIdAndGetListing(String id, ListingRepository listingRepository) {
+    static Listing validateListingIdAndGetListing(String id, ListingRepository listingRepository) {
         return listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Listing with id "+ id +" not in database"));
+                .orElseThrow(() -> new ResourceNotFoundException("No listing with id "+ id +" in database"));
 
     }
 

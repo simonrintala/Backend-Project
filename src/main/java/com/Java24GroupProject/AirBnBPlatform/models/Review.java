@@ -21,7 +21,6 @@ public class Review {
     private Listing listing;
 
     @DBRef
-    @NotNull(message = "review must have a user")
     private User user;
     private String username;
 

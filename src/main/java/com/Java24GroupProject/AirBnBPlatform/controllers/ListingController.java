@@ -1,8 +1,8 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.HostResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
-import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,13 +35,7 @@ public class ListingController {
         ListingResponse listingResponse = listingService.getListingById(id);
         return new ResponseEntity<>(listingResponse, HttpStatus.OK);
     }
-    
-    @GetMapping("/hostId/{hostId}")
-    public ResponseEntity<List<ListingResponse>> getListingsByHostId(@PathVariable String hostId) {
-        List<ListingResponse> listings = listingService.getListingsByHostId(hostId);
-        return new ResponseEntity<>(listings, HttpStatus.OK);
-    }
-    
+
     // search for listing between price range
     @GetMapping("/price")
     public ResponseEntity<List<ListingResponse>> getAllListingsByPrice(@RequestParam double minPrice, @RequestParam double maxPrice) {
@@ -68,6 +62,17 @@ public class ListingController {
     public ResponseEntity<List<ListingResponse>> getAllListingsByUtilities(@PathVariable String utilities) {
         List<ListingResponse> listings = listingService.getListingByUtilities(utilities);
         return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+
+    @GetMapping("/host/{hostId}")
+    public ResponseEntity<List<ListingResponse>> getListingsByHostId(@PathVariable String hostId) {
+        List<ListingResponse> listings = listingService.getListingsByHostId(hostId);
+        return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+
+    @GetMapping("/host/{hostId}/profile")
+    public ResponseEntity<HostResponse> getHostProfile(@PathVariable String hostId) {
+        return new ResponseEntity<>(listingService.getHostProfile(hostId), HttpStatus.OK);
     }
 
     //HOST or ADMIN-specific endpoints ----------------------------------------------------------------------------
