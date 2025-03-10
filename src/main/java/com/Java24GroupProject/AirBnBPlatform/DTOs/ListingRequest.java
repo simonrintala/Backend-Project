@@ -14,42 +14,46 @@ import java.util.Set;
 //The DTO for receiving information for listing creation
 public class ListingRequest {
 
-    @NotNull(message = "listing title is a required field")
-    @NotEmpty(message = "listing title is a required field")
-    @NotBlank(message = "listing title is a required field")
+    @NotNull(message = "title is a required field")
+    @NotEmpty(message = "title is a required field")
+    @NotBlank(message = "title is a required field")
     private String title;
 
-    @NotNull(message = "A price per night is required.")
-    @Positive(message = "Price per night must be greater than zero")
+    @NotNull(message = "pricePerNight is a required field")
+    @Positive(message = "pricePerNight must be greater than zero")
     private BigDecimal pricePerNight;
 
     private String description;
     private Set<ListingUtilities> utilities;
 
-    @NotNull(message = "Capacity limit must be set.")
-    @Positive(message = "Capacity must be greater than zero")
+    @NotNull(message = "capacity is a required field")
+    @Positive(message = "capacity must be greater than zero")
     private Integer capacity;
 
     private List<DateRange> availableDates;
+
+    @NotNull(message = "location is a required field")
+    @NotEmpty(message = "location is a required field")
+    @NotBlank(message = "location is a required field")
     private String location;
     private List<String> imageUrls;
 
     public ListingRequest() {
     }
 
-    public @NotNull(message = "listing title is a required field") @NotEmpty(message = "listing title is a required field") @NotBlank(message = "listing title is a required field") String getTitle() {
+    public @NotNull(message = "title is a required field") @NotEmpty(message = "title is a required field") @NotBlank(message = "title is a required field") String getTitle() {
         return title;
     }
 
-    public void setTitle(@NotNull(message = "listing title is a required field") @NotEmpty(message = "listing title is a required field") @NotBlank(message = "listing title is a required field") String title) {
+    public void setTitle(@NotNull(message = "title is a required field") @NotEmpty(message = "title is a required field") @NotBlank(message = "title is a required field") String title) {
         this.title = title;
     }
 
-    public @NotNull(message = "A price per night is required.") @Positive(message = "Price per night must be greater than zero") BigDecimal getPricePerNight() {
+    public @NotNull(message = "pricePerNight is a required field") @Positive(message = "pricePerNight must be greater than zero") BigDecimal getPricePerNight() {
         return pricePerNight;
     }
 
-    public void setPricePerNight(@NotNull(message = "A price per night is required.") @Positive(message = "Price per night must be greater than zero") BigDecimal pricePerNight) {
+    public void setPricePerNight(@NotNull(message = "pricePerNight is a required field") @Positive(message = "pricePerNight must be greater than zero") BigDecimal pricePerNight) {
         this.pricePerNight = pricePerNight;
     }
 
@@ -69,11 +73,11 @@ public class ListingRequest {
         this.utilities = utilities;
     }
 
-    public @NotNull(message = "Capacity limit must be set.") @Positive(message = "Capacity must be greater than zero") Integer getCapacity() {
+    public @NotNull(message = "capacity is a required field") @Positive(message = "capacity must be greater than zero") Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(@NotNull(message = "Capacity limit must be set.") @Positive(message = "Capacity must be greater than zero") Integer capacity) {
+    public void setCapacity(@NotNull(message = "capacity is a required field") @Positive(message = "capacity must be greater than zero") Integer capacity) {
         this.capacity = capacity;
     }
 
@@ -85,11 +89,11 @@ public class ListingRequest {
         this.availableDates = availableDates;
     }
 
-    public String getLocation() {
+    public @NotNull(message = "location is a required field") @NotEmpty(message = "location is a required field") @NotBlank(message = "location is a required field") String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(@NotNull(message = "location is a required field") @NotEmpty(message = "location is a required field") @NotBlank(message = "location is a required field") String location) {
         this.location = location;
     }
 

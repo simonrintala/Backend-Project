@@ -88,7 +88,7 @@ public class ListingController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('HOST','ADMIN')")
-    public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
+    public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody ListingRequest listing) {
         return ResponseEntity.ok(listingService.updateListing(id, listing));
     }
     

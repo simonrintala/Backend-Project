@@ -288,12 +288,12 @@ public class UserService {
         //check that user is logged in
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            throw new UnauthorizedException("user is not authenticated");
+            throw new UnauthorizedException("User is not logged in.");
         }
         //get user id from token via userDetails
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
     }
 
 }

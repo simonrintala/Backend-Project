@@ -8,6 +8,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
+import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,12 +25,14 @@ public class ReviewService {
     private final BookingRepository bookingRepository;
     private final UserService userService;
     private final ListingService listingService;
+    private final ListingRepository listingRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserService userService, ListingService listingService) {
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, UserService userService, ListingService listingService, ListingRepository listingRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.userService = userService;
         this.listingService = listingService;
+        this.listingRepository = listingRepository;
     }
 
     // Create a review
@@ -99,9 +102,10 @@ public class ReviewService {
 
         Listing listing = listingService.validateListingIdAndGetListing(listingId);
         listing.setAverageRating(averageRating);
+        listing.setUpdatedAt(LocalDateTime.now());
 
         // Use updateListing method to update the existing listing
-        listingService.updateListing(listingId, listing);
+        listingRepository.save(listing);
     }
 
     public List<ReviewResponse> getReviewsByListing(String listingId) {

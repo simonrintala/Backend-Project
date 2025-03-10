@@ -4,6 +4,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -19,10 +20,12 @@ public class ListingResponse {
     private Set<ListingUtilities> utilities;
     private List<DateRange> availableDates;
     private String location;
-    private List<String> image_urls;
+    private List<String> imageUrls;
     private double averageRating;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public ListingResponse(String id, String title, String hostId, String hostName, String description, BigDecimal pricePerNight, Integer capacity, Set<ListingUtilities> utilities, List<DateRange> availableDates, String location, List<String> image_urls, double averageRating) {
+    public ListingResponse(String id, String title, String hostId, String hostName, String description, BigDecimal pricePerNight, Integer capacity, Set<ListingUtilities> utilities, List<DateRange> availableDates, String location, List<String> imageUrls, double averageRating, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.hostId = hostId;
@@ -33,8 +36,10 @@ public class ListingResponse {
         this.utilities = utilities;
         this.availableDates = availableDates;
         this.location = location;
-        this.image_urls = image_urls;
+        this.imageUrls = imageUrls;
         this.averageRating = averageRating;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public String getId() {
@@ -77,11 +82,19 @@ public class ListingResponse {
         return location;
     }
 
-    public List<String> getImage_urls() {
-        return image_urls;
+    public List<String> getImageUrls() {
+        return imageUrls;
     }
 
     public double getAverageRating() {
         return averageRating;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

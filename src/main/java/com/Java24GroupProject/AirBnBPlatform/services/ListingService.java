@@ -148,24 +148,25 @@ public class ListingService {
         return convertToListingResponseDTO(listing);
     }
 
-    //update a listing
-    public ListingResponse updateListing(String id, Listing listing) {
+    //update a listing, only the host of the listing can update a listing
+    public ListingResponse updateListing(String id, ListingRequest listingRequest) {
         //validate listing id and get existing listing
         Listing existingListing = validateListingIdAndGetListing(id);
 
         //validate that the user is host of the listing
         String currentUserId = UserService.verifyAuthenticationAndExtractUser(userRepository).getId();
         if (!currentUserId.equals(existingListing.getHost().getId())) {
-            throw new UnauthorizedException("User is not the host of the listing, operation not allowed");
+            throw new UnauthorizedException("Listing cannot be updated by current user.\n Only the listing can host update a listing.");
         }
 
-        existingListing.setTitle(listing.getTitle());
-        existingListing.setDescription(listing.getDescription());
-        existingListing.setPricePerNight(listing.getPricePerNight());
-        existingListing.setCapacity(listing.getCapacity());
-        existingListing.setUtilities(listing.getUtilities());
-        existingListing.setLocation(listing.getLocation());
-        existingListing.setImageUrls(listing.getImageUrls());
+        existingListing.setTitle(listingRequest.getTitle());
+        existingListing.setDescription(listingRequest.getDescription());
+        existingListing.setPricePerNight(listingRequest.getPricePerNight());
+        existingListing.setCapacity(listingRequest.getCapacity());
+        existingListing.setUtilities(listingRequest.getUtilities());
+        existingListing.setLocation(listingRequest.getLocation());
+        existingListing.setImageUrls(listingRequest.getImageUrls());
+        existingListing.setAvailableDates(listingRequest.getAvailableDates());
 
         //save updated listing
         existingListing.setUpdatedAt(LocalDateTime.now());
@@ -176,13 +177,14 @@ public class ListingService {
     }
 
     //validate listing id exists in database and delete listing and bookings for the listing
+    //must be host of the listing or admin to delete a listings
     public void deleteListing(String id) {
         Listing listing = validateListingIdAndGetListing(id);
 
         //validate that the user is host of the listing or admin
         User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
         if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
-            throw new UnauthorizedException("User is not the host of the listing nor admin, operation not allowed");
+            throw new UnauthorizedException("Listing cannot be deleted by current user.\n Only the listing host or an admin user can delete a listing.");
         }
 
         bookingRepository.deleteByListing(listing);
@@ -210,7 +212,9 @@ public class ListingService {
                 listing.getAvailableDates(),
                 listing.getLocation(),
                 listing.getImageUrls(),
-                listing.getAverageRating()
+                listing.getAverageRating(),
+                listing.getCreatedAt(),
+                listing.getUpdatedAt()
         );
     }
 

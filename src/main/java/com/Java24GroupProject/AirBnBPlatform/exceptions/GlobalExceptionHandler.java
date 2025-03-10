@@ -4,14 +4,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.DispatcherServlet;
-
-import java.nio.file.AccessDeniedException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,20 +43,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> unauthorizedExceptionHandler(UnauthorizedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
-    
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> accessDeniedExceptionHandler(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized");
-    }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<String> authenticationExceptionHandler(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<String> authenticationDeniedExceptionHandler(AuthorizationDeniedException ex) {
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(NameAlreadyBoundException.class)
     public ResponseEntity<String> conflictExceptionHandler(Exception ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     //error handling for @RequestBody failing @Valid check
@@ -70,14 +63,17 @@ public class GlobalExceptionHandler {
         for (ObjectError objectError : ex.getAllErrors()) {
             String[] errorFields = objectError.toString().split(";");
             String errorMessage = errorFields[errorFields.length-1].substring(18).replace("]","");
-            errorMessages = errorMessages.concat("\n- "+errorMessage);
+            //if error message is not a duplicate of an existing error message, add to String
+            if (!errorMessages.contains(errorMessage)) {
+                errorMessages = errorMessages.concat("\n- " + errorMessage);
+            }
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> generalExceptionHandler(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error:\n"+ex.getMessage());
+        return new ResponseEntity<>("Unexpected error:\n"+ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
 }

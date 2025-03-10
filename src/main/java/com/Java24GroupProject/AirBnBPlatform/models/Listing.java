@@ -32,23 +32,26 @@ public class Listing {
 
     private String description;
 
-    @NotNull(message = "A price per night is required.")
-    @Positive(message = "Price per night must be greater than zero")
+    @NotNull(message = "pricePerNight is a required field")
+    @Positive(message = "pricePerNight must be greater than zero")
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal pricePerNight;
 
-    @NotNull(message = "Capacity limit must be set.")
-    @Positive(message = "Capacity must be greater than zero")
+    @NotNull(message = "capacity is a required field")
+    @Positive(message = "capacity must be greater than zero")
     private Integer capacity;
 
     private Set<ListingUtilities> utilities;
 
-    @NotNull(message = "Listing must have at least one host.")
+    @NotNull(message = "listing must have a host")
     @DBRef
     private User host;
 
     private List<String> imageUrls;
 
+    @NotNull(message = "location is a required field")
+    @NotEmpty(message = "location is a required field")
+    @NotBlank(message = "location is a required field")
     private String location;
 
     private List<DateRange> availableDates;
@@ -87,19 +90,19 @@ public class Listing {
         this.description = description;
     }
 
-    public @NotNull(message = "A price per night is required.") @Positive(message = "Price per night must be greater than zero") BigDecimal getPricePerNight() {
+    public @NotNull(message = "pricePerNight is a required field") @Positive(message = "pricePerNight must be greater than zero") BigDecimal getPricePerNight() {
         return pricePerNight;
     }
 
-    public void setPricePerNight(@NotNull(message = "A price per night is required.") @Positive(message = "Price per night must be greater than zero") BigDecimal pricePerNight) {
+    public void setPricePerNight(@NotNull(message = "pricePerNight is a required field") @Positive(message = "pricePerNight must be greater than zero") BigDecimal pricePerNight) {
         this.pricePerNight = pricePerNight;
     }
 
-    public @NotNull(message = "Capacity limit must be set.") @Positive(message = "Capacity must be greater than zero") Integer getCapacity() {
+    public @NotNull(message = "capacity is a required field") @Positive(message = "capacity must be greater than zero") Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(@NotNull(message = "Capacity limit must be set.") @Positive(message = "Capacity must be greater than zero") Integer capacity) {
+    public void setCapacity(@NotNull(message = "capacity is a required field") @Positive(message = "capacity must be greater than zero") Integer capacity) {
         this.capacity = capacity;
     }
 
@@ -111,11 +114,11 @@ public class Listing {
         this.utilities = utilities;
     }
 
-    public @NotNull(message = "Listing must have at least one host.") User getHost() {
+    public @NotNull(message = "listing must have a host") User getHost() {
         return host;
     }
 
-    public void setHost(@NotNull(message = "Listing must have at least one host.") User host) {
+    public void setHost(@NotNull(message = "listing must have a host") User host) {
         this.host = host;
     }
 
@@ -127,11 +130,11 @@ public class Listing {
         this.imageUrls = imageUrls;
     }
 
-    public String getLocation() {
+    public @NotNull(message = "location is a required field") @NotEmpty(message = "location is a required field") @NotBlank(message = "location is a required field") String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(@NotNull(message = "location is a required field") @NotEmpty(message = "location is a required field") @NotBlank(message = "location is a required field") String location) {
         this.location = location;
     }
 
