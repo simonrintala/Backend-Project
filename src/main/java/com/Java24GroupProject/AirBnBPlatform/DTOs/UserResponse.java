@@ -3,6 +3,7 @@ package com.Java24GroupProject.AirBnBPlatform.DTOs;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 public class UserResponse {
@@ -14,8 +15,10 @@ public class UserResponse {
         private String profilePictureURL;
         private String description;
         private Set<Role> roles;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
 
-    public UserResponse(String id, String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Set<Role> roles) {
+    public UserResponse(String id, String username, String email, String phoneNr, UserAddress address, String profilePictureURL, String description, Set<Role> roles, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -24,69 +27,47 @@ public class UserResponse {
         this.profilePictureURL = profilePictureURL;
         this.description = description;
         this.roles = roles;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPhoneNr() {
         return phoneNr;
-    }
-
-    public void setPhoneNr(String phoneNr) {
-        this.phoneNr = phoneNr;
     }
 
     public UserAddress getAddress() {
         return address;
     }
 
-    public void setAddress(UserAddress address) {
-        this.address = address;
-    }
-
     public String getProfilePictureURL() {
         return profilePictureURL;
-    }
-
-    public void setProfilePictureURL(String profilePictureURL) {
-        this.profilePictureURL = profilePictureURL;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

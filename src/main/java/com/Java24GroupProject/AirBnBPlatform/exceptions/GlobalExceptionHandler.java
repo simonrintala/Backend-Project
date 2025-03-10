@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import javax.naming.NameAlreadyBoundException;
 import java.nio.file.AccessDeniedException;
 
 @ControllerAdvice

@@ -48,32 +48,23 @@ public class UserService {
         //validate that username, email and phoneNr is unique
         //check if username already exists, and if is does, cast error
         if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            throw new NameAlreadyBoundException("Username already exists in database");
+            throw new NameAlreadyBoundException("Username already registered to another user");
         }
 
         //same for email
         if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
-            throw new NameAlreadyBoundException("Email already exists in database");
+            throw new NameAlreadyBoundException("Email already registered to another user");
         }
 
         //same for phoneNr
         if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
-            throw new NameAlreadyBoundException("PhoneNr already exists in database");
+            throw new NameAlreadyBoundException("PhoneNr already registered to another user");
         }
 
         //maps the RegisterRequest to a new User entity
         User user = transferUserRequestToUser(userRequest, new User());
         //empty listing-favorites array list for a new user
         user.setFavorites(new ArrayList<>());
-
-        //assign the role USER if no roles are specified in UserRequest
-        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
-            user.setRoles(Set.of(Role.USER));
-        } else {
-            user.setRoles(userRequest.getRoles());
-        }
-
-        user.setUpdatedAt(null);
 
         //save new user
         userRepository.save(user);
@@ -122,21 +113,21 @@ public class UserService {
         //if username is changed, check that username is not taken
         if (!currentUser.getUsername().equals(userRequest.getUsername())) {
             if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-                throw new NameAlreadyBoundException("Username already exists in database");
+                throw new NameAlreadyBoundException("Username already registered to another user");
             }
         }
 
         //same for email
         if (!currentUser.getEmail().equals(userRequest.getEmail())) {
             if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
-                throw new NameAlreadyBoundException("Email already exists in database");
+                throw new NameAlreadyBoundException("Email already registered to another user");
             }
         }
 
         //same for phoneNr
         if (!currentUser.getPhoneNr().equals(userRequest.getPhoneNr())) {
             if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
-                throw new NameAlreadyBoundException("PhoneNr already exists in database");
+                throw new NameAlreadyBoundException("PhoneNr already registered to another user");
             }
         }
 
@@ -268,12 +259,28 @@ public class UserService {
         user.setProfilePictureURL(userRequest.getProfilePictureURL());
         user.setDescription(userRequest.getDescription());
 
+        //assign the role USER if no roles are specified in UserRequest
+        if(userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
+            user.setRoles(Set.of(Role.USER));
+        } else {
+            user.setRoles(userRequest.getRoles());
+        }
+
         return user;
     }
 
     //transfer User to UserResponse, used when returning user data to UserController
     public UserResponse transferUserToUserResponse(User user) {
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhoneNr(), user.getAddress(), user.getProfilePictureURL(), user.getDescription(), user.getRoles());
+        return new UserResponse(user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPhoneNr(),
+                user.getAddress(),
+                user.getProfilePictureURL(),
+                user.getDescription(),
+                user.getRoles(),
+                user.getCreatedAt(),
+                user.getUpdatedAt());
     }
 
     //verify and get current user from jwtToken/cookies
