@@ -47,14 +47,10 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 // define access to different url destinations
                 .authorizeHttpRequests(auth -> auth
-                        //only admin can access things under url admin
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        //permit all so that all can search for listing (method based access control for non-GET methods in ListingController)
-                        .requestMatchers("/listings/**").permitAll()
-                        //only logged-in users (any role) can access
+                        //only logged-in users (any role) can access users and bookings
                         .requestMatchers("/users/**", "/bookings/**").hasAnyRole("ADMIN","HOST","USER")
-                        //any user can access, incl. login page and search page (search for listings)
-                        .requestMatchers("/auth/**").permitAll()
+                        //any user can access login page and listing page
+                        .requestMatchers("/auth/**", "/listings/**", "/reviews/**").permitAll()
                         //all other urls, only logged-in users
                         .anyRequest().authenticated()
                 )

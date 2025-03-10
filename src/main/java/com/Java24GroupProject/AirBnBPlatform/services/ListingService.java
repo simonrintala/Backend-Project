@@ -45,24 +45,16 @@ public class ListingService {
 
     //get listing by id
     public ListingResponse getListingById(String id) {
-        Listing listing = validateListingIdAndGetListing(id);
+        Listing listing = validateListingIdAndGetListing(id, listingRepository);
 
         return convertToListingResponseDTO(listing);
     }
 
     //get all listings for a host, using hosts id
-    public List<ListingResponse> getListingsByHostId(String id) {
+    public List<ListingResponse> getListingsByHostId(String hostId) {
         //check if user is valid
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        User user = UserService.validateUserIdAndReturnUser(hostId, userRepository);
         return getListingsByUser(user);
-    }
-
-    //get all listings for the current user
-    public List<ListingResponse> getListingsCurrentUser() {
-        //get current user
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
-        return getListingsByUser(currentUser);
     }
     
     // get listings by price interval
@@ -141,17 +133,23 @@ public class ListingService {
 
         //save new listing
         listing.setAverageRating(0D);
-        listing.setUpdatedAt(null);
         listingRepository.save(listing);
 
         //return as ResponseDTO
         return convertToListingResponseDTO(listing);
     }
 
+    //get all listings for the current user
+    public List<ListingResponse> getListingsCurrentUser() {
+        //get current user
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        return getListingsByUser(currentUser);
+    }
+
     //update a listing, only the host of the listing can update a listing
     public ListingResponse updateListing(String id, ListingRequest listingRequest) {
         //validate listing id and get existing listing
-        Listing existingListing = validateListingIdAndGetListing(id);
+        Listing existingListing = validateListingIdAndGetListing(id, listingRepository);
 
         //validate that the user is host of the listing
         String currentUserId = UserService.verifyAuthenticationAndExtractUser(userRepository).getId();
@@ -179,7 +177,7 @@ public class ListingService {
     //validate listing id exists in database and delete listing and bookings for the listing
     //must be host of the listing or admin to delete a listings
     public void deleteListing(String id) {
-        Listing listing = validateListingIdAndGetListing(id);
+        Listing listing = validateListingIdAndGetListing(id, listingRepository);
 
         //validate that the user is host of the listing or admin
         User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
@@ -196,15 +194,12 @@ public class ListingService {
 
     // limit what's shown when grabbing listings
     private ListingResponse convertToListingResponseDTO(Listing listing) {
-        // Retrieve the host (user) based on the host ID in the listing
-        User user = userRepository.findById(listing.getHost().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         return new ListingResponse(
                 listing.getId(),
                 listing.getTitle(),
-                user.getId(),
-                user.getUsername(),
+                listing.getHost().getId(),
+                listing.getHostName(),
                 listing.getDescription(),
                 listing.getPricePerNight(),
                 listing.getCapacity(),
@@ -224,7 +219,9 @@ public class ListingService {
         Listing listing = new Listing();
 
         // Set the host the current user
-        listing.setHost(UserService.verifyAuthenticationAndExtractUser(userRepository));
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        listing.setHost(currentUser);
+        listing.setHostName(currentUser.getUsername());
         
         // Set fields from ListingRequest into Listing
         listing.setTitle(listingRequest.getTitle());
@@ -249,9 +246,9 @@ public class ListingService {
         return listingResponses;
 }
 
-    Listing validateListingIdAndGetListing(String id) {
+    public static Listing validateListingIdAndGetListing(String id, ListingRepository listingRepository) {
         return listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Listing with id "+ id +" not in database"));
 
     }
 

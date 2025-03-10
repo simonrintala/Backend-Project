@@ -89,7 +89,7 @@ public class UserService {
 
     //get single user using id, return as UserResponse
     public UserResponse getUserById(String id) {
-        User user = validateUserIdAndReturnUser(id);
+        User user = validateUserIdAndReturnUser(id, userRepository);
         return transferUserToUserResponse(user);
     }
 
@@ -101,7 +101,7 @@ public class UserService {
 
     //delete single user using id
     public void deleteUserById(String id) {
-        User user = validateUserIdAndReturnUser(id);
+        User user = validateUserIdAndReturnUser(id, userRepository);
         deleteUser(user);
     }
 
@@ -144,9 +144,7 @@ public class UserService {
 
     //add or remove a listing from current users saved favorites using listing id as an input variable
     public String addOrRemoveFavorite(String listingId) {
-        Listing newListing = listingRepository.findById(listingId)
-                .orElseThrow(() -> new java.lang.IllegalArgumentException("Listing id does not exist in database"));
-
+        Listing newListing = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
         String message = "'"+ newListing.getTitle()+"'";
         //get current user
         User user = verifyAuthenticationAndExtractUser(userRepository);
@@ -155,8 +153,7 @@ public class UserService {
         //loop through favorites to check if newListing is already saved
         for (Listing listingReference : user.getFavorites()) {
             if (listingRepository.findById(listingReference.getId()).isPresent()) {
-                Listing listingInFavorites = listingRepository.findById(listingReference.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                Listing listingInFavorites = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
                 //if listing is already in favorites, remove from favorites
                 if (listingInFavorites.getId().equals(newListing.getId())) {
                     user.removeFavorite(listingReference);
@@ -215,12 +212,6 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
-    private User validateUserIdAndReturnUser(String id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new java.lang.IllegalArgumentException("User id does not exist in database"));
-    }
-
     private void deleteUser(User user) {
         //get and delete user listings
         List<Listing> userListings= listingRepository.deleteByHost(user);
@@ -270,7 +261,7 @@ public class UserService {
     }
 
     //transfer User to UserResponse, used when returning user data to UserController
-    public UserResponse transferUserToUserResponse(User user) {
+    private UserResponse transferUserToUserResponse(User user) {
         return new UserResponse(user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -281,6 +272,12 @@ public class UserService {
                 user.getRoles(),
                 user.getCreatedAt(),
                 user.getUpdatedAt());
+    }
+
+    //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
+    public static User validateUserIdAndReturnUser(String id, UserRepository userRepository) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new java.lang.IllegalArgumentException("User with id "+ id + "not in database"));
     }
 
     //verify and get current user from jwtToken/cookies

@@ -3,7 +3,6 @@ package com.Java24GroupProject.AirBnBPlatform.models;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -18,33 +17,36 @@ public class Review {
     private String id;
 
     @DBRef
-    @NotNull(message = "A Listing is required")
+    @NotNull(message = "review must have a listing")
     private Listing listing;
 
     @DBRef
+    @NotNull(message = "review must have a user")
     private User user;
+    private String username;
 
-    @NotNull(message = "A end date is required")
+    @NotNull(message = "An end date is required")
     private LocalDate endDate;
 
-    @Positive(message = "Review score must be greater than zero")
-    @Min(value = 1, message = "Minimum value must be atleast 1")
-    @Max(value = 5, message = "Maximum value cannot be more than 5")
+    @NotNull(message = "rating is a required field")
+    @Min(value = 1, message = "rating must be between 1 and 5")
+    @Max(value = 5, message = "rating must be between 1 and 5")
     private Double rating;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     public Review() {
     }
 
-    public Review(String id, Listing listing, User user, LocalDate endDate, Double rating, LocalDateTime createdAt) {
-        this.id = id;
+    public Review(Listing listing, User user, String username, LocalDate endDate, Double rating) {
         this.listing = listing;
         this.user = user;
+        this.username = username;
         this.endDate = endDate;
         this.rating = rating;
-        this.createdAt = createdAt;
     }
 
     public String getId() {
@@ -55,35 +57,43 @@ public class Review {
         this.id = id;
     }
 
-    public @NotNull(message = "A Listing is required") Listing getListing() {
+    public @NotNull(message = "review must have a listing") Listing getListing() {
         return listing;
     }
 
-    public void setListing(@NotNull(message = "A Listing is required") Listing listing) {
+    public void setListing(@NotNull(message = "review must have a listing") Listing listing) {
         this.listing = listing;
     }
 
-    public User getUser() {
+    public @NotNull(message = "review must have a user") User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(@NotNull(message = "review must have a user") User user) {
         this.user = user;
     }
 
-    public @NotNull(message = "A end date is required") LocalDate getEndDate() {
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public @NotNull(message = "An end date is required") LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(@NotNull(message = "A end date is required") LocalDate endDate) {
+    public void setEndDate(@NotNull(message = "An end date is required") LocalDate endDate) {
         this.endDate = endDate;
     }
 
-    public @Positive(message = "Review score must be greater than zero") @Min(value = 1, message = "Minimum value must be atleast 1") @Max(value = 5, message = "Maximum value cannot be more than 5") Double getRating() {
+    public @NotNull(message = "rating is a required field") @Min(value = 1, message = "rating must be between 1 and 5") @Max(value = 5, message = "rating must be between 1 and 5") Double getRating() {
         return rating;
     }
 
-    public void setRating(@Positive(message = "Review score must be greater than zero") @Min(value = 1, message = "Minimum value must be atleast 1") @Max(value = 5, message = "Maximum value cannot be more than 5") Double rating) {
+    public void setRating(@NotNull(message = "rating is a required field") @Min(value = 1, message = "rating must be between 1 and 5") @Max(value = 5, message = "rating must be between 1 and 5") Double rating) {
         this.rating = rating;
     }
 
@@ -93,5 +103,13 @@ public class Review {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

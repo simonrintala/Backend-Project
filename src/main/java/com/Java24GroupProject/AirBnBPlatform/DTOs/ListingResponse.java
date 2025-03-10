@@ -1,6 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.IdAndName;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.ListingUtilities;
 
 import java.math.BigDecimal;
@@ -12,8 +13,7 @@ import java.util.Set;
 public class ListingResponse {
     private String id;
     private String title;
-    private String hostId;
-    private String hostName;
+    private IdAndName host;
     private String description;
     private BigDecimal pricePerNight;
     private Integer capacity;
@@ -28,8 +28,7 @@ public class ListingResponse {
     public ListingResponse(String id, String title, String hostId, String hostName, String description, BigDecimal pricePerNight, Integer capacity, Set<ListingUtilities> utilities, List<DateRange> availableDates, String location, List<String> imageUrls, double averageRating, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
-        this.hostId = hostId;
-        this.hostName = hostName;
+        this.host = new IdAndName(hostId, hostName);
         this.description = description;
         this.pricePerNight = pricePerNight;
         this.capacity = capacity;
@@ -50,12 +49,8 @@ public class ListingResponse {
         return title;
     }
 
-    public String getHostId() {
-        return hostId;
-    }
-
-    public String getHostName() {
-        return hostName;
+    public IdAndName getHost() {
+        return host;
     }
 
     public String getDescription() {

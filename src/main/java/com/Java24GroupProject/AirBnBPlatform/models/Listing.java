@@ -46,6 +46,7 @@ public class Listing {
     @NotNull(message = "listing must have a host")
     @DBRef
     private User host;
+    private String hostName;
 
     private List<String> imageUrls;
 
@@ -120,6 +121,14 @@ public class Listing {
 
     public void setHost(@NotNull(message = "listing must have a host") User host) {
         this.host = host;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
     public List<String> getImageUrls() {

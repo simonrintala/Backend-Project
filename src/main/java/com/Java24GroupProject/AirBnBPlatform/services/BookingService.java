@@ -78,8 +78,7 @@ public class BookingService {
     //get bookings any user
     public List<BookingResponse> getBookingsByUserId(String userId) {
         //validate user id
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = UserService.validateUserIdAndReturnUser(userId, userRepository);
 
         return getUserBookings(user);
     }
@@ -93,9 +92,7 @@ public class BookingService {
 
     //get current listings bookingId
     public List<BookingResponse> getBookingsByListingId(String listingId) {
-        Listing listing = listingRepository.findById(listingId)
-                .orElseThrow(()-> new ResourceNotFoundException("Listing with id " + listingId + "not found"));
-
+        Listing listing = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
         //check that current user is owner of listing or admin
         User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
         if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
@@ -240,12 +237,14 @@ public class BookingService {
 
     private BookingResponse convertToDTOResponse(Booking booking) {
         //get listing and user to save variables in DTOResponse
-        Listing listing = validateListingIdAndGetListing(booking);
-        User user = validateUserIdAndGetUser(booking);
+        User user = userRepository.findById(booking.getUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User with id "+ booking.getUser().getId()+ " not found"));
 
         return new BookingResponse(
                 booking.getId(),
-                listing.getTitle(),
+                booking.getListing().getId(),
+                booking.getListingTitle(),
+                user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhoneNr(),
@@ -351,27 +350,19 @@ public class BookingService {
     //validate id and get booking object
     private Booking validateBookingIdAndGetBooking(String id) {
         return bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking with id "+id+" not in database"));
     }
 
     //validate listing id and get listing object from booking
     private Listing validateListingIdAndGetListing(Booking booking) {
-        return listingRepository.findById(booking.getListing().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+        return ListingService.validateListingIdAndGetListing(booking.getListing().getId(), listingRepository);
     }
 
     //validate listing id and get listing object from bookingRequest
     private Listing validateListingIdAndGetListing(BookingRequest bookingRequest) {
-        return listingRepository.findById(bookingRequest.getListingId())
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+        return ListingService.validateListingIdAndGetListing(bookingRequest.getListingId(), listingRepository);
 
     }
 
-    //validate user id and get user object from booking
-    private User validateUserIdAndGetUser(Booking booking) {
-        return userRepository.findById(booking.getUser().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    }
 
 }

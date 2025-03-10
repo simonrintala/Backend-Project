@@ -1,43 +1,48 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.IdAndName;
+
 import java.time.LocalDateTime;
 
 public class ReviewResponse {
     private String id;
-    private String title;
+    private String listingId;
+    private IdAndName user;
     private double rating;
     private LocalDateTime createdAt;
-    //subject to change, wasn't 100% sure what we should return
+    private LocalDateTime updatedAt;
+
+    public ReviewResponse(String id, String listingId, String userId, String username, double rating, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.listingId = listingId;
+        this.user = new IdAndName(userId, username);
+        this.rating = rating;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getListingId() {
+        return listingId;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+    public IdAndName getUser() {
+        return user;
     }
 
     public double getRating() {
         return rating;
     }
 
-    public void setRating(double rating) {
-        this.rating = rating;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
 
