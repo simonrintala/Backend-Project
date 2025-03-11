@@ -2,6 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ReviewResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
@@ -46,7 +47,7 @@ public class ReviewService {
 
         // Check if the booking exists and the end date has passed
         Booking booking = bookingRepository.findByUserAndListing(currentUser, listing)
-                .orElseThrow(() -> new IllegalArgumentException("No booking found for this user and listing."));
+                .orElseThrow(() -> new IllegalArgumentException("Cannot leave a review without having a booking for the listing. \nNo booking found for current user and listing with id '"+listing.getId()+"'."));
 
         if (booking.getBookingDates().getEndDate().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Cannot leave a review before the stay has ended.");
@@ -70,6 +71,8 @@ public class ReviewService {
 
     //get all reviews for a listing
     public List<ReviewResponse> getReviewsByListing(String listingId) {
+        //check that listing id is valid
+        ListingService.validateListingIdAndGetListing(listingId, listingRepository);
 
         // Fetch all reviews for the listing
         List<Review> reviews = reviewRepository.findByListing_Id(listingId);
@@ -97,7 +100,7 @@ public class ReviewService {
     public void deleteReview(String reviewId) {
         // Check if the review exists
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("No review with id " + reviewId + " in database."));
+                .orElseThrow(() -> new ResourceNotFoundException("No review with id '" + reviewId + "' in database."));
 
         //check that current user is the owner of the review or admin
         User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
