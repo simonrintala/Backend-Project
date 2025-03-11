@@ -116,7 +116,7 @@ public class BookingService {
 
         //check if status is pending, otherwise cannot be changed
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
+            throw new UnsupportedOperationException("Accepted or rejected bookings cannot be updated");
         }
 
         //listing of booking cannot be changed
@@ -163,7 +163,7 @@ public class BookingService {
 
         //check that booking status is pending
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Confirmed or denied bookings cannot be updated");
+            throw new UnsupportedOperationException("Booking has already been accepted or rejected");
         }
 
         //get current logged-in user
@@ -256,7 +256,9 @@ public class BookingService {
     //convert BookingRequest to Booking
     private Booking convertRequestToBooking(BookingRequest bookingRequest) {
                 Booking booking = new Booking();
-                booking.setListing(validateListingIdAndGetListing(bookingRequest));
+                Listing listing = validateListingIdAndGetListing(bookingRequest);
+                booking.setListing(listing);
+                booking.setListingTitle(listing.getTitle());
                 //set current user as the user for the booking
                 booking.setUser(UserService.verifyAuthenticationAndExtractUser(userRepository));
                 booking.setBookingDates(new DateRange(
@@ -347,7 +349,7 @@ public class BookingService {
     //validate id and get booking object
     private Booking validateBookingIdAndGetBooking(String id) {
         return bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No booking with id "+id+" in database"));
+                .orElseThrow(() -> new ResourceNotFoundException("No booking with id '"+id+"' in database"));
     }
 
     //validate listing id and get listing object from booking

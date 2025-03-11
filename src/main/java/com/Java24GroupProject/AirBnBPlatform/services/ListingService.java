@@ -260,7 +260,7 @@ public class ListingService {
 
     static Listing validateListingIdAndGetListing(String id, ListingRepository listingRepository) {
         return listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No listing with id "+ id +" in database"));
+                .orElseThrow(() -> new ResourceNotFoundException("No listing with id '"+ id +"' in database"));
 
     }
 

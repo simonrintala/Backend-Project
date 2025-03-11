@@ -180,7 +180,6 @@ public class UserService {
             user.addFavorite(newListing);
             message = message +" has been added to favorites";
         }
-        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return message;
     }
@@ -221,9 +220,10 @@ public class UserService {
         //get and delete user listings
         List<Listing> userListings= listingRepository.deleteByHost(user);
 
-        //delete bookings for the deleted listings
+        //delete bookings and reviews for the deleted listings
         for (Listing listing : userListings) {
             bookingRepository.deleteByListing(listing);
+            reviewRepository.deleteByListing(listing);
         }
 
         //get and delete bookings belonging to the user
@@ -291,7 +291,7 @@ public class UserService {
     //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
     static User validateUserIdAndReturnUser(String id, UserRepository userRepository) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new java.lang.IllegalArgumentException("No user with id "+ id + " in database"));
+                .orElseThrow(() -> new ResourceNotFoundException("No user with id '"+ id + "' in database"));
     }
 
     //verify and get current user from jwtToken/cookies
