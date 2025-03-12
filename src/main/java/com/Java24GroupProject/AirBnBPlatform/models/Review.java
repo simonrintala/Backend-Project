@@ -35,7 +35,6 @@ public class Review {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
 
     public Review() {
     }
@@ -104,11 +103,4 @@ public class Review {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

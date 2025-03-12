@@ -10,15 +10,13 @@ public class ReviewResponse {
     private IdAndName user;
     private double rating;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    public ReviewResponse(String id, String listingId, String userId, String username, double rating, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ReviewResponse(String id, String listingId, String userId, String username, double rating, LocalDateTime createdAt) {
         this.id = id;
         this.listingId = listingId;
         this.user = new IdAndName(userId, username);
         this.rating = rating;
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public String getId() {
@@ -41,8 +39,5 @@ public class ReviewResponse {
         return createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }
 

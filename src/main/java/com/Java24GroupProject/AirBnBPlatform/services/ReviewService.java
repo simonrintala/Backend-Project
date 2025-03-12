@@ -158,8 +158,7 @@ public class ReviewService {
                 userId,
                 review.getUsername(),
                 review.getRating(),
-                review.getCreatedAt(),
-                review.getUpdatedAt());
+                review.getCreatedAt());
     }
 
  /*
