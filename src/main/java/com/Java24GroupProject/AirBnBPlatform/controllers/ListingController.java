@@ -1,8 +1,8 @@
 package com.Java24GroupProject.AirBnBPlatform.controllers;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.HostResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
-import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.services.ListingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,15 +20,10 @@ public class ListingController {
     public ListingController(ListingService listingService) {
         this.listingService = listingService;
     }
-    
-    @PostMapping
-    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
-    public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody ListingRequest listingRequest) {
-        ListingResponse listingResponse = listingService.createListing(listingRequest);
-        return new ResponseEntity<>(listingResponse, HttpStatus.CREATED);
-    }
-    
-    @GetMapping
+
+    //GET-endpoints for listing search, accessible w/o logging in -------------------------------------------
+
+    @GetMapping()
     public ResponseEntity<List<ListingResponse>> getAllListings() {
         List<ListingResponse> listings = listingService.getAllListings();
         return new ResponseEntity<>(listings, HttpStatus.OK);
@@ -40,13 +35,7 @@ public class ListingController {
         ListingResponse listingResponse = listingService.getListingById(id);
         return new ResponseEntity<>(listingResponse, HttpStatus.OK);
     }
-    
-    @GetMapping("/hostId/{hostId}")
-    public ResponseEntity<List<ListingResponse>> getListingsByHostId(@PathVariable String hostId) {
-        List<ListingResponse> listings = listingService.getAllListingsByHostId(hostId);
-        return new ResponseEntity<>(listings, HttpStatus.OK);
-    }
-    
+
     // search for listing between price range
     @GetMapping("/price")
     public ResponseEntity<List<ListingResponse>> getAllListingsByPrice(@RequestParam double minPrice, @RequestParam double maxPrice) {
@@ -74,10 +63,37 @@ public class ListingController {
         List<ListingResponse> listings = listingService.getListingByUtilities(utilities);
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
-    
+
+    @GetMapping("/host/{hostId}")
+    public ResponseEntity<List<ListingResponse>> getListingsByHostId(@PathVariable String hostId) {
+        List<ListingResponse> listings = listingService.getListingsByHostId(hostId);
+        return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+
+    @GetMapping("/host/{hostId}/profile")
+    public ResponseEntity<HostResponse> getHostProfile(@PathVariable String hostId) {
+        return new ResponseEntity<>(listingService.getHostProfile(hostId), HttpStatus.OK);
+    }
+
+    //HOST or ADMIN-specific endpoints ----------------------------------------------------------------------------
+
+    @GetMapping("/user")
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
+    public ResponseEntity<List<ListingResponse>> getListingsCurrentUser() {
+        List<ListingResponse> listingResponses = listingService.getListingsCurrentUser();
+        return new ResponseEntity<>(listingResponses, HttpStatus.OK);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
+    public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody ListingRequest listingRequest) {
+        ListingResponse listingResponse = listingService.createListing(listingRequest);
+        return new ResponseEntity<>(listingResponse, HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('HOST','ADMIN')")
-    public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody Listing listing) {
+    public ResponseEntity<ListingResponse> updateListing(@PathVariable String id, @Valid @RequestBody ListingRequest listing) {
         return ResponseEntity.ok(listingService.updateListing(id, listing));
     }
     

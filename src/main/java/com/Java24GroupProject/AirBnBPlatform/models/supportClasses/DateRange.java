@@ -1,5 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.models.supportClasses;
 
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
+
 import java.time.LocalDate;
 
 public class DateRange {
@@ -7,10 +9,9 @@ public class DateRange {
     private LocalDate endDate;
 
     public DateRange(LocalDate startDate, LocalDate endDate) {
-        if (endDate.isBefore(startDate)) {
+        if (endDate.isBefore(startDate) || endDate.isEqual(startDate)) {
             throw new IllegalArgumentException("start date must be before end date");
-        } else if (endDate.isEqual(startDate))
-            throw new IllegalArgumentException("start date not be equal to' end date");
+        }
         this.startDate = startDate;
         this.endDate = endDate;
     }

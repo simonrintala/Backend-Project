@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ListingRepository extends MongoRepository<Listing, String> {
     //find based on host
-    List<Listing> findByHostId(String hostId);
+    List<Listing> findByHost(User user);
     //find based on location (city)
     List<Listing> findByLocation(String location);
     //delete by user

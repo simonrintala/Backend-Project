@@ -1,20 +1,25 @@
 package com.Java24GroupProject.AirBnBPlatform.services;
 
+import com.Java24GroupProject.AirBnBPlatform.DTOs.HostResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.IdAndName;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
+import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -22,58 +27,38 @@ public class ListingService {
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final ReviewRepository reviewRepository;
 
-    public ListingService(ListingRepository listingRepository, UserRepository userRepository, BookingRepository bookingRepository) {
+    public ListingService(ListingRepository listingRepository, UserRepository userRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
+        this.reviewRepository = reviewRepository;
     }
 
-    public ListingResponse createListing(ListingRequest listingRequest) {
-        // validate listing data
-        validateListing(listingRequest);
-
-        //convert from RequestDTO to Listing
-        Listing listing = convertRequestToListing(listingRequest);
-        //save new listing
-
-        listing.setUpdatedAt(null);
-        listingRepository.save(listing);
-
-        //return as ResponseDTO
-        return convertToListingResponseDTO(listing);
-
-    }
+    //METHODS used by LISTING CONTROLLER CLASS -----------------------------------------------------------------------
 
     //get all listings
     public List<ListingResponse> getAllListings() {
-        List<ListingResponse> listingResponses = new ArrayList<>();
 
-        // convert Listing to ListingResponseDTO
-        for (Listing listing : listingRepository.findAll()) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        List<Listing> listings = listingRepository.findAll();
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listing by id
     public ListingResponse getListingById(String id) {
-        Listing listing = validateListingIdAndGetListing(id);
+        Listing listing = validateListingIdAndGetListing(id, listingRepository);
 
         return convertToListingResponseDTO(listing);
     }
 
-    //get all listings users by hosts id
-    public List<ListingResponse> getAllListingsByHostId(String id) {
+    //get all listings for a host, using hosts id
+    public List<ListingResponse> getListingsByHostId(String hostId) {
         //check if user is valid
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByHostId(user.getId())) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        User user = UserService.validateUserIdAndReturnUser(hostId, userRepository);
+        return getListingsByUser(user);
     }
     
     // get listings by price interval
@@ -88,12 +73,11 @@ public class ListingService {
             throw new IllegalArgumentException("Price cannot be greater than maxPrice");
         }
 
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByPricePerNightBetween(minPrice, maxPrice)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByPricePerNightBetween(minPrice, maxPrice);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listings by location
@@ -103,12 +87,11 @@ public class ListingService {
             throw new IllegalArgumentException("Location cannot be empty or null");
         }
 
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByLocation(location)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByLocation(location);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listings by capacity interval
@@ -122,11 +105,11 @@ public class ListingService {
             throw new IllegalArgumentException("minCapacity cannot be greater than maxCapacity");
         }
 
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByCapacityBetween(minCapacity, maxCapacity)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByCapacityBetween(minCapacity, maxCapacity);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     //get listing by utilities
@@ -136,27 +119,53 @@ public class ListingService {
             throw new IllegalArgumentException("Utility cannot be empty or null");
         }
 
-        //convert to DTO
-        List<ListingResponse> listingResponses = new ArrayList<>();
-        for (Listing listing : listingRepository.findByUtilities(utility)) {
-            listingResponses.add(convertToListingResponseDTO(listing));
-        }
-        return listingResponses;
+        //convert to DTO and return
+        List<Listing> listings = listingRepository.findByUtilities(utility);
+        return listings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
+    //create new listing with current user as host
+    public ListingResponse createListing(ListingRequest listingRequest) {
 
-    // PUT
-    public ListingResponse updateListing(String id, Listing listing) {
+        //convert from RequestDTO to Listing
+        Listing listing = convertRequestToListing(listingRequest);
+
+        //save new listing
+        listing.setAverageRating(0D);
+        listingRepository.save(listing);
+
+        //return as ResponseDTO
+        return convertToListingResponseDTO(listing);
+    }
+
+    //get all listings for the current user
+    public List<ListingResponse> getListingsCurrentUser() {
+        //get current user
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        return getListingsByUser(currentUser);
+    }
+
+    //update a listing, only the host of the listing can update a listing
+    public ListingResponse updateListing(String id, ListingRequest listingRequest) {
         //validate listing id and get existing listing
-        Listing existingListing = validateListingIdAndGetListing(id);
+        Listing existingListing = validateListingIdAndGetListing(id, listingRepository);
 
-        existingListing.setTitle(listing.getTitle());
-        existingListing.setDescription(listing.getDescription());
-        existingListing.setPricePerNight(listing.getPricePerNight());
-        existingListing.setCapacity(listing.getCapacity());
-        existingListing.setUtilities(listing.getUtilities());
-        existingListing.setLocation(listing.getLocation());
-        existingListing.setImage_urls(listing.getImage_urls());
+        //validate that the user is host of the listing
+        String currentUserId = UserService.verifyAuthenticationAndExtractUser(userRepository).getId();
+        if (!currentUserId.equals(existingListing.getHost().getId())) {
+            throw new UnauthorizedException("Listing cannot be updated by current user.\n Only the listing can host update a listing.");
+        }
+
+        existingListing.setTitle(listingRequest.getTitle());
+        existingListing.setDescription(listingRequest.getDescription());
+        existingListing.setPricePerNight(listingRequest.getPricePerNight());
+        existingListing.setCapacity(listingRequest.getCapacity());
+        existingListing.setUtilities(listingRequest.getUtilities());
+        existingListing.setLocation(listingRequest.getLocation());
+        existingListing.setImageUrls(listingRequest.getImageUrls());
+        existingListing.setAvailableDates(listingRequest.getAvailableDates());
 
         //save updated listing
         existingListing.setUpdatedAt(LocalDateTime.now());
@@ -166,37 +175,75 @@ public class ListingService {
         return convertToListingResponseDTO(existingListing);
     }
 
-    //validate listing id exists in database and delete listing and bookings for the listing
+    //validate listing id exists in database and delete the listing (incl. listing bookings and reviews)
     public void deleteListing(String id) {
-        Listing listing = validateListingIdAndGetListing(id);
+        Listing listing = validateListingIdAndGetListing(id, listingRepository);
+
+        //validate that the user is host of the listing or admin
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedException("Listing cannot be deleted by current user.\n Only the listing host or an admin user can delete a listing.");
+        }
+
         bookingRepository.deleteByListing(listing);
+        reviewRepository.deleteByListing(listing);
         listingRepository.delete(listing);
+    }
+
+    public HostResponse getHostProfile(String userId) {
+        User host = UserService.validateUserIdAndReturnUser(userId, userRepository);
+        List<IdAndName> hostListingsForHostResponse = new ArrayList<>();
+        for (Listing listing : listingRepository.findByHost(host)) {
+            hostListingsForHostResponse.add(new IdAndName(listing.getId(), listing.getTitle()));
+        }
+        return new HostResponse(host.getId(),
+                host.getUsername(),
+                host.getProfilePictureURL(),
+                host.getDescription(),
+                hostListingsForHostResponse);
+    }
+
+
+    //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
+
+    //used by get listings for a single user, used by getListingsByUserId and getListingsCurrentUser methods in this class
+    private List<ListingResponse> getListingsByUser(User user) {
+        List<Listing> userListings = listingRepository.findByHost(user);
+        return userListings.stream()
+                .map(this::convertToListingResponseDTO)
+                .collect(Collectors.toList());
     }
 
     // limit what's shown when grabbing listings
     private ListingResponse convertToListingResponseDTO(Listing listing) {
-        // Retrieve the host (user) based on the host ID in the listing
-        User user = userRepository.findById(listing.getHost().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         return new ListingResponse(
+                listing.getId(),
                 listing.getTitle(),
+                listing.getHost().getId(),
+                listing.getHostName(),
                 listing.getDescription(),
                 listing.getPricePerNight(),
                 listing.getCapacity(),
                 listing.getUtilities(),
                 listing.getAvailableDates(),
-                user.getUsername(),
                 listing.getLocation(),
-                listing.getImage_urls()
+                listing.getImageUrls(),
+                listing.getAverageRating(),
+                listing.getCreatedAt(),
+                listing.getUpdatedAt()
         );
     }
 
-
     //convert ListingRequest to Listing
-    public Listing convertRequestToListing(ListingRequest listingRequest) {
+    private Listing convertRequestToListing(ListingRequest listingRequest) {
         // Create a new Listing object
         Listing listing = new Listing();
+
+        // Set the host the current user
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        listing.setHost(currentUser);
+        listing.setHostName(currentUser.getUsername());
         
         // Set fields from ListingRequest into Listing
         listing.setTitle(listingRequest.getTitle());
@@ -206,41 +253,14 @@ public class ListingService {
         listing.setUtilities(listingRequest.getUtilities());
         listing.setAvailableDates(listingRequest.getAvailableDates());
         listing.setLocation(listingRequest.getLocation());
-
-        // Set the host (the user creating the listing)
-        listing.setHost(listingRequest.getHost());
-
-        // set location and image URLs if provided in ListingRequest
-        //listing.setLocation(listingRequest.getLocation());  // Make sure to add a location field in ListingRequest if needed
-        //listing.setImageUrls(listingRequest.getImageUrls());  // Same goes for image URLs
+        listing.setImageUrls(listingRequest.getImageUrls());
 
         return listing;
     }
 
-
-    private void validateListing(ListingRequest listingRequest) {
-        // check if userId for host is valid
-        userRepository.findById(listingRequest.getHost().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        // check if utilities exists
-
-        // check if title is empty/null
-        if (listingRequest.getTitle() == null || listingRequest.getTitle().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-        // check if pricePerNight is empty/null
-        if (listingRequest.getPricePerNight() == null || listingRequest.getPricePerNight().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Price per night must be greater than 0");
-        }
-        //check if capacity is greater than 0
-        if (listingRequest.getCapacity() <= 0) {
-            throw new IllegalArgumentException("capacity must be greater than 0");
-        }
-    }
-
-    Listing validateListingIdAndGetListing(String id) {
+    static Listing validateListingIdAndGetListing(String id, ListingRepository listingRepository) {
         return listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("No listing with id '"+ id +"' in database"));
 
     }
 

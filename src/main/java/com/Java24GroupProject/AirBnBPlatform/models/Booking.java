@@ -19,25 +19,28 @@ public class Booking {
     private String id;
 
     @DBRef
-    @NotNull(message = "A listing ID is required")
+    @NotNull(message = "listing is required")
     private Listing listing;
+
+    private String listingTitle;
 
     @DBRef
     @NotNull(message = "A user is required")
     private User user;
 
-
+    @NotNull(message = "booking dates are required")
     private DateRange bookingDates;
 
-    @NotNull(message = "Number of guests is required")
-    @Positive(message = "Amount of guests must be greater than 0")
+    @NotNull(message = "number of guests is required")
+    @Positive(message = "amount of guests must be greater than 0")
     private Integer numberOfGuests;
 
-    //@NotNull(message = "A total price is required")
-    @Positive(message = "Total price must be greater than 0")
-    private BigDecimal totalPrice;
     // (number of days) * (price per night)
+    @NotNull(message = "total price is required")
+    @Positive(message = "total price must be greater than 0")
+    private BigDecimal totalPrice;
 
+    @NotNull(message = "booking status cannot be null")
     private BookingStatus bookingStatus;
 
     @CreatedDate
@@ -65,6 +68,14 @@ public class Booking {
         this.listing = listing;
     }
 
+    public String getListingTitle() {
+        return listingTitle;
+    }
+
+    public void setListingTitle(String listingTitle) {
+        this.listingTitle = listingTitle;
+    }
+
     public @NotNull(message = "A user is required") User getUser() {
         return user;
     }
@@ -72,7 +83,6 @@ public class Booking {
     public void setUser(@NotNull(message = "A user is required") User user) {
         this.user = user;
     }
-
 
 
     public @NotNull(message = "Number of guests is required") @Positive(message = "Amount of guests must be greater than 0") Integer getNumberOfGuests() {
