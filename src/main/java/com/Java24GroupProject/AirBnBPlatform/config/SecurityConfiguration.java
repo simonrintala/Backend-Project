@@ -47,14 +47,10 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 // define access to different url destinations
                 .authorizeHttpRequests(auth -> auth
-                        //only admin can access things under url admin
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        //only users with host role can access listing creation
-                        .requestMatchers("/listing/**").hasRole("HOST")
-                        //only logged-in users (any role) can access
-                        .requestMatchers("/user/**", "/booking/**").hasAnyRole("USER", "HOST", "ADMIN")
-                        //any user can access, incl. login page and search page (search for listings)
-                        .requestMatchers("/auth/**", "/search/**").permitAll()
+                        //only logged-in users (any role) can access users and bookings
+                        .requestMatchers("/users/**", "/bookings/**").hasAnyRole("ADMIN","HOST","USER")
+                        //any user can access login page and listing page
+                        .requestMatchers("/auth/**", "/listings/**", "/reviews/**").permitAll()
                         //all other urls, only logged-in users
                         .anyRequest().authenticated()
                 )
@@ -73,9 +69,9 @@ public class SecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
 
         //only allow requests from our client
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080"));
 
-        //set allowed requestmappings, (could include only GET, if it is an unalterable webpage)
+        //set allowed request mappings, (could include only GET, if it is an unalterable webpage)
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
         //set allowed headers (we will allow all)

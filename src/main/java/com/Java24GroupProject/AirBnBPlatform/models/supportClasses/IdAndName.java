@@ -1,5 +1,4 @@
 package com.Java24GroupProject.AirBnBPlatform.models.supportClasses;
 
-public enum BookingStatus {
-    PENDING, ACCEPTED, REJECTED
+public record IdAndName(String id, String name) {
 }
