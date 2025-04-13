@@ -37,6 +37,6 @@ platform on which users can publish, book and leave reviews on listings**
 2. run the AirBnBPlatform application from your IDE
 3. test the application using Postman 
 
-***Link to Postman documentation:*** *https://documenter.getpostman.com/view/40787093/2sAYX5KMiE*
+***Link to Postman documentation:*** *https://documenter.getpostman.com/view/40844842/2sAYkGLem6*
 
 ---
