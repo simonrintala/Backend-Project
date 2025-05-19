@@ -70,9 +70,9 @@ public class ListingController {
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
 
-    @GetMapping("/host/{hostId}/profile")
-    public ResponseEntity<HostResponse> getHostProfile(@PathVariable String hostId) {
-        return new ResponseEntity<>(listingService.getHostProfile(hostId), HttpStatus.OK);
+    @GetMapping("/{listingId}/hostprofile")
+    public ResponseEntity<HostResponse> getHostProfile(@PathVariable String listingId) {
+        return new ResponseEntity<>(listingService.getHostProfile(listingId), HttpStatus.OK);
     }
 
     //HOST or ADMIN-specific endpoints ----------------------------------------------------------------------------

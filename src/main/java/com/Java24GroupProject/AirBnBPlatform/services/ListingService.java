@@ -190,11 +190,12 @@ public class ListingService {
         listingRepository.delete(listing);
     }
 
-    public HostResponse getHostProfile(String userId) {
-        User host = UserService.validateUserIdAndReturnUser(userId, userRepository);
+    public HostResponse getHostProfile(String listingId) {
+        Listing listing = validateListingIdAndGetListing(listingId, listingRepository);
+        User host = UserService.validateUserIdAndReturnUser(listing.getHost().getId(), userRepository);
         List<IdAndName> hostListingsForHostResponse = new ArrayList<>();
-        for (Listing listing : listingRepository.findByHost(host)) {
-            hostListingsForHostResponse.add(new IdAndName(listing.getId(), listing.getTitle()));
+        for (Listing l : listingRepository.findByHost(host)) {
+            hostListingsForHostResponse.add(new IdAndName(l.getId(), l.getTitle()));
         }
         return new HostResponse(host.getId(),
                 host.getUsername(),

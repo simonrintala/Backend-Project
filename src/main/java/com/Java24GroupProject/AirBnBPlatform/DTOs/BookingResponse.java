@@ -1,13 +1,13 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.IdAndName;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 
 import java.math.BigDecimal;
 
 public class BookingResponse {
     private String id;
-    private IdAndName listing;
+    private NestedListing listing;
     private String userId;
     private String username;
     private String userEmail;
@@ -18,9 +18,9 @@ public class BookingResponse {
     private BigDecimal totalPrice;
     private BookingStatus status;
 
-    public BookingResponse(String id, String listingId, String listingTitle, String userId, String username, String userEmail, String userPhoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status) {
+    public BookingResponse(String id, NestedListing listing, String userId, String username, String userEmail, String userPhoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status) {
         this.id = id;
-        this.listing = new IdAndName(listingId, listingTitle);
+        this.listing = listing;
         this.userId = userId;
         this.username = username;
         this.userEmail = userEmail;
@@ -36,7 +36,7 @@ public class BookingResponse {
         return id;
     }
 
-    public IdAndName getListing() {
+    public NestedListing getListing() {
         return listing;
     }
 

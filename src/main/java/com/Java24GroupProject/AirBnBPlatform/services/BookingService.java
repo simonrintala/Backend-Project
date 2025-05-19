@@ -11,6 +11,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
@@ -239,8 +240,7 @@ public class BookingService {
 
         return new BookingResponse(
                 booking.getId(),
-                booking.getListing().getId(),
-                booking.getListingTitle(),
+                booking.getListingInfo(),
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -256,9 +256,12 @@ public class BookingService {
     //convert BookingRequest to Booking
     private Booking convertRequestToBooking(BookingRequest bookingRequest) {
                 Booking booking = new Booking();
+
                 Listing listing = validateListingIdAndGetListing(bookingRequest);
                 booking.setListing(listing);
-                booking.setListingTitle(listing.getTitle());
+                booking.setListingInfo(new NestedListing(listing.getId(), listing.getTitle(),
+             listing.getLocation(),
+                listing.getImageUrls().subList(0,1)));
                 //set current user as the user for the booking
                 booking.setUser(UserService.verifyAuthenticationAndExtractUser(userRepository));
                 booking.setBookingDates(new DateRange(
