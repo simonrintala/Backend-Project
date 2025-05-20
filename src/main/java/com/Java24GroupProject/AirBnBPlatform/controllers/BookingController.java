@@ -47,6 +47,13 @@ public class BookingController {
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 
+    //get all bookings for current user's listings
+    @GetMapping("/host")
+    public ResponseEntity<List<BookingResponse>> getListingBookingsCurrentUser() {
+        List<BookingResponse> bookingResponses = bookingService.getListingBookingsCurrentUser();
+        return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<BookingResponse> updateBooking(@PathVariable String id, @Valid @RequestBody BookingRequest updatedBookingRequest) {
         BookingResponse bookingResponse = bookingService.updateBooking(id, updatedBookingRequest);

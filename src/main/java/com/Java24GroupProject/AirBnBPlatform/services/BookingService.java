@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,20 @@ public class BookingService {
         //get current user
         User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
         return getUserBookings(currentUser);
+    }
+
+    //get all bookings for current user's listings
+    public List<BookingResponse> getListingBookingsCurrentUser() {
+        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        List<Listing> userListings = listingRepository.findByHost(currentUser);
+        List<BookingResponse> listingBookingsCurrentUser = new ArrayList<>();
+
+        for (Listing listing : userListings) {
+            listingBookingsCurrentUser.addAll(getBookingsByUserId(listing.getId()));
+        }
+
+        return listingBookingsCurrentUser;
+
     }
 
     //get current listings bookingId
