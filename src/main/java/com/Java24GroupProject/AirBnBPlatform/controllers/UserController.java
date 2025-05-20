@@ -2,6 +2,8 @@ package com.Java24GroupProject.AirBnBPlatform.controllers;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.UserUpdateRequest;
+import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -69,6 +71,12 @@ public class UserController {
     public ResponseEntity<Void> deleteUserById(@PathVariable String id) {
         userService.deleteUserById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/update")
+    public ResponseEntity<User> updateUserInfo(@RequestBody UserUpdateRequest updatedUser) {
+        User user = userService.updateUserInfo(updatedUser);
+        return ResponseEntity.ok(user);
     }
 
 }

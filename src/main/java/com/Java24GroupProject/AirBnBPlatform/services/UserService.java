@@ -3,6 +3,7 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.RegisterResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
+import com.Java24GroupProject.AirBnBPlatform.DTOs.UserUpdateRequest;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
@@ -305,6 +306,31 @@ public class UserService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    }
+
+    // PATCH
+    public User updateUserInfo(UserUpdateRequest updatedInfo) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
+            throw new UnauthorizedException("User is not authenticated");
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User existingUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (updatedInfo.getPhoneNr() != null) {
+            existingUser.setPhoneNr(updatedInfo.getPhoneNr());
+        }
+
+        if (updatedInfo.getEmail() != null) {
+            existingUser.setEmail(updatedInfo.getEmail());
+        }
+        if (updatedInfo.getAddress() != null) {
+            existingUser.setAddress(updatedInfo.getAddress());
+        }
+
+        return userRepository.save(existingUser);
     }
 
 }
