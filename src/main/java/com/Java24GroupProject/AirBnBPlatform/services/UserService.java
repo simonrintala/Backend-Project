@@ -147,28 +147,18 @@ public class UserService {
     }
 
     //add or remove a listing from current users saved favorites using listing id as an input variable
-    public String addOrRemoveFavorite(String listingId) {
-        Listing newListing = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
-        String message = "'"+ newListing.getTitle()+"'";
+    public List<String> addOrRemoveFavorite(String listingId) {
+        ListingService.validateListingIdAndGetListing(listingId, listingRepository);
         //get current user
         User user = verifyAuthenticationAndExtractUser(userRepository);
 
         boolean isRemoved = false;
         //loop through favorites to check if newListing is already saved
-        for (Listing listingReference : user.getFavorites()) {
-            if (listingRepository.findById(listingReference.getId()).isPresent()) {
-                Listing listingInFavorites = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
-                //if listing is already in favorites, remove from favorites
-                if (listingInFavorites.getId().equals(newListing.getId())) {
-                    user.removeFavorite(listingReference);
-                    message = message + " has been removed from favorites";
-                    isRemoved = true;
-                    break;
-                }
-                //if listing has been deleted, remove from favorites
-            } else {
-                user.removeFavorite(listingReference);
-
+        for (String favoritesListingId : user.getFavorites()) {
+            if (favoritesListingId.equals(listingId)) {
+                user.removeFavorite(favoritesListingId);
+                isRemoved = true;
+                break;
             }
         }
 
@@ -177,34 +167,32 @@ public class UserService {
             if (user.getFavorites().size() >= 20) {
                 throw new com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException("New favorite cannot be added, max 20 favorites allowed");
             }
-            user.addFavorite(newListing);
-            message = message +" has been added to favorites";
+            user.addFavorite(listingId);
         }
+
         userRepository.save(user);
-        return message;
+
+        return getFavorites();
     }
 
     //get favorites for current user
-    public Map<String, String> getFavorites() {
+    public List<String> getFavorites() {
         //get current user
         User user = verifyAuthenticationAndExtractUser(userRepository);
 
-        //convert list of listings to list of string objects
-        Map<String, String> favoritesResponse = new HashMap<>();
+
         if (!user.getFavorites().isEmpty()) {
-            for (Listing listingReference : user.getFavorites()) {
-                if (listingRepository.findById(listingReference.getId()).isPresent()) {
-                    Listing listing = listingRepository.findById(listingReference.getId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
-                    favoritesResponse.put(listing.getId(), listing.getTitle());
-                } else {
-                    //if listing has been removed from database, delete if from favorites
-                    user.removeFavorite(listingReference);
-                    userRepository.save(user);
+            for (String favoritesListingId : user.getFavorites()) {
+                if (listingRepository.findById(favoritesListingId).isEmpty()) {
+                    user.removeFavorite(favoritesListingId);
+
                 }
             }
         }
-        return favoritesResponse;
+
+        userRepository.save(user);
+
+        return user.getFavorites();
     }
 
     //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------

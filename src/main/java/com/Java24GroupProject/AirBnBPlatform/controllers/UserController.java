@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /*registration of new users is handled by AuthenticationController*/
 @RestController
@@ -46,13 +45,13 @@ public class UserController {
 
     //adds a listing to current user's favorites if not already saved, otherwise removes the listing from favorites
     @PatchMapping("/favorites/{listingId}")
-    public ResponseEntity<String> addOrRemoveFavorite(@PathVariable String listingId) {
+    public ResponseEntity<List<String>> addOrRemoveFavorite(@PathVariable String listingId) {
         return new ResponseEntity<>(userService.addOrRemoveFavorite(listingId), HttpStatus.OK);
     }
 
     //get favorites for current users
     @GetMapping("/favorites")
-    public ResponseEntity<Map<String,String>> getFavorites() {
+    public ResponseEntity<List<String>> getFavorites() {
         return new ResponseEntity<>(userService.getFavorites(), HttpStatus.OK);
     }
 
