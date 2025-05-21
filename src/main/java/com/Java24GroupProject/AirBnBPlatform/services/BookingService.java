@@ -97,7 +97,7 @@ public class BookingService {
         List<BookingResponse> listingBookingsCurrentUser = new ArrayList<>();
 
         for (Listing listing : userListings) {
-            listingBookingsCurrentUser.addAll(getBookingsByUserId(listing.getId()));
+            listingBookingsCurrentUser.addAll(getBookingsByListingId(listing.getId()));
         }
 
         return listingBookingsCurrentUser;
