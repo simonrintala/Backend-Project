@@ -3,6 +3,7 @@ package com.Java24GroupProject.AirBnBPlatform.models;
 
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,8 +22,7 @@ public class Booking {
     @DBRef
     @NotNull(message = "listing is required")
     private Listing listing;
-
-    private String listingTitle;
+    private NestedListing listingInfo;
 
     @DBRef
     @NotNull(message = "A user is required")
@@ -68,12 +68,12 @@ public class Booking {
         this.listing = listing;
     }
 
-    public String getListingTitle() {
-        return listingTitle;
+    public void setListingInfo(NestedListing listingInfo) {
+        this.listingInfo = listingInfo;
     }
 
-    public void setListingTitle(String listingTitle) {
-        this.listingTitle = listingTitle;
+    public NestedListing getListingInfo() {
+        return listingInfo;
     }
 
     public @NotNull(message = "A user is required") User getUser() {
