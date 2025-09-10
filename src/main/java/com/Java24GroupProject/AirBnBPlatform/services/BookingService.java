@@ -3,37 +3,34 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class BookingService implements BookingValidationService, AuthenticationService, PriceCalculationService, DateAvailabilityService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
+    private final BookingDTOConversionService bookingDTOConversionService;
 
     public BookingService(BookingRepository bookingRepository, UserRepository userRepository, ListingRepository listingRepository) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
+        bookingDTOConversionService = new BookingDTOConversionService(userRepository, listingRepository);
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
@@ -44,7 +41,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
         validateBooking(bookingRequest, currentUser, listingRepository);
 
         //convert from RequestDTO to Booking
-        Booking booking = convertRequestToBooking(bookingRequest);
+        Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
 
         //validate that booking dates are available and update listing dates
         Listing listing = validateListingIdAndGetListing(booking, listingRepository);
@@ -56,7 +53,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
         bookingRepository.save(booking);
 
         //return as DTO
-        return convertToDTOResponse(booking);
+        return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
     //get bookings by id
@@ -64,15 +61,17 @@ public class BookingService implements BookingValidationService, AuthenticationS
         Booking booking = validateBookingIdAndGetBooking(id, bookingRepository);
 
         //convert to DTO
-        return convertToDTOResponse(booking);
+        return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
     //get all bookings
     public List<BookingResponse> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream()
-                .map(this::convertToDTOResponse)
-                .collect(Collectors.toList());
+        List<BookingResponse> bookingResponses = new ArrayList<>();
+        for (Booking booking : bookings) {
+            bookingResponses.add(bookingDTOConversionService.convertToDTOResponse(booking));
+        }
+        return bookingResponses;
     }
 
     //get bookings any user
@@ -115,9 +114,12 @@ public class BookingService implements BookingValidationService, AuthenticationS
 
         //convert toDTO and return
         List<Booking> bookings = bookingRepository.findByListing(listing);
-        return bookings.stream()
-                .map(this::convertToDTOResponse)
-                .collect(Collectors.toList());
+
+        List<BookingResponse> bookingResponses = new ArrayList<>();
+        for (Booking booking : bookings) {
+            bookingResponses.add(bookingDTOConversionService.convertToDTOResponse(booking));
+        }
+        return bookingResponses;
     }
 
     public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
@@ -144,7 +146,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
         validateBooking(updatedBookingRequest, currentUser, listingRepository);
 
         //convert DTO to booking object
-        Booking updatedBooking = convertRequestToBooking(updatedBookingRequest);
+        Booking updatedBooking = bookingDTOConversionService.convertRequestToBooking(updatedBookingRequest);
 
         //if booking dates are changed
         if (!booking.getBookingDates().getStartDate().equals(updatedBooking.getBookingDates().getStartDate()) ||
@@ -170,7 +172,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
         bookingRepository.save(booking);
 
         //return as DTO
-        return convertToDTOResponse(booking);
+        return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
     public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
@@ -208,7 +210,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        return convertToDTOResponse(booking);
+        return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
     public void deleteBooking(String id) {
@@ -236,55 +238,16 @@ public class BookingService implements BookingValidationService, AuthenticationS
     }
 
 
-    //METHODS used by this or other SERVICE CLASSES --------------------------------------------------------------
-
     //get bookings for a user, used by getBookingsByUserId and getBookingsCurrentUser methods
     private List<BookingResponse> getUserBookings(User user) {
 
         //convert toDTO and return
         List<Booking> bookings = bookingRepository.findByUser(user);
-        return bookings.stream()
-                .map(this::convertToDTOResponse)
-                .collect(Collectors.toList());
-    }
-
-    private BookingResponse convertToDTOResponse(Booking booking) {
-        //get listing and user to save variables in DTOResponse
-        User user = userRepository.findById(booking.getUser().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + booking.getUser().getId() + " not found"));
-
-        return new BookingResponse(
-                booking.getId(),
-                booking.getListingInfo(),
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPhoneNr(),
-                booking.getBookingDates().getStartDate().toString(),
-                booking.getBookingDates().getEndDate().toString(),
-                booking.getNumberOfGuests(),
-                booking.getTotalPrice(),
-                booking.getBookingStatus()
-        );
-    }
-
-    //convert BookingRequest to Booking
-    private Booking convertRequestToBooking(BookingRequest bookingRequest) {
-        Booking booking = new Booking();
-
-        Listing listing = validateListingIdAndGetListing(bookingRequest, listingRepository);
-        booking.setListing(listing);
-        booking.setListingInfo(new NestedListing(listing.getId(), listing.getTitle(),
-                listing.getLocation(),
-                listing.getImageUrls().subList(0, 1)));
-        //set current user as the user for the booking
-        booking.setUser(authenticateAndExtractUser(userRepository));
-        booking.setBookingDates(new DateRange(
-                LocalDate.parse(bookingRequest.getStartDate()),
-                LocalDate.parse(bookingRequest.getEndDate())));
-        booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
-        calculateAndSetPrice(booking, listing);
-        return booking;
+        List<BookingResponse> bookingResponses = new ArrayList<>();
+        for (Booking booking : bookings) {
+            bookingResponses.add(bookingDTOConversionService.convertToDTOResponse(booking));
+        }
+        return bookingResponses;
     }
 
 
