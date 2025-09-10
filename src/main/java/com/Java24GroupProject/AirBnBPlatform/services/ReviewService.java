@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ReviewService {
+public class ReviewService implements AuthenticationService{
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
@@ -40,7 +40,7 @@ public class ReviewService {
     // Create a review
     public ReviewResponse createReview(ReviewRequest reviewRequest) {
         // Get the logged in users username from the JWT token
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
 
         // Validate the listing id
         Listing listing = ListingService.validateListingIdAndGetListing(reviewRequest.getListingId(), listingRepository);
@@ -85,7 +85,7 @@ public class ReviewService {
 
     //get reviews made by the current logged in user
     public List<ReviewResponse> getReviewsCurrentUser() {
-        User user = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User user = authenticateAndExtractUser(userRepository);
         return getUserReviews(user);
     }
 
@@ -103,7 +103,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("No review with id '" + reviewId + "' in database."));
 
         //check that current user is the owner of the review or admin
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
         if (!currentUser.getId().equals(review.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Review cannot be deleted by current user.\n Only the user who created the review or an admin user can delete a review.");
         }

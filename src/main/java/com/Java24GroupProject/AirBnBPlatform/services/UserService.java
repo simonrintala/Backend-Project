@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserService implements AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ListingRepository listingRepository;
@@ -88,7 +88,7 @@ public class UserService {
 
     //get current user
     public UserResponse getCurrentUser() {
-        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
         return transferUserToUserResponse(currentUser);
     }
 
@@ -100,7 +100,7 @@ public class UserService {
 
     //delete current user
     public void deleteCurrentUser() {
-        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
         deleteUser(currentUser);
     }
 
@@ -113,7 +113,7 @@ public class UserService {
     //update current user data
     public UserResponse updateCurrentUser(UserRequest userRequest) {
         //get current user
-        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
 
         //if username is changed, check that username is not taken
         if (!currentUser.getUsername().equals(userRequest.getUsername())) {
@@ -151,7 +151,7 @@ public class UserService {
     public List<String> addOrRemoveFavorite(String listingId) {
         ListingService.validateListingIdAndGetListing(listingId, listingRepository);
         //get current user
-        User user = verifyAuthenticationAndExtractUser(userRepository);
+        User user = authenticateAndExtractUser(userRepository);
 
         boolean isRemoved = false;
         //loop through favorites to check if newListing is already saved
@@ -179,7 +179,7 @@ public class UserService {
     //get favorites for current user
     public List<String> getFavorites() {
         //get current user
-        User user = verifyAuthenticationAndExtractUser(userRepository);
+        User user = authenticateAndExtractUser(userRepository);
 
 
         if (!user.getFavorites().isEmpty()) {
@@ -281,19 +281,6 @@ public class UserService {
     static User validateUserIdAndReturnUser(String id, UserRepository userRepository) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No user with id '"+ id + "' in database"));
-    }
-
-    //verify and get current user from jwtToken/cookies
-    static User verifyAuthenticationAndExtractUser(UserRepository userRepository) {
-        //check that user is logged in
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            throw new UnauthorizedException("User is not logged in.");
-        }
-        //get user id from token via userDetails
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
     }
 
     // PATCH

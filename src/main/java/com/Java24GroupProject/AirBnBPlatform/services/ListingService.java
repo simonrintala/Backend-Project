@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class ListingService {
+public class ListingService implements AuthenticationService {
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
@@ -143,7 +143,7 @@ public class ListingService {
     //get all listings for the current user
     public List<ListingResponse> getListingsCurrentUser() {
         //get current user
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
         return getListingsByUser(currentUser);
     }
 
@@ -153,7 +153,7 @@ public class ListingService {
         Listing existingListing = validateListingIdAndGetListing(id, listingRepository);
 
         //validate that the user is host of the listing
-        String currentUserId = UserService.verifyAuthenticationAndExtractUser(userRepository).getId();
+        String currentUserId = authenticateAndExtractUser(userRepository).getId();
         if (!currentUserId.equals(existingListing.getHost().getId())) {
             throw new UnauthorizedException("Listing cannot be updated by current user.\n Only the listing can host update a listing.");
         }
@@ -180,7 +180,7 @@ public class ListingService {
         Listing listing = validateListingIdAndGetListing(id, listingRepository);
 
         //validate that the user is host of the listing or admin
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
         if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Listing cannot be deleted by current user.\n Only the listing host or an admin user can delete a listing.");
         }
@@ -242,7 +242,7 @@ public class ListingService {
         Listing listing = new Listing();
 
         // Set the host the current user
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser(userRepository);
         listing.setHost(currentUser);
         listing.setHostName(currentUser.getUsername());
         
