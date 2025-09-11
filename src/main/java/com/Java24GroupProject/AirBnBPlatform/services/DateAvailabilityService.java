@@ -8,6 +8,12 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 
 import java.time.LocalDateTime;
 
+/**
+ * Class for validating date availability checks and syncing when making/updating a booking.
+ * under construction.
+  */
+
+
 public interface DateAvailabilityService {
     //validate that booking dates are available and update listing dates
     default void validateBookingDatesAndUpdateListing(Booking booking, Listing listing, ListingRepository listingRepository) {

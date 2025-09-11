@@ -6,6 +6,11 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Class for handling price calculations etc.
+ * To be built upon into a strategy pattern or such
+ */
+
 public interface PriceCalculationService {
     //calculate price from nr of booked days and price per night from listing
     default void calculateAndSetPrice(Booking booking, Listing listing) {

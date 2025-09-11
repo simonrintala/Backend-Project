@@ -12,11 +12,10 @@ import org.springframework.stereotype.Service;
 /************************
  * IdValidationService
  * ---
- * this class contain the methods for validating object IDs against the MongoDB database (via the different repositories)
- * these method were previously static methods in the UserService, ListingService and BookingService classes
- * and were separated into this class instead based on the Single Responsibility Principle and to decouple
- * the mentioned service classes
- ***********************/
+ * This class contain the methods for validating object IDs against the MongoDB database (via the different repositories).
+ * These methods were previously static methods in the UserService, ListingService and BookingService classes, respectively,
+ * and were separated into this class instead based on the Single Responsibility Principle and to decouple the mentioned service classes
+ * **********************/
 
 @Service
 public class IdValidationService {
@@ -40,7 +39,6 @@ public class IdValidationService {
     public Listing validateListingIdAndReturnListing(String id) {
         return listingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No listing with id '" + id + "' in database"));
-
     }
 
     public Booking validateBookingIdAndReturnBooking(String id) {

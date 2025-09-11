@@ -5,6 +5,10 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 
+/**
+ * Class for validating Booking related data, under construction.
+ */
+
 public interface BookingValidationService {
     //validate that BookingRequest data is valid
     default void validateBooking(BookingRequest bookingRequest, User currentUser, Listing listing) {
