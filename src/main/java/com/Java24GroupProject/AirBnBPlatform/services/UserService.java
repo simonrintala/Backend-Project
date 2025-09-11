@@ -40,14 +40,14 @@ public class UserService {
 
 
     //constructor injection
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
+    public UserService(AuthenticationService authenticationService, IdValidationService idValidationService, UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
-        authenticationService = new AuthenticationService(userRepository);
-        idValidationService = new IdValidationService(userRepository, listingRepository, bookingRepository);
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     //METHODS used by USER CONTROLLER CLASS -----------------------------------------------------------------------

@@ -32,12 +32,12 @@ public class ListingService {
     private final IdValidationService idValidationService;
 
 
-    public ListingService(UserRepository userRepository, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
+    public ListingService(AuthenticationService authenticationService, IdValidationService idValidationService, UserRepository userRepository, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
-        authenticationService = new AuthenticationService(userRepository);
-        idValidationService = new IdValidationService(userRepository, listingRepository, bookingRepository);
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     //METHODS used by LISTING CONTROLLER CLASS -----------------------------------------------------------------------

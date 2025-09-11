@@ -7,27 +7,19 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
 
 /************************
  * AuthenticationService
  * ---
  * this class contain the methods for authenticating and extracting the current user from jwtTokens/cookies
- * this method was previously static methods in the UserService class and
+ * this method was previously a static method in the UserService class and
  * were separated into this interface instead based on the Single Responsibility Principle
  ***********************/
 
-@Service
-public class AuthenticationService {
-
-    private final UserRepository userRepository;
-
-    public AuthenticationService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+public interface AuthenticationService extends UserRepository {
 
     //authenticate and extract current logged-in user, cast error if no user is logged-in or cannot be found in database
-    public User authenticateAndExtractUser() {
+    default User authenticateAndExtractUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
             throw new UnauthorizedException("User is not logged in.");
@@ -35,7 +27,7 @@ public class AuthenticationService {
 
         //get user id from token via userDetails
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return userRepository.findByUsername(userDetails.getUsername())
+        return findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
     }
 }

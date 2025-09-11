@@ -13,7 +13,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
@@ -31,12 +30,12 @@ public class ReviewService {
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
 
-    public ReviewService(UserRepository userRepository, ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
+    public ReviewService(AuthenticationService authenticationService, IdValidationService idValidationService, ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
-        authenticationService = new AuthenticationService(userRepository);
-        idValidationService = new IdValidationService(userRepository, listingRepository, bookingRepository);
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     //METHODS used by REVIEW CONTROLLER CLASS -----------------------------------------------------------------------

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
  * ---
  * this class contain the methods for validating object IDs against the MongoDB database (via the different repositories)
  * these method were previously static methods in the UserService, ListingService and BookingService classes
- * and were separated into this interface instead based on the Single Responsibility Principle and to decouple
+ * and were separated into this class instead based on the Single Responsibility Principle and to decouple
  * the mentioned service classes
  ***********************/
 

@@ -29,12 +29,12 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
 
-    public BookingService(BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
-        bookingDTOConversionService = new BookingDTOConversionService(userRepository, listingRepository, bookingRepository);
-        authenticationService = new AuthenticationService(userRepository);
-        idValidationService = new IdValidationService(userRepository, listingRepository, bookingRepository);
+        this.bookingDTOConversionService = bookingDTOConversionService;
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------

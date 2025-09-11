@@ -7,9 +7,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
-import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
@@ -21,9 +18,9 @@ public class BookingDTOConversionService implements PriceCalculationService {
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
 
-    public BookingDTOConversionService(UserRepository userRepository, ListingRepository listingRepository, BookingRepository bookingRepository) {
-        authenticationService = new AuthenticationService(userRepository);
-        idValidationService = new IdValidationService(userRepository, listingRepository, bookingRepository);
+    public BookingDTOConversionService(AuthenticationService authenticationService, IdValidationService idValidationService) {
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     public BookingResponse convertToDTOResponse(Booking booking) {
