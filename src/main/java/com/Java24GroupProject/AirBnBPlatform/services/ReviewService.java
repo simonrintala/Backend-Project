@@ -13,8 +13,9 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IAuthenticationService;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IIdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,17 +24,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ReviewService implements IAuthenticationService, IIdValidationService {
+public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
+    private final AuthenticationService authenticationService;
+    private final IdValidationService idValidationService;
 
-
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
+    public ReviewService(UserRepository userRepository, ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
-
+        authenticationService = new AuthenticationService(userRepository);
+        idValidationService = new IdValidationService(userRepository, listingRepository, bookingRepository);
     }
 
     //METHODS used by REVIEW CONTROLLER CLASS -----------------------------------------------------------------------
@@ -41,10 +44,10 @@ public class ReviewService implements IAuthenticationService, IIdValidationServi
     // Create a review
     public ReviewResponse createReview(ReviewRequest reviewRequest) {
         // Get the logged in users username from the JWT token
-        User currentUser = authenticateAndExtractUser();
+        User currentUser = authenticationService.authenticateAndExtractUser();
 
         // Validate the listing id
-        Listing listing = validateListingIdAndReturnListing(reviewRequest.getListingId());
+        Listing listing = idValidationService.validateListingIdAndReturnListing(reviewRequest.getListingId());
 
         // Check if the booking exists and the end date has passed
         Booking booking = bookingRepository.findByUserAndListing(currentUser, listing)
@@ -73,7 +76,7 @@ public class ReviewService implements IAuthenticationService, IIdValidationServi
     //get all reviews for a listing
     public List<ReviewResponse> getReviewsByListing(String listingId) {
         //check that listing id is valid
-        validateListingIdAndReturnListing(listingId);
+        idValidationService.validateListingIdAndReturnListing(listingId);
 
         // Fetch all reviews for the listing
         List<Review> reviews = reviewRepository.findByListing_Id(listingId);
@@ -86,13 +89,13 @@ public class ReviewService implements IAuthenticationService, IIdValidationServi
 
     //get reviews made by the current logged in user
     public List<ReviewResponse> getReviewsCurrentUser() {
-        User user = authenticateAndExtractUser();
+        User user = authenticationService.authenticateAndExtractUser();
         return getUserReviews(user);
     }
 
     //get reviews by user id
     public List<ReviewResponse> getReviewsByUserId(String userId) {
-        User user = validateUserIdAndReturnUser(userId);
+        User user = idValidationService.validateUserIdAndReturnUser(userId);
 
         return getUserReviews(user);
     }
@@ -104,7 +107,7 @@ public class ReviewService implements IAuthenticationService, IIdValidationServi
                 .orElseThrow(() -> new ResourceNotFoundException("No review with id '" + reviewId + "' in database."));
 
         //check that current user is the owner of the review or admin
-        User currentUser = authenticateAndExtractUser();
+        User currentUser = authenticationService.authenticateAndExtractUser();
         if (!currentUser.getId().equals(review.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Review cannot be deleted by current user.\n Only the user who created the review or an admin user can delete a review.");
         }
@@ -139,7 +142,7 @@ public class ReviewService implements IAuthenticationService, IIdValidationServi
                 .average()
                 .orElse(0.0);
 
-        Listing listing = validateListingIdAndReturnListing(listingId);
+        Listing listing = idValidationService.validateListingIdAndReturnListing(listingId);
         listing.setAverageRating(averageRating);
         listing.setUpdatedAt(LocalDateTime.now());
 

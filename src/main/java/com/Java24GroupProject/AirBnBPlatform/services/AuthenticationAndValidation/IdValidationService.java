@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  ***********************/
 
 @Service
-public class IdValidationService implements IIdValidationService {
+public class IdValidationService {
    private final BookingRepository bookingRepository;
    private final UserRepository userRepository;
    private final ListingRepository listingRepository;

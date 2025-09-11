@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  ***********************/
 
 @Service
-public class AuthenticationService implements IAuthenticationService {
+public class AuthenticationService {
 
     private final UserRepository userRepository;
 
