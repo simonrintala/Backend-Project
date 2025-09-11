@@ -12,7 +12,8 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IAuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IIdValidationService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,31 +21,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class BookingService implements BookingValidationService, AuthenticationService, PriceCalculationService, DateAvailabilityService {
+public class BookingService implements BookingValidationService, IAuthenticationService, IIdValidationService, PriceCalculationService, DateAvailabilityService {
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
     private final ListingRepository listingRepository;
     private final BookingDTOConversionService bookingDTOConversionService;
 
-    public BookingService(BookingRepository bookingRepository, UserRepository userRepository, ListingRepository listingRepository) {
+
+    public BookingService(BookingRepository bookingRepository, ListingRepository listingRepository) {
         this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
         this.listingRepository = listingRepository;
-        bookingDTOConversionService = new BookingDTOConversionService(userRepository, listingRepository);
+        bookingDTOConversionService = new BookingDTOConversionService();
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
 
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         //validate that bookingRequest data is valid
-        User currentUser = authenticateAndExtractUser(userRepository);
-        validateBooking(bookingRequest, currentUser, listingRepository);
+        User currentUser = authenticateAndExtractUser();
+        Listing listing = validateListingIdAndReturnListing(bookingRequest.getListingId());
+        validateBooking(bookingRequest, currentUser, listing);
 
         //convert from RequestDTO to Booking
         Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
 
         //validate that booking dates are available and update listing dates
-        Listing listing = validateListingIdAndGetListing(booking, listingRepository);
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setUpdatedAt(null);
@@ -58,7 +58,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
 
     //get bookings by id
     public BookingResponse getBookingById(String id) {
-        Booking booking = validateBookingIdAndGetBooking(id, bookingRepository);
+        Booking booking = validateBookingIdAndReturnBooking(id);
 
         //convert to DTO
         return bookingDTOConversionService.convertToDTOResponse(booking);
@@ -77,7 +77,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
     //get bookings any user
     public List<BookingResponse> getBookingsByUserId(String userId) {
         //validate user id
-        User user = UserService.validateUserIdAndReturnUser(userId, userRepository);
+        User user = validateUserIdAndReturnUser(userId);
 
         return getUserBookings(user);
     }
@@ -85,13 +85,13 @@ public class BookingService implements BookingValidationService, AuthenticationS
     //get bookings current user
     public List<BookingResponse> getBookingsCurrentUser() {
         //get current user
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
         return getUserBookings(currentUser);
     }
 
     //get all bookings for current user's listings
     public List<BookingResponse> getListingBookingsCurrentUser() {
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
         List<Listing> userListings = listingRepository.findByHost(currentUser);
         List<BookingResponse> listingBookingsCurrentUser = new ArrayList<>();
 
@@ -105,9 +105,9 @@ public class BookingService implements BookingValidationService, AuthenticationS
 
     //get current listings bookingId
     public List<BookingResponse> getBookingsByListingId(String listingId) {
-        Listing listing = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
+        Listing listing = validateListingIdAndReturnListing(listingId);
         //check that current user is owner of listing or admin
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
         if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
         }
@@ -123,11 +123,12 @@ public class BookingService implements BookingValidationService, AuthenticationS
     }
 
     public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
-        //validate booking id
-        Booking booking = validateBookingIdAndGetBooking(id, bookingRepository);
+        //validate booking and listing id
+        Booking booking = validateBookingIdAndReturnBooking(id);
+        Listing listing = validateListingIdAndReturnListing(booking.getListing().getId());
 
         //check that current user is owner of booking
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
         if (!currentUser.getId().equals(booking.getUser().getId())) {
             throw new UnauthorizedException("Only the owner of the booking can update the booking");
         }
@@ -143,7 +144,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
         }
 
         //validate data in new booking
-        validateBooking(updatedBookingRequest, currentUser, listingRepository);
+        validateBooking(updatedBookingRequest, currentUser, listing);
 
         //convert DTO to booking object
         Booking updatedBooking = bookingDTOConversionService.convertRequestToBooking(updatedBookingRequest);
@@ -153,7 +154,6 @@ public class BookingService implements BookingValidationService, AuthenticationS
                 !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
 
             //add back the old dates
-            Listing listing = validateListingIdAndGetListing(booking, listingRepository);
             listing.addAvailableDateRange(booking.getBookingDates());
             listingRepository.save(listing);
 
@@ -177,7 +177,7 @@ public class BookingService implements BookingValidationService, AuthenticationS
 
     public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
         //get booking from repository
-        Booking booking = validateBookingIdAndGetBooking(id, bookingRepository);
+        Booking booking = validateBookingIdAndReturnBooking(id);
 
         //check that booking status is pending
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
@@ -185,10 +185,10 @@ public class BookingService implements BookingValidationService, AuthenticationS
         }
 
         //get current logged-in user
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
 
         //get listing for the booking (to check that the current user is the host of the listing)
-        Listing listing = validateListingIdAndGetListing(booking, listingRepository);
+        Listing listing = validateListingIdAndReturnListing(booking.getListing().getId());
 
         //check that current user is the host of the listing the booking refers to, otherwise cast error
         if (!listing.getHost().getId().equals(currentUser.getId())) {
@@ -215,16 +215,16 @@ public class BookingService implements BookingValidationService, AuthenticationS
 
     public void deleteBooking(String id) {
         //check if id is valid
-        Booking booking = validateBookingIdAndGetBooking(id, bookingRepository);
+        Booking booking = validateBookingIdAndReturnBooking(id);
 
         //check that current user is owner of booking or admin
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
         if (!currentUser.getId().equals(booking.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Only the owner of the booking or admin can delete the booking");
         }
 
         //get listing
-        Listing listing = validateListingIdAndGetListing(booking, listingRepository);
+        Listing listing = validateListingIdAndReturnListing(booking.getListing().getId());
 
         //if booking does not have status denied, add back the booked dates to the listing
         if(booking.getBookingStatus() != BookingStatus.REJECTED) {

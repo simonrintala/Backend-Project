@@ -13,7 +13,8 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IAuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IIdValidationService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,17 +23,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ReviewService implements AuthenticationService{
+public class ReviewService implements IAuthenticationService, IIdValidationService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
-    private final UserRepository userRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
+
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
-        this.userRepository = userRepository;
+
     }
 
     //METHODS used by REVIEW CONTROLLER CLASS -----------------------------------------------------------------------
@@ -40,10 +41,10 @@ public class ReviewService implements AuthenticationService{
     // Create a review
     public ReviewResponse createReview(ReviewRequest reviewRequest) {
         // Get the logged in users username from the JWT token
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
 
         // Validate the listing id
-        Listing listing = ListingService.validateListingIdAndGetListing(reviewRequest.getListingId(), listingRepository);
+        Listing listing = validateListingIdAndReturnListing(reviewRequest.getListingId());
 
         // Check if the booking exists and the end date has passed
         Booking booking = bookingRepository.findByUserAndListing(currentUser, listing)
@@ -72,7 +73,7 @@ public class ReviewService implements AuthenticationService{
     //get all reviews for a listing
     public List<ReviewResponse> getReviewsByListing(String listingId) {
         //check that listing id is valid
-        ListingService.validateListingIdAndGetListing(listingId, listingRepository);
+        validateListingIdAndReturnListing(listingId);
 
         // Fetch all reviews for the listing
         List<Review> reviews = reviewRepository.findByListing_Id(listingId);
@@ -85,13 +86,13 @@ public class ReviewService implements AuthenticationService{
 
     //get reviews made by the current logged in user
     public List<ReviewResponse> getReviewsCurrentUser() {
-        User user = authenticateAndExtractUser(userRepository);
+        User user = authenticateAndExtractUser();
         return getUserReviews(user);
     }
 
     //get reviews by user id
     public List<ReviewResponse> getReviewsByUserId(String userId) {
-        User user = UserService.validateUserIdAndReturnUser(userId, userRepository);
+        User user = validateUserIdAndReturnUser(userId);
 
         return getUserReviews(user);
     }
@@ -103,7 +104,7 @@ public class ReviewService implements AuthenticationService{
                 .orElseThrow(() -> new ResourceNotFoundException("No review with id '" + reviewId + "' in database."));
 
         //check that current user is the owner of the review or admin
-        User currentUser = authenticateAndExtractUser(userRepository);
+        User currentUser = authenticateAndExtractUser();
         if (!currentUser.getId().equals(review.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Review cannot be deleted by current user.\n Only the user who created the review or an admin user can delete a review.");
         }
@@ -138,7 +139,7 @@ public class ReviewService implements AuthenticationService{
                 .average()
                 .orElse(0.0);
 
-        Listing listing = ListingService.validateListingIdAndGetListing(listingId, listingRepository);
+        Listing listing = validateListingIdAndReturnListing(listingId);
         listing.setAverageRating(averageRating);
         listing.setUpdatedAt(LocalDateTime.now());
 
