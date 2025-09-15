@@ -4,7 +4,6 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.HostResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.ListingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
@@ -14,6 +13,8 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,15 +26,18 @@ import java.util.stream.Collectors;
 @Service
 public class ListingService {
     private final ListingRepository listingRepository;
-    private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final ReviewRepository reviewRepository;
+    private final AuthenticationService authenticationService;
+    private final IdValidationService idValidationService;
 
-    public ListingService(ListingRepository listingRepository, UserRepository userRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
+
+    public ListingService(AuthenticationService authenticationService, IdValidationService idValidationService, UserRepository userRepository, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.listingRepository = listingRepository;
-        this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     //METHODS used by LISTING CONTROLLER CLASS -----------------------------------------------------------------------
@@ -49,7 +53,7 @@ public class ListingService {
 
     //get listing by id
     public ListingResponse getListingById(String id) {
-        Listing listing = validateListingIdAndGetListing(id, listingRepository);
+        Listing listing = idValidationService.validateListingIdAndReturnListing(id);
 
         return convertToListingResponseDTO(listing);
     }
@@ -57,7 +61,7 @@ public class ListingService {
     //get all listings for a host, using hosts id
     public List<ListingResponse> getListingsByHostId(String hostId) {
         //check if user is valid
-        User user = UserService.validateUserIdAndReturnUser(hostId, userRepository);
+        User user = idValidationService.validateUserIdAndReturnUser(hostId);
         return getListingsByUser(user);
     }
     
@@ -143,17 +147,17 @@ public class ListingService {
     //get all listings for the current user
     public List<ListingResponse> getListingsCurrentUser() {
         //get current user
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticationService.authenticateAndExtractUser();
         return getListingsByUser(currentUser);
     }
 
     //update a listing, only the host of the listing can update a listing
     public ListingResponse updateListing(String id, ListingRequest listingRequest) {
         //validate listing id and get existing listing
-        Listing existingListing = validateListingIdAndGetListing(id, listingRepository);
+        Listing existingListing = idValidationService.validateListingIdAndReturnListing(id);
 
         //validate that the user is host of the listing
-        String currentUserId = UserService.verifyAuthenticationAndExtractUser(userRepository).getId();
+        String currentUserId = authenticationService.authenticateAndExtractUser().getId();
         if (!currentUserId.equals(existingListing.getHost().getId())) {
             throw new UnauthorizedException("Listing cannot be updated by current user.\n Only the listing can host update a listing.");
         }
@@ -177,10 +181,10 @@ public class ListingService {
 
     //validate listing id exists in database and delete the listing (incl. listing bookings and reviews)
     public void deleteListing(String id) {
-        Listing listing = validateListingIdAndGetListing(id, listingRepository);
+        Listing listing = idValidationService.validateListingIdAndReturnListing(id);
 
         //validate that the user is host of the listing or admin
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticationService.authenticateAndExtractUser();
         if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
             throw new UnauthorizedException("Listing cannot be deleted by current user.\n Only the listing host or an admin user can delete a listing.");
         }
@@ -191,8 +195,8 @@ public class ListingService {
     }
 
     public HostResponse getHostProfile(String listingId) {
-        Listing listing = validateListingIdAndGetListing(listingId, listingRepository);
-        User host = UserService.validateUserIdAndReturnUser(listing.getHost().getId(), userRepository);
+        Listing listing = idValidationService.validateListingIdAndReturnListing(listingId);
+        User host = idValidationService.validateUserIdAndReturnUser(listing.getHost().getId());
         List<IdAndName> hostListingsForHostResponse = new ArrayList<>();
         for (Listing l : listingRepository.findByHost(host)) {
             hostListingsForHostResponse.add(new IdAndName(l.getId(), l.getTitle()));
@@ -242,7 +246,7 @@ public class ListingService {
         Listing listing = new Listing();
 
         // Set the host the current user
-        User currentUser = UserService.verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticationService.authenticateAndExtractUser();
         listing.setHost(currentUser);
         listing.setHostName(currentUser.getUsername());
         
@@ -257,12 +261,6 @@ public class ListingService {
         listing.setImageUrls(listingRequest.getImageUrls());
 
         return listing;
-    }
-
-    static Listing validateListingIdAndGetListing(String id, ListingRepository listingRepository) {
-        return listingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No listing with id '"+ id +"' in database"));
-
     }
 
 }

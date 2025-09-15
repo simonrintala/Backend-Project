@@ -5,8 +5,6 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.UserRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserResponse;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.UserUpdateRequest;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.NameAlreadyBoundException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
@@ -18,16 +16,16 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,14 +35,19 @@ public class UserService {
     private final ListingRepository listingRepository;
     private final BookingRepository bookingRepository;
     private final ReviewRepository reviewRepository;
+    private final AuthenticationService authenticationService;
+    private final IdValidationService idValidationService;
+
 
     //constructor injection
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
+    public UserService(AuthenticationService authenticationService, IdValidationService idValidationService, UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
+        this.authenticationService = authenticationService;
+        this.idValidationService = idValidationService;
     }
 
     //METHODS used by USER CONTROLLER CLASS -----------------------------------------------------------------------
@@ -88,32 +91,32 @@ public class UserService {
 
     //get current user
     public UserResponse getCurrentUser() {
-        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticationService.authenticateAndExtractUser();
         return transferUserToUserResponse(currentUser);
     }
 
     //get single user using id, return as UserResponse
     public UserResponse getUserById(String id) {
-        User user = validateUserIdAndReturnUser(id, userRepository);
+        User user = idValidationService.validateUserIdAndReturnUser(id);
         return transferUserToUserResponse(user);
     }
 
     //delete current user
     public void deleteCurrentUser() {
-        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticationService.authenticateAndExtractUser();
         deleteUser(currentUser);
     }
 
     //delete single user using id
     public void deleteUserById(String id) {
-        User user = validateUserIdAndReturnUser(id, userRepository);
+        User user = idValidationService.validateUserIdAndReturnUser(id);
         deleteUser(user);
     }
 
     //update current user data
     public UserResponse updateCurrentUser(UserRequest userRequest) {
         //get current user
-        User currentUser = verifyAuthenticationAndExtractUser(userRepository);
+        User currentUser = authenticationService.authenticateAndExtractUser();
 
         //if username is changed, check that username is not taken
         if (!currentUser.getUsername().equals(userRequest.getUsername())) {
@@ -149,9 +152,9 @@ public class UserService {
 
     //add or remove a listing from current users saved favorites using listing id as an input variable
     public List<String> addOrRemoveFavorite(String listingId) {
-        ListingService.validateListingIdAndGetListing(listingId, listingRepository);
+        idValidationService.validateListingIdAndReturnListing(listingId);
         //get current user
-        User user = verifyAuthenticationAndExtractUser(userRepository);
+        User user = authenticationService.authenticateAndExtractUser();
 
         boolean isRemoved = false;
         //loop through favorites to check if newListing is already saved
@@ -179,7 +182,7 @@ public class UserService {
     //get favorites for current user
     public List<String> getFavorites() {
         //get current user
-        User user = verifyAuthenticationAndExtractUser(userRepository);
+        User user = authenticationService.authenticateAndExtractUser();
 
 
         if (!user.getFavorites().isEmpty()) {
@@ -222,7 +225,7 @@ public class UserService {
         for (Booking booking : userBookings) {
             if (booking.getBookingStatus() == BookingStatus.PENDING) {
 
-                Listing listing = ListingService.validateListingIdAndGetListing(booking.getListing().getId(), listingRepository);
+                Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
                 listing.addAvailableDateRange(booking.getBookingDates());
                 listing.setUpdatedAt(LocalDateTime.now());
                 listingRepository.save(listing);
@@ -277,48 +280,23 @@ public class UserService {
                 user.getUpdatedAt());
     }
 
-    //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
-    static User validateUserIdAndReturnUser(String id, UserRepository userRepository) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No user with id '"+ id + "' in database"));
-    }
-
-    //verify and get current user from jwtToken/cookies
-    static User verifyAuthenticationAndExtractUser(UserRepository userRepository) {
-        //check that user is logged in
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            throw new UnauthorizedException("User is not logged in.");
-        }
-        //get user id from token via userDetails
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
-    }
 
     // PATCH
     public User updateUserInfo(UserUpdateRequest updatedInfo) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            throw new UnauthorizedException("User is not authenticated");
-        }
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User existingUser = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User currentUser = authenticationService.authenticateAndExtractUser();
 
         if (updatedInfo.getPhoneNr() != null) {
-            existingUser.setPhoneNr(updatedInfo.getPhoneNr());
+            currentUser.setPhoneNr(updatedInfo.getPhoneNr());
         }
 
         if (updatedInfo.getEmail() != null) {
-            existingUser.setEmail(updatedInfo.getEmail());
+            currentUser.setEmail(updatedInfo.getEmail());
         }
         if (updatedInfo.getAddress() != null) {
-            existingUser.setAddress(updatedInfo.getAddress());
+            currentUser.setAddress(updatedInfo.getAddress());
         }
 
-        return userRepository.save(existingUser);
+        return userRepository.save(currentUser);
     }
 
 }
