@@ -157,8 +157,7 @@ public class ListingService {
         Listing existingListing = idValidationService.validateListingIdAndReturnListing(id);
 
         //validate that the user is host of the listing
-        String currentUserId = authenticationService.authenticateAndExtractUser().getId();
-        if (!currentUserId.equals(existingListing.getHost().getId())) {
+        if (!authenticationService.isSameAsCurrentUser(existingListing.getHost())) {
             throw new UnauthorizedException("Listing cannot be updated by current user.\n Only the listing can host update a listing.");
         }
 
@@ -184,8 +183,7 @@ public class ListingService {
         Listing listing = idValidationService.validateListingIdAndReturnListing(id);
 
         //validate that the user is host of the listing or admin
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+        if (!authenticationService.isSameAsCurrentUserOrHasRole(listing.getHost(),Role.ADMIN)) {
             throw new UnauthorizedException("Listing cannot be deleted by current user.\n Only the listing host or an admin user can delete a listing.");
         }
 

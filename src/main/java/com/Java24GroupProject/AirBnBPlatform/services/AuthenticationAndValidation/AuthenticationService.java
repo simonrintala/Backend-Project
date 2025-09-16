@@ -12,11 +12,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 /************************
  * AuthenticationService
  * ---
- * This class contain the method for authenticating and extracting the current user from jwtTokens/cookies
- * The authenticateAndExtractUser() method was previously a static method in the UserService class (used by UserService,
- * ListingService, BookingService and ReviewService) was separated into this interface instead based on the Single
- * Responsibility Principle.
- *
+ * This class contain methods for authenticating and extracting the current user from jwtTokens/cookies,
+ * and for validating the current users roles and database id.
+ * -
+ * The authenticateAndExtractUser() method was previously a static method in the UserService class
+ * (used by UserService, ListingService, BookingService and ReviewService) was separated into this interface instead
+ * based on the Single Responsibility Principle.
+ * -
  * Methods for validating if the current user corresponds to a specific userId and/or has a certain ROLE has been added.
  * (These checks were previously not separate methods, but part on methods in the different Service classes.)
  ***********************/
@@ -36,14 +38,14 @@ public interface AuthenticationService extends UserRepository {
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
     }
 
-    //check if the current user corresponds to a userId
-    //is used e.g., for verifying if current user owns a booking they are trying to modify
+    /*checks if the current user corresponds to a userId
+    (is used e.g., for verifying if current user owns a booking they are trying to modify)*/
     default boolean isSameAsCurrentUser(User user) {
         User currentUser = authenticateAndExtractUser();
         return currentUser.getId().equals(user.getId());
     }
 
-    //check if the current user has a specific role
+    //check if the current user has a specific role (used to validate user privilege to access e.g. admin methods)
     default boolean doesCurrentUserHaveThisRole(Role role) {
         User currentUser = authenticateAndExtractUser();
         return currentUser.getRoles().contains(role);

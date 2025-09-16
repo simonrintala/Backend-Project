@@ -152,6 +152,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
             //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking, listing, listingRepository);
             booking.setBookingDates(updatedBooking.getBookingDates());
+            calculateAndSetPrice(booking, listing);
         }
 
         //update other booking data booking

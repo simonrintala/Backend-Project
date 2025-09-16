@@ -28,10 +28,11 @@ public class BookingDTOConversionService implements PriceCalculationService {
 
     //convert BookingRequest to Booking
     public Booking convertRequestToBooking(BookingRequest bookingRequest) {
-        Booking booking = new Booking();
 
         User currentUser = authenticationService.authenticateAndExtractUser();
         Listing listing = idValidationService.validateListingIdAndReturnListing(bookingRequest.getListingId());
+
+        Booking booking = new Booking();
 
         booking.setListing(listing);
         booking.setListingInfo(new NestedListing(listing.getId(), listing.getTitle(),
