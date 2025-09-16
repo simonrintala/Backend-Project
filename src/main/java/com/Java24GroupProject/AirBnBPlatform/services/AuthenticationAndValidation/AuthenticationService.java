@@ -12,8 +12,12 @@ import org.springframework.security.core.userdetails.UserDetails;
  * AuthenticationService
  * ---
  * This class contain the method for authenticating and extracting the current user from jwtTokens/cookies
- * This method was previously a static method in the UserService class (used by UserService, ListingService,
- * BookingService and ReviewService) was separated into this interface instead based on the Single Responsibility Principle
+ * The authenticateAndExtractUser() method was previously a static method in the UserService class (used by UserService,
+ * ListingService, BookingService and ReviewService) was separated into this interface instead based on the Single
+ * Responsibility Principle.
+ *
+ * Methods for validating if the current user corresponds to a specific userId and/or has a certain ROLE has been added.
+ * (These checks were previously not separate methods, but part on methods in the different Service classes.)
  ***********************/
 
 public interface AuthenticationService extends UserRepository {

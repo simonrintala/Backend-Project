@@ -12,6 +12,8 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -24,25 +26,7 @@ public class BookingDTOConversionService implements PriceCalculationService {
         this.idValidationService = idValidationService;
     }
 
-    public BookingResponse convertToDTOResponse(Booking booking) {
 
-        //get listing and user to save variables in DTOResponse
-        User user = idValidationService.validateUserIdAndReturnUser(booking.getUser().getId());
-
-        return new BookingResponse(
-                booking.getId(),
-                booking.getListingInfo(),
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPhoneNr(),
-                booking.getBookingDates().getStartDate().toString(),
-                booking.getBookingDates().getEndDate().toString(),
-                booking.getNumberOfGuests(),
-                booking.getTotalPrice(),
-                booking.getBookingStatus()
-        );
-    }
 
     //convert BookingRequest to Booking
     public Booking convertRequestToBooking(BookingRequest bookingRequest) {
@@ -63,5 +47,34 @@ public class BookingDTOConversionService implements PriceCalculationService {
         booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
         calculateAndSetPrice(booking, listing);
         return booking;
+    }
+
+
+    //convert Booking object to BookingResponseDTO
+    public BookingResponse convertToDTOResponse(Booking booking) {
+
+        //get user to save user variables in DTOResponse
+        User user = idValidationService.validateUserIdAndReturnUser(booking.getUser().getId());
+
+        return new BookingResponse(
+                booking.getId(),
+                booking.getListingInfo(),
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPhoneNr(),
+                booking.getBookingDates().getStartDate().toString(),
+                booking.getBookingDates().getEndDate().toString(),
+                booking.getNumberOfGuests(),
+                booking.getTotalPrice(),
+                booking.getBookingStatus()
+        );
+    }
+
+    //convert list of Booking objects to BookingResponseDTOs
+    public List<BookingResponse> convertToDTOResponse(List<Booking> bookings) {
+        return bookings.stream()
+                .map(this::convertToDTOResponse)
+                .collect(Collectors.toList());
     }
 }
