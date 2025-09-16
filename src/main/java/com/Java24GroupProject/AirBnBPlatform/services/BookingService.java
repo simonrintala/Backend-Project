@@ -105,14 +105,12 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Listing listing = idValidationService.validateListingIdAndReturnListing(listingId);
 
         //check that current user is owner of listing or admin
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+        if (!authenticationService.isSameAsCurrentUserOrHasRole(listing.getHost(), Role.ADMIN)) {
             throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
         }
 
         //convert to DTO and return
         List<Booking> bookings = bookingRepository.findByListing(listing);
-
         return bookingDTOConversionService.convertToDTOResponse(bookings);
     }
 
@@ -123,7 +121,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
 
         //check that current user is owner of booking
         User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(booking.getUser().getId())) {
+        if (!authenticationService.isSameAsCurrentUser(booking.getUser())) {
             throw new UnauthorizedException("Only the owner of the booking can update the booking");
         }
 
@@ -185,7 +183,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
 
         //check that current user is the host of the listing the booking refers to, otherwise cast error
-        if (!listing.getHost().getId().equals(currentUser.getId())) {
+        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
             throw new UnauthorizedException("only the listing host can accept/reject a booking");
         }
 
@@ -212,8 +210,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
 
         //check that current user is owner of booking or admin
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(booking.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+        if (!authenticationService.isSameAsCurrentUserOrHasRole(booking.getUser(), Role.ADMIN)) {
             throw new UnauthorizedException("Only the owner of the booking or admin can delete the booking");
         }
 

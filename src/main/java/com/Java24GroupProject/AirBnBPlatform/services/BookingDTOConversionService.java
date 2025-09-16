@@ -26,8 +26,6 @@ public class BookingDTOConversionService implements PriceCalculationService {
         this.idValidationService = idValidationService;
     }
 
-
-
     //convert BookingRequest to Booking
     public Booking convertRequestToBooking(BookingRequest bookingRequest) {
         Booking booking = new Booking();
