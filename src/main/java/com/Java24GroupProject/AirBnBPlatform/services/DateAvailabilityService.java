@@ -5,6 +5,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
@@ -13,10 +14,16 @@ import java.time.LocalDateTime;
  * under construction.
   */
 
+@Service
+public class DateAvailabilityService {
+    private final ListingRepository listingRepository;
 
-public interface DateAvailabilityService {
+    public DateAvailabilityService(ListingRepository listingRepository) {
+        this.listingRepository = listingRepository;
+    }
+
     //validate that booking dates are available and update listing dates
-    default void validateBookingDatesAndUpdateListing(Booking booking, Listing listing, ListingRepository listingRepository) {
+    public void validateBookingDatesAndUpdateListing(Booking booking, Listing listing) {
 
         //save booking dates in variable for ease of use
         DateRange bookingDates = booking.getBookingDates();
@@ -51,5 +58,14 @@ public interface DateAvailabilityService {
         if (!areBookingDatesAvailable) {
             throw new IllegalArgumentException("booking dates not available on listing");
         }
+    }
+
+    public void changeBookingDatesForListing(Listing listing, Booking currentBooking, Booking updatedBooking) {
+        listing.addAvailableDateRange(currentBooking.getBookingDates());
+        listingRepository.save(listing);
+
+        //subtract new dates from listing
+        validateBookingDatesAndUpdateListing(updatedBooking, listing);
+        currentBooking.setBookingDates(updatedBooking.getBookingDates());
     }
 }

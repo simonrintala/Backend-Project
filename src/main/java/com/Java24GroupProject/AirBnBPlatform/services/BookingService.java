@@ -12,7 +12,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
 
-    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository) {
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
@@ -43,9 +42,17 @@ public class BookingService implements BookingValidationService, PriceCalculatio
 
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         //validate that bookingRequest data is valid
-        User currentUser = authenticationService.authenticateAndExtractUser();
+
         Listing listing = idValidationService.validateListingIdAndReturnListing(bookingRequest.getListingId());
-        validateBooking(bookingRequest, currentUser, listing);
+        //check that the user for the booking is not also the host of the listing
+        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
+            throw new IllegalArgumentException("user not allowed to make booking for their own listing");
+        }
+
+        //check that nrOfGuest does not exceed listing capacity
+        if (bookingRequest.getNumberOfGuests() > listing.getCapacity()) {
+            throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
+        }
 
         //convert from RequestDTO to Booking
         Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
@@ -86,7 +93,8 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     public List<BookingResponse> getBookingsCurrentUser() {
         List<Booking> bookings = bookingRepository.findByUser(
                 authenticationService.authenticateAndExtractUser());
-        return bookingDTOConversionService.convertToDTOResponse(bookings);    }
+        return bookingDTOConversionService.convertToDTOResponse(bookings);
+    }
 
     //get all bookings for current user's listings
     public List<BookingResponse> getListingBookingsCurrentUser() {
@@ -120,8 +128,6 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
         Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
 
-        //check that current user is owner of booking
-        User currentUser = authenticationService.authenticateAndExtractUser();
         if (!authenticationService.isSameAsCurrentUser(booking.getUser())) {
             throw new UnauthorizedException("Only the owner of the booking can update the booking");
         }
@@ -137,7 +143,14 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         }
 
         //validate data in new booking
-        validateBooking(updatedBookingRequest, currentUser, listing);
+        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
+            throw new IllegalArgumentException("user not allowed to make booking for their own listing");
+        }
+
+        //check that nrOfGuest does not exceed listing capacity
+        if (updatedBookingRequest.getNumberOfGuests() > listing.getCapacity()) {
+            throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
+        }
 
         //convert DTO to booking object
         Booking updatedBooking = bookingDTOConversionService.convertRequestToBooking(updatedBookingRequest);
@@ -151,7 +164,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
             listingRepository.save(listing);
 
             //subtract new dates from listing
-            validateBookingDatesAndUpdateListing(updatedBooking, listing, listingRepository);
+            validateBookingDatesAndUpdateListing(updatedBooking, listing);
             booking.setBookingDates(updatedBooking.getBookingDates());
             calculateAndSetPrice(booking, listing);
         }
@@ -178,9 +191,6 @@ public class BookingService implements BookingValidationService, PriceCalculatio
             throw new UnsupportedOperationException("Booking has already been accepted or rejected");
         }
 
-        //get current logged-in user
-        User currentUser = authenticationService.authenticateAndExtractUser();
-
         //get listing for the booking (to check that the current user is the host of the listing)
         Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
 
@@ -192,7 +202,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //if booking is accepted change status to accepted
         if (isAccepted) {
             booking.setBookingStatus(BookingStatus.ACCEPTED);
-        //if the booking is rejected, add back the booking dates to available dates and change status to rejected
+            //if the booking is rejected, add back the booking dates to available dates and change status to rejected
         } else {
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
@@ -220,7 +230,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
 
         //if booking does not have status denied, add back the booked dates to the listing
-        if(booking.getBookingStatus() != BookingStatus.REJECTED) {
+        if (booking.getBookingStatus() != BookingStatus.REJECTED) {
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
             listingRepository.save(listing);
@@ -229,4 +239,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //delete booking
         bookingRepository.deleteById(id);
     }
+
+
 }
+
