@@ -15,6 +15,10 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.AcceptState;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.PendingState;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -53,7 +57,8 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //validate that booking dates are available and update listing dates, set status and price
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
         calculateAndSetPrice(booking, listing);
-        booking.setBookingStatus(BookingStatus.PENDING);
+        IStateHandler pending = new PendingState();
+        pending.apply(booking, listing, listingRepository);
         booking.setUpdatedAt(null);
 
         //save booking
@@ -191,13 +196,11 @@ public class BookingService implements BookingValidationService, PriceCalculatio
 
         //if booking is accepted change status to accepted
         if (isAccepted) {
-            booking.setBookingStatus(BookingStatus.ACCEPTED);
-        //if the booking is rejected, add back the booking dates to available dates and change status to rejected
+            IStateHandler accept = new AcceptState();
+            accept.apply(booking, listing, listingRepository);
         } else {
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listing.setUpdatedAt(LocalDateTime.now());
-            listingRepository.save(listing);
-            booking.setBookingStatus(BookingStatus.REJECTED);
+            IStateHandler reject = new RejectState();
+            reject.apply(booking, listing, listingRepository);
         }
 
         //save updated booking
@@ -221,6 +224,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
 
         //if booking does not have status denied, add back the booked dates to the listing
         if(booking.getBookingStatus() != BookingStatus.REJECTED) {
+            // If not previously rejected, release dates on delete as a common reset
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
             listingRepository.save(listing);
