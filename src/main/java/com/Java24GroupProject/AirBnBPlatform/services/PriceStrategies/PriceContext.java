@@ -4,6 +4,8 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 
 public class PriceContext {
     private PriceStrategyService strategy;
@@ -23,7 +25,20 @@ public class PriceContext {
     
     // run price through strategies and saves new price.
     public void runCalculation(Booking booking, Listing listing) {
-        BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
-        booking.setTotalPrice(newPrice);
+        
+        boolean hasWeekend = priceCalculation.hasWeekend(booking);
+
+        // if hasWeekend true, Weekend strategy, else run standard strategy
+        if (hasWeekend) {
+            changeStrategy(new WeekendStrategy());
+            BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
+            booking.setTotalPrice(newPrice);
+        } else {
+            changeStrategy(new StandardStrategy());
+            BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
+            booking.setTotalPrice(newPrice);
+        }
     }
+    
+
 }

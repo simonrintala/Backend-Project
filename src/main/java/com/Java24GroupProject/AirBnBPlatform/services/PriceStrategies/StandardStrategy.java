@@ -3,7 +3,6 @@ package com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies;
 import java.math.BigDecimal;
 
 public class StandardStrategy implements PriceStrategyService {
-    private final PriceCalculation priceCalculation = new PriceCalculation();
     
         @Override
         public BigDecimal calculatePrice(BigDecimal price) {
