@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
  * To be built upon into a strategy pattern or such
  */
 
+
 public interface PriceCalculationService {
     //calculate price from nr of booked days and price per night from listing
     default void calculateAndSetPrice(Booking booking, Listing listing) {

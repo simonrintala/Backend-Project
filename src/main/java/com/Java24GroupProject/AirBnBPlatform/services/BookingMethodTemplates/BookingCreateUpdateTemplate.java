@@ -10,24 +10,25 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
 import com.Java24GroupProject.AirBnBPlatform.services.PriceCalculationService;
+import org.springframework.stereotype.Service;
 
-public abstract class BookingCreateUpdateTemplate {
+@Service
+public abstract class BookingCreateUpdateTemplate implements PriceCalculationService{
     final IdValidationService idValidationService;
     final AuthenticationService authenticationService;
     final BookingDTOConversionService bookingDTOConversionService;
     final BookingRepository bookingRepository;
     final DateAvailabilityService dateAvailabilityService;
-    final PriceCalculationService priceCalculationService;
+    //final PriceCalculationService priceCalculationService;
     Listing listing;
     Booking booking;
 
-    public BookingCreateUpdateTemplate(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService, PriceCalculationService priceCalculationService) {
+    public BookingCreateUpdateTemplate(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
         this.idValidationService = idValidationService;
         this.authenticationService = authenticationService;
         this.bookingDTOConversionService = bookingDTOConversionService;
         this.bookingRepository = bookingRepository;
         this.dateAvailabilityService = dateAvailabilityService;
-        this.priceCalculationService = priceCalculationService;
     }
 
     public BookingResponse createUpdateBooking(BookingRequest bookingRequest, String bookingId) {
@@ -38,7 +39,6 @@ public abstract class BookingCreateUpdateTemplate {
 
         //convert from RequestDTO to Booking
         convertRequestDTOtoBooking(bookingRequest);
-        Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
 
         //validate that booking dates are available and update listing dates, set status and price
         updateListingDatesAndSetPrice();
@@ -57,7 +57,7 @@ public abstract class BookingCreateUpdateTemplate {
     }
 
     void validateBookingRequest(BookingRequest bookingRequest) {
-        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
+        if (authenticationService.isSameAsCurrentUser(listing.getHost())) {
             throw new IllegalArgumentException("user not allowed to make booking for their own listing");
         }
         //check that nrOfGuest does not exceed listing capacity

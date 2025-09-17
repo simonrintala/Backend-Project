@@ -11,15 +11,16 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
-import com.Java24GroupProject.AirBnBPlatform.services.PriceCalculationService;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Service
 public class BookingUpdateMethod extends BookingCreateUpdateTemplate {
     private Booking updatedBooking;
 
-    public BookingUpdateMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService, PriceCalculationService priceCalculationService) {
-        super(idValidationService, authenticationService, bookingDTOConversionService, bookingRepository, dateAvailabilityService, priceCalculationService);
+    public BookingUpdateMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+        super(idValidationService, authenticationService, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
     }
 
     @Override
@@ -58,7 +59,7 @@ public class BookingUpdateMethod extends BookingCreateUpdateTemplate {
                 !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
 
             dateAvailabilityService.changeBookingDatesForListing(listing, booking, updatedBooking);
-            priceCalculationService.calculateAndSetPrice(booking, listing);
+            calculateAndSetPrice(booking, listing);
         }
     }
 
