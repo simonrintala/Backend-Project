@@ -8,19 +8,11 @@ import java.time.temporal.ChronoUnit;
 
 public class PriceCalculation {
     
-    
-    
     PriceCalculation() {
     }
     
-    
-    public BigDecimal getCalculatedPrice(Listing listing, Booking booking) {
-        return calculateAndSetPrice(booking, listing);
-    }
-    
-    
     //calculate price from nr of booked days and price per night from listing
-    private BigDecimal calculateAndSetPrice(Booking booking, Listing listing) {
+    public BigDecimal calculateAndSetPrice(Booking booking, Listing listing) {
         //calculate days in between start and end date
         long daysBetween = ChronoUnit.DAYS.between(
                 booking.getBookingDates().getStartDate(),
@@ -28,10 +20,8 @@ public class PriceCalculation {
         );
         
         //calculate price using listing price_per_night
-        BigDecimal totalPrice = listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
+        //return base price for strategies to be used
+        return listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
         
-        //set total price of booking
-        booking.setTotalPrice(totalPrice);
-        return totalPrice;
     }
 }

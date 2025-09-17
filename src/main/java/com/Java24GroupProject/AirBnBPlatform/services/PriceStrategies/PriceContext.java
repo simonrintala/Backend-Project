@@ -1,8 +1,14 @@
 package com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies;
 
+import com.Java24GroupProject.AirBnBPlatform.models.Booking;
+import com.Java24GroupProject.AirBnBPlatform.models.Listing;
+
+import java.math.BigDecimal;
+
 public class PriceContext {
     private PriceStrategyService strategy;
-    private final PriceCalculation pricesCalc = new PriceCalculation();
+    private final PriceCalculation priceCalculation = new PriceCalculation();
+
     
     
     public PriceContext(PriceStrategyService strategy) {
@@ -10,11 +16,14 @@ public class PriceContext {
         
     }
     
+    // swaps strategy when needed.
     public void changeStrategy(PriceStrategyService strategy) {
         this.strategy = strategy;
     }
     
-    public void runCalculation() {
-        strategy.calculatePrice(pricesCalc.getCalculatedPrice(listing, booking));
+    // run price through strategies and saves new price.
+    public void runCalculation(Booking booking, Listing listing) {
+        BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
+        booking.setTotalPrice(newPrice);
     }
 }

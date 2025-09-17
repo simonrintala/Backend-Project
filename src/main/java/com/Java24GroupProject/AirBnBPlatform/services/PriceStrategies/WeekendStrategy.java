@@ -7,9 +7,9 @@ public class WeekendStrategy implements PriceStrategyService {
     private final BigDecimal multiplier = new BigDecimal("1.5");
     
     @Override
-    public void calculatePrice(BigDecimal price) {
-        // multiply the listing price by weekend pricing
-        BigDecimal totalPrice = price.multiply(multiplier);
-        System.out.println("Weekend Strategy calculation " + totalPrice);
+    public BigDecimal calculatePrice(BigDecimal price) {
+        // multiply the listing price by weekend pricing then return it.
+        price = price.multiply(multiplier);
+        return price;
     }
 }

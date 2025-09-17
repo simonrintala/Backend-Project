@@ -8,9 +8,9 @@ public class HolidayStrategy implements PriceStrategyService {
     private final BigDecimal multiplier = new BigDecimal("1.25");
     
     @Override
-    public void calculatePrice(BigDecimal price) {
-        // // multiply the listing price by holiday pricing
-        BigDecimal totalPrice = price.multiply(multiplier);
-        System.out.println("Holiday Strategy calculation " + totalPrice);
+    public BigDecimal calculatePrice(BigDecimal price) {
+        // // multiply the listing price by holiday pricing then return it.
+        price = price.multiply(multiplier);
+        return price;
     }
 }
