@@ -50,8 +50,9 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //convert from RequestDTO to Booking
         Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
 
-        //validate that booking dates are available and update listing dates
+        //validate that booking dates are available and update listing dates, set status and price
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
+        calculateAndSetPrice(booking, listing);
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setUpdatedAt(null);
 
@@ -65,67 +66,53 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     //get bookings by id
     public BookingResponse getBookingById(String id) {
         Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
-
-        //convert to DTO
         return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
     //get all bookings
     public List<BookingResponse> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
-        List<BookingResponse> bookingResponses = new ArrayList<>();
-        for (Booking booking : bookings) {
-            bookingResponses.add(bookingDTOConversionService.convertToDTOResponse(booking));
-        }
-        return bookingResponses;
+        return bookingDTOConversionService.convertToDTOResponse(bookings);
     }
 
     //get bookings any user
     public List<BookingResponse> getBookingsByUserId(String userId) {
-        //validate user id
-        User user = idValidationService.validateUserIdAndReturnUser(userId);
-
-        return getUserBookings(user);
+        List<Booking> bookings = bookingRepository.findByUser(
+                idValidationService.validateUserIdAndReturnUser(userId));
+        return bookingDTOConversionService.convertToDTOResponse(bookings);
     }
 
     //get bookings current user
     public List<BookingResponse> getBookingsCurrentUser() {
-        //get current user
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        return getUserBookings(currentUser);
-    }
+        List<Booking> bookings = bookingRepository.findByUser(
+                authenticationService.authenticateAndExtractUser());
+        return bookingDTOConversionService.convertToDTOResponse(bookings);    }
 
     //get all bookings for current user's listings
     public List<BookingResponse> getListingBookingsCurrentUser() {
         User currentUser = authenticationService.authenticateAndExtractUser();
         List<Listing> userListings = listingRepository.findByHost(currentUser);
-        List<BookingResponse> listingBookingsCurrentUser = new ArrayList<>();
 
+        List<Booking> bookingsForCurrentUserListings = new ArrayList<>();
         for (Listing listing : userListings) {
-            listingBookingsCurrentUser.addAll(getBookingsByListingId(listing.getId()));
+            bookingsForCurrentUserListings.addAll(bookingRepository.findByListing(listing));
         }
 
-        return listingBookingsCurrentUser;
-
+        return bookingDTOConversionService.convertToDTOResponse(bookingsForCurrentUserListings);
     }
 
-    //get current listings bookingId
+    //get all bookings for a listing using listingId
     public List<BookingResponse> getBookingsByListingId(String listingId) {
         Listing listing = idValidationService.validateListingIdAndReturnListing(listingId);
+
         //check that current user is owner of listing or admin
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(listing.getHost().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+        if (!authenticationService.isSameAsCurrentUserOrHasRole(listing.getHost(), Role.ADMIN)) {
             throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
         }
 
-        //convert toDTO and return
+        //convert to DTO and return
         List<Booking> bookings = bookingRepository.findByListing(listing);
-
-        List<BookingResponse> bookingResponses = new ArrayList<>();
-        for (Booking booking : bookings) {
-            bookingResponses.add(bookingDTOConversionService.convertToDTOResponse(booking));
-        }
-        return bookingResponses;
+        return bookingDTOConversionService.convertToDTOResponse(bookings);
     }
 
     public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
@@ -135,7 +122,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
 
         //check that current user is owner of booking
         User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(booking.getUser().getId())) {
+        if (!authenticationService.isSameAsCurrentUser(booking.getUser())) {
             throw new UnauthorizedException("Only the owner of the booking can update the booking");
         }
 
@@ -166,6 +153,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
             //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking, listing, listingRepository);
             booking.setBookingDates(updatedBooking.getBookingDates());
+            calculateAndSetPrice(booking, listing);
         }
 
         //update other booking data booking
@@ -197,7 +185,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
 
         //check that current user is the host of the listing the booking refers to, otherwise cast error
-        if (!listing.getHost().getId().equals(currentUser.getId())) {
+        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
             throw new UnauthorizedException("only the listing host can accept/reject a booking");
         }
 
@@ -224,8 +212,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
 
         //check that current user is owner of booking or admin
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(booking.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+        if (!authenticationService.isSameAsCurrentUserOrHasRole(booking.getUser(), Role.ADMIN)) {
             throw new UnauthorizedException("Only the owner of the booking or admin can delete the booking");
         }
 
@@ -242,19 +229,4 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //delete booking
         bookingRepository.deleteById(id);
     }
-
-
-    //get bookings for a user, used by getBookingsByUserId and getBookingsCurrentUser methods
-    private List<BookingResponse> getUserBookings(User user) {
-
-        //convert toDTO and return
-        List<Booking> bookings = bookingRepository.findByUser(user);
-        List<BookingResponse> bookingResponses = new ArrayList<>();
-        for (Booking booking : bookings) {
-            bookingResponses.add(bookingDTOConversionService.convertToDTOResponse(booking));
-        }
-        return bookingResponses;
-    }
-
-
 }

@@ -133,4 +133,5 @@ public class Booking {
     public void setBookingDates(DateRange bookingDates) {
         this.bookingDates = bookingDates;
     }
+
 }
