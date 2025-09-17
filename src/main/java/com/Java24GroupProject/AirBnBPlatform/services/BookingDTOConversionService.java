@@ -15,9 +15,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/************************
+ * BookingDTOConversionService
+ * ---
+ * This class contains for mapping data between Booking objects and BookingDTOs (Response- and RequestDTOs)
+ * -
+ * It is injected by BookingService to handle all conversions of Booking to/from DTOs. This class does not
+ * handle data validation of e.g., RequestBodies and is purely an object conversion class.
+ ***********************/
 
 @Service
-public class BookingDTOConversionService implements PriceCalculationService {
+public class BookingDTOConversionService {
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
 
@@ -44,7 +52,6 @@ public class BookingDTOConversionService implements PriceCalculationService {
                 LocalDate.parse(bookingRequest.getStartDate()),
                 LocalDate.parse(bookingRequest.getEndDate())));
         booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
-        calculateAndSetPrice(booking, listing);
         return booking;
     }
 

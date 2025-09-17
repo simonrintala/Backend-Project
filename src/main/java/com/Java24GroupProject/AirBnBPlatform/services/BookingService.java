@@ -50,8 +50,9 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //convert from RequestDTO to Booking
         Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
 
-        //validate that booking dates are available and update listing dates
+        //validate that booking dates are available and update listing dates, set status and price
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
+        calculateAndSetPrice(booking, listing);
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setUpdatedAt(null);
 

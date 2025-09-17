@@ -134,5 +134,4 @@ public class Booking {
         this.bookingDates = bookingDates;
     }
 
-
 }
