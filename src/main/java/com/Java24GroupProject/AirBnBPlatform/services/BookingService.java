@@ -15,6 +15,7 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceStrategyService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,7 +25,7 @@ import java.util.List;
 
 
 @Service
-public class BookingService implements BookingValidationService, PriceCalculationService, DateAvailabilityService {
+public class BookingService implements BookingValidationService, DateAvailabilityService {
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
     private final BookingDTOConversionService bookingDTOConversionService;

@@ -9,13 +9,14 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceStrategyService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
 
 @Service
-public class BookingDTOConversionService implements PriceCalculationService {
+public class BookingDTOConversionService   {
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
 
@@ -61,7 +62,7 @@ public class BookingDTOConversionService implements PriceCalculationService {
                 LocalDate.parse(bookingRequest.getStartDate()),
                 LocalDate.parse(bookingRequest.getEndDate())));
         booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
-        calculateAndSetPrice(booking, listing);
+        //calculateAndSetPrice(booking, listing);
         return booking;
     }
 }
