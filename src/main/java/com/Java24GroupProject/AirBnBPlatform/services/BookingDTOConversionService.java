@@ -28,20 +28,20 @@ import java.util.stream.Collectors;
 public class BookingDTOConversionService {
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
-
+    
     public BookingDTOConversionService(AuthenticationService authenticationService, IdValidationService idValidationService) {
         this.authenticationService = authenticationService;
         this.idValidationService = idValidationService;
     }
-
+    
     //convert BookingRequest to Booking
     public Booking convertRequestToBooking(BookingRequest bookingRequest) {
-
+        
         User currentUser = authenticationService.authenticateAndExtractUser();
         Listing listing = idValidationService.validateListingIdAndReturnListing(bookingRequest.getListingId());
-
+        
         Booking booking = new Booking();
-
+        
         booking.setListing(listing);
         booking.setListingInfo(new NestedListing(listing.getId(), listing.getTitle(),
                 listing.getLocation(),
@@ -54,14 +54,14 @@ public class BookingDTOConversionService {
         booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
         return booking;
     }
-
-
+    
+    
     //convert Booking object to BookingResponseDTO
     public BookingResponse convertToDTOResponse(Booking booking) {
-
+        
         //get user to save user variables in DTOResponse
         User user = idValidationService.validateUserIdAndReturnUser(booking.getUser().getId());
-
+        
         return new BookingResponse(
                 booking.getId(),
                 booking.getListingInfo(),
@@ -76,7 +76,7 @@ public class BookingDTOConversionService {
                 booking.getBookingStatus()
         );
     }
-
+    
     //convert list of Booking objects to BookingResponseDTOs
     public List<BookingResponse> convertToDTOResponse(List<Booking> bookings) {
         return bookings.stream()
