@@ -107,7 +107,7 @@ public class ReviewService {
 
         //check that current user is the owner of the review or admin
         User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!currentUser.getId().equals(review.getUser().getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
+        if (!authenticationService.isSameAsCurrentUserOrHasRole(review.getUser(), Role.ADMIN)) {
             throw new UnauthorizedException("Review cannot be deleted by current user.\n Only the user who created the review or an admin user can delete a review.");
         }
 
