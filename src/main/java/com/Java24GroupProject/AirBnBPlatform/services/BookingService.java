@@ -2,6 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
@@ -74,8 +75,8 @@ public class BookingService {
         return getBookingsMethods.getBookingsByListingId(listingId);
     }
 
-    public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
-        return acceptRejectBooking.acceptRejectDelete(id, isAccepted);
+    public BookingResponse acceptOrRejectBooking(String id, BookingStatus bookingStatus) {
+        return acceptRejectBooking.acceptRejectDelete(id, bookingStatus);
     }
 
     public void deleteBooking(String id) {

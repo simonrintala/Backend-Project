@@ -54,11 +54,4 @@ public class AcceptRejectBooking extends AcceptRejectDeleteTemplate {
             return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
-    @Override
-    BookingResponse saveOrDeleteListing(String id) {
-        //update updateStamp and save booking
-        booking.setUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
-        return bookingDTOConversionService.convertToDTOResponse(booking);
-    }
 }

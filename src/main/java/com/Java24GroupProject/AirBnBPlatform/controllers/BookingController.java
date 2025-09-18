@@ -2,6 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.controllers;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
+import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -62,13 +63,13 @@ public class BookingController {
 
     @PatchMapping("/accept/{id}")
     public ResponseEntity<BookingResponse> acceptBooking(@PathVariable String id) {
-        BookingResponse bookingResponse = bookingService.acceptOrRejectBooking(id, true);
+        BookingResponse bookingResponse = bookingService.acceptOrRejectBooking(id, BookingStatus.ACCEPTED);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
     @PatchMapping("/reject/{id}")
     public ResponseEntity<BookingResponse> rejectBooking(@PathVariable String id) {
-        BookingResponse bookingResponse = bookingService.acceptOrRejectBooking(id, false);
+        BookingResponse bookingResponse = bookingService.acceptOrRejectBooking(id, BookingStatus.REJECTED);
         return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
     }
 
