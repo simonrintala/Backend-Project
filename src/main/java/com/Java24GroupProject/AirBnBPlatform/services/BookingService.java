@@ -35,8 +35,6 @@ public class BookingService {
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
-
-
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         return bookingCreateMethod.createUpdateBooking(bookingRequest);
     }

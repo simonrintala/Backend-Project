@@ -40,12 +40,22 @@ public class GetBookingMethodService {
 
     //get all bookings
     public List<BookingResponse> getAllBookings() {
+        //check that current user is admin
+        if (!userAuthRepository.doesCurrentUserHaveThisRole(Role.ADMIN)) {
+            throw new UnauthorizedException("Only admin can see all bookings");
+        }
         List<Booking> bookings = bookingRepository.findAll();
         return bookingDTOConversionService.convertToDTOResponse(bookings);
     }
 
     //get bookings any user
     public List<BookingResponse> getBookingsByUserId(String userId) {
+
+        //check that current user is admin
+        if (!userAuthRepository.doesCurrentUserHaveThisRole(Role.ADMIN)) {
+            throw new UnauthorizedException("Only admin can see all bookings for another user");
+        }
+
         List<Booking> bookings = bookingRepository.findByUser(
                 idValidationService.validateUserIdAndReturnUser(userId));
         return bookingDTOConversionService.convertToDTOResponse(bookings);
