@@ -26,6 +26,7 @@ public class PriceCalculation {
         return listing.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
     }
     
+    //check for weekend days in the days between start and end
     public boolean hasWeekend(Booking booking) {
         LocalDate startDate = booking.getBookingDates().getStartDate();
         LocalDate endDate = booking.getBookingDates().getEndDate();

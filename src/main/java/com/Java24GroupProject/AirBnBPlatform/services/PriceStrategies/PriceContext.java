@@ -15,7 +15,6 @@ public class PriceContext {
     
     public PriceContext(PriceStrategyService strategy) {
         this.strategy = strategy;
-        
     }
     
     // swaps strategy when needed.
