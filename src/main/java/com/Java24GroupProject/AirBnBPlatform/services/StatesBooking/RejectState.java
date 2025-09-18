@@ -2,7 +2,7 @@ package com.Java24GroupProject.AirBnBPlatform.services.StatesBooking;
 
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+// Removed BookingStatus enum usage; use String status instead
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 
 import java.time.LocalDateTime;
@@ -13,6 +13,6 @@ public class RejectState implements IStateHandler {
         listing.addAvailableDateRange(booking.getBookingDates());
         listing.setUpdatedAt(LocalDateTime.now());
         listingRepository.save(listing);
-        booking.setBookingStatus(BookingStatus.REJECTED);
+        booking.setBookingStatus("REJECTED");
     }
 }

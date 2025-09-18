@@ -8,17 +8,14 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationExce
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+// Removed BookingStatus enum dependency; use String status
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.AcceptState;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.PendingState;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,13 +31,15 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     private final BookingDTOConversionService bookingDTOConversionService;
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
+    private final BookingStateProcessor bookingStateProcessor;
 
-    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository, BookingStateProcessor bookingStateProcessor) {
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
         this.authenticationService = authenticationService;
         this.idValidationService = idValidationService;
+        this.bookingStateProcessor = bookingStateProcessor;
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
@@ -57,8 +56,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         //validate that booking dates are available and update listing dates, set status and price
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
         calculateAndSetPrice(booking, listing);
-        IStateHandler pending = new PendingState();
-        pending.apply(booking, listing, listingRepository);
+        bookingStateProcessor.setPending(booking, listing, listingRepository);
         booking.setUpdatedAt(null);
 
         //save booking
@@ -132,7 +130,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         }
 
         //check if status is pending, otherwise cannot be changed
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+        if (!"PENDING".equals(booking.getBookingStatus())) {
             throw new UnsupportedOperationException("Accepted or rejected bookings cannot be updated");
         }
 
@@ -179,8 +177,8 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
 
         //check that booking status is pending
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Booking has already been accepted or rejected");
+        if (!"PENDING".equals(booking.getBookingStatus())) {
+            throw new UnauthorizedException("Booking has already been accepted or rejected");
         }
 
         //get current logged-in user
@@ -196,11 +194,9 @@ public class BookingService implements BookingValidationService, PriceCalculatio
 
         //if booking is accepted change status to accepted
         if (isAccepted) {
-            IStateHandler accept = new AcceptState();
-            accept.apply(booking, listing, listingRepository);
+            bookingStateProcessor.accept(booking, listing, listingRepository);
         } else {
-            IStateHandler reject = new RejectState();
-            reject.apply(booking, listing, listingRepository);
+            bookingStateProcessor.reject(booking, listing, listingRepository);
         }
 
         //save updated booking
@@ -223,7 +219,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
 
         //if booking does not have status denied, add back the booked dates to the listing
-        if(booking.getBookingStatus() != BookingStatus.REJECTED) {
+        if(!"REJECTED".equals(booking.getBookingStatus())) {
             // If not previously rejected, release dates on delete as a common reset
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
