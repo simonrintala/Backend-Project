@@ -59,7 +59,7 @@ public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
                 !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
 
             dateAvailabilityService.changeBookingDatesForListing(listing, booking, updatedBooking);
-            calculateAndSetPrice(booking, listing);
+            priceContext.runCalculation(booking, listing);
         }
     }
 

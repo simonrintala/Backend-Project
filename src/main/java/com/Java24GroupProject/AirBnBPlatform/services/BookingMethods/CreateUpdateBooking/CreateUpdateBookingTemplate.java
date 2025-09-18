@@ -1,4 +1,5 @@
 package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking;
+
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
@@ -9,17 +10,18 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
-import com.Java24GroupProject.AirBnBPlatform.services.PriceCalculationService;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceContext;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.StandardStrategy;
 import org.springframework.stereotype.Service;
 
 @Service
-public abstract class CreateUpdateBookingTemplate implements PriceCalculationService{
+public abstract class CreateUpdateBookingTemplate {
     final IdValidationService idValidationService;
     final UserAuthRepository userAuthRepository;
     final BookingDTOConversionService bookingDTOConversionService;
     final BookingRepository bookingRepository;
     final DateAvailabilityService dateAvailabilityService;
-    //final PriceCalculationService priceCalculationService;
+    final PriceContext priceContext;
     Listing listing;
     Booking booking;
 
@@ -29,6 +31,7 @@ public abstract class CreateUpdateBookingTemplate implements PriceCalculationSer
         this.bookingDTOConversionService = bookingDTOConversionService;
         this.bookingRepository = bookingRepository;
         this.dateAvailabilityService = dateAvailabilityService;
+        priceContext = new PriceContext(new StandardStrategy());
     }
 
     public final BookingResponse createUpdateBooking(BookingRequest bookingRequest, String bookingId) {

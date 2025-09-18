@@ -19,7 +19,7 @@ public class CreateBookingMethod extends CreateUpdateBookingTemplate {
     @Override
     void updateListingDatesAndSetPrice() {
         dateAvailabilityService.validateBookingDatesAndUpdateListing(booking, listing);
-        calculateAndSetPrice(booking, listing);
+        priceContext.runCalculation(booking, listing);
     }
 
     @Override
