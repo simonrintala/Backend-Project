@@ -8,7 +8,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 
@@ -17,14 +17,14 @@ import java.util.List;
 
 public class GetBookingsMethods {
     final IdValidationService idValidationService;
-    final AuthenticationService authenticationService;
+    final UserAuthRepository userAuthRepository;
     final BookingDTOConversionService bookingDTOConversionService;
     final BookingRepository bookingRepository;
     final ListingRepository listingRepository;
 
-    public GetBookingsMethods(ListingRepository listingRepository, IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository) {
+    public GetBookingsMethods(ListingRepository listingRepository, IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository) {
         this.idValidationService = idValidationService;
-        this.authenticationService = authenticationService;
+        this.userAuthRepository = userAuthRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
@@ -52,12 +52,12 @@ public class GetBookingsMethods {
     //get bookings current user
     public List<BookingResponse> getBookingsCurrentUser() {
         List<Booking> bookings = bookingRepository.findByUser(
-                authenticationService.authenticateAndExtractUser());
+                userAuthRepository.authenticateAndExtractUser());
         return bookingDTOConversionService.convertToDTOResponse(bookings);    }
 
     //get all bookings for current user's listings
     public List<BookingResponse> getBookingsForListingsOfCurrentUser() {
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
         List<Listing> userListings = listingRepository.findByHost(currentUser);
 
         List<Booking> bookingsForCurrentUserListings = new ArrayList<>();
@@ -73,7 +73,7 @@ public class GetBookingsMethods {
         Listing listing = idValidationService.validateListingIdAndReturnListing(listingId);
 
         //check that current user is owner of listing or admin
-        if (!authenticationService.isSameAsCurrentUserOrHasRole(listing.getHost(), Role.ADMIN)) {
+        if (!userAuthRepository.isSameAsCurrentUserOrHasRole(listing.getHost(), Role.ADMIN)) {
             throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
         }
 

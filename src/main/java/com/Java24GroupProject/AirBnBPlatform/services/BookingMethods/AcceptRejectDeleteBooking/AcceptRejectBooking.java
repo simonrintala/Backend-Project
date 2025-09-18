@@ -6,7 +6,7 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationExce
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 
@@ -15,17 +15,17 @@ import java.time.LocalDateTime;
 public class AcceptRejectBooking extends AcceptRejectDeleteTemplate {
 
     private final BookingDTOConversionService bookingDTOConversionService;
-    private boolean isAccepted;
+    private BookingStatus bookingStatus;
 
-    public AcceptRejectBooking(AuthenticationService authenticationService, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingDTOConversionService bookingDTOConversionService) {
-        super(authenticationService, idValidationService, listingRepository, bookingRepository);
+    public AcceptRejectBooking(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingDTOConversionService bookingDTOConversionService) {
+        super(userAuthRepository, idValidationService, listingRepository, bookingRepository);
         this.bookingDTOConversionService = bookingDTOConversionService;
     }
 
     @Override
-    void setVariables(String id, boolean isAccepted) {
-        super.setVariables(id, isAccepted);
-        this.isAccepted = isAccepted;
+    void setVariables(String id, BookingStatus bookingStatus) {
+        super.setVariables(id, bookingStatus);
+        this.bookingStatus = bookingStatus;
     }
     @Override
     void validateOperation() {
@@ -35,30 +35,23 @@ public class AcceptRejectBooking extends AcceptRejectDeleteTemplate {
         }
 
         //check that current user is the host of the listing the booking refers to, otherwise cast error
-        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
+        if (!userAuthRepository.isSameAsCurrentUser(listing.getHost())) {
             throw new UnauthorizedException("only the listing host can accept/reject a booking");
         }
     }
 
 
     @Override
-    void modifyListingDates() {
-        //if booking does not have status denied, add back the booked dates to the listing
-        if (booking.getBookingStatus() != BookingStatus.REJECTED) {
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listing.setUpdatedAt(LocalDateTime.now());
-            listingRepository.save(listing);
-        }
-        //if booking is accepted change status to accepted
-        if (isAccepted) {
-            booking.setBookingStatus(BookingStatus.ACCEPTED);
-            //if the booking is rejected, add back the booking dates to available dates and change status to rejected
-        } else {
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listing.setUpdatedAt(LocalDateTime.now());
-            listingRepository.save(listing);
-            booking.setBookingStatus(BookingStatus.REJECTED);
-        }
+    boolean modifyListingDatesCheck() {
+        return (bookingStatus == BookingStatus.REJECTED);
+    }
+
+    @Override
+    BookingResponse updateBooking(String bookingId) {
+            booking.setBookingStatus(bookingStatus);
+            booking.setUpdatedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+            return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
     @Override

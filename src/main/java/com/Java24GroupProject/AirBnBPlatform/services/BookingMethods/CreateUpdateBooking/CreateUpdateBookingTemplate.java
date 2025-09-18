@@ -5,7 +5,7 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public abstract class CreateUpdateBookingTemplate implements PriceCalculationService{
     final IdValidationService idValidationService;
-    final AuthenticationService authenticationService;
+    final UserAuthRepository userAuthRepository;
     final BookingDTOConversionService bookingDTOConversionService;
     final BookingRepository bookingRepository;
     final DateAvailabilityService dateAvailabilityService;
@@ -23,9 +23,9 @@ public abstract class CreateUpdateBookingTemplate implements PriceCalculationSer
     Listing listing;
     Booking booking;
 
-    public CreateUpdateBookingTemplate(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+    public CreateUpdateBookingTemplate(IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
         this.idValidationService = idValidationService;
-        this.authenticationService = authenticationService;
+        this.userAuthRepository = userAuthRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
         this.bookingRepository = bookingRepository;
         this.dateAvailabilityService = dateAvailabilityService;
@@ -57,7 +57,7 @@ public abstract class CreateUpdateBookingTemplate implements PriceCalculationSer
     }
 
     void validateBookingRequest(BookingRequest bookingRequest) {
-        if (authenticationService.isSameAsCurrentUser(listing.getHost())) {
+        if (userAuthRepository.isSameAsCurrentUser(listing.getHost())) {
             throw new IllegalArgumentException("user not allowed to make booking for their own listing");
         }
         //check that nrOfGuest does not exceed listing capacity

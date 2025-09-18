@@ -4,7 +4,7 @@ import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectBooking;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectDeleteTemplate;
@@ -25,12 +25,12 @@ public class BookingService {
     private final AcceptRejectDeleteTemplate deleteBooking;
     private final AcceptRejectDeleteTemplate acceptRejectBooking;
 
-    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository) {
-        bookingCreateMethod = new CreateBookingMethod(idValidationService, authenticationService, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
-        bookingUpdateMethod = new UpdateBookingMethod(idValidationService, authenticationService, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
-        getBookingsMethods = new GetBookingsMethods(listingRepository, idValidationService,authenticationService, bookingDTOConversionService,bookingRepository);
-        acceptRejectBooking = new AcceptRejectBooking(authenticationService, idValidationService, listingRepository, bookingRepository, bookingDTOConversionService);
-        deleteBooking = new DeleteBooking(authenticationService,idValidationService, listingRepository, bookingRepository);
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, UserAuthRepository userAuthRepository, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository) {
+        bookingCreateMethod = new CreateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
+        bookingUpdateMethod = new UpdateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
+        getBookingsMethods = new GetBookingsMethods(listingRepository, idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository);
+        acceptRejectBooking = new AcceptRejectBooking(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingDTOConversionService);
+        deleteBooking = new DeleteBooking(userAuthRepository,idValidationService, listingRepository, bookingRepository);
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------

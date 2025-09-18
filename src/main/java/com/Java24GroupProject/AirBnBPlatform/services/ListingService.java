@@ -13,7 +13,7 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
 
@@ -28,15 +28,15 @@ public class ListingService {
     private final ListingRepository listingRepository;
     private final BookingRepository bookingRepository;
     private final ReviewRepository reviewRepository;
-    private final AuthenticationService authenticationService;
+    private final UserAuthRepository userAuthRepository;
     private final IdValidationService idValidationService;
 
 
-    public ListingService(AuthenticationService authenticationService, IdValidationService idValidationService, UserRepository userRepository, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
+    public ListingService(UserAuthRepository userAuthRepository, IdValidationService idValidationService, UserRepository userRepository, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
-        this.authenticationService = authenticationService;
+        this.userAuthRepository = userAuthRepository;
         this.idValidationService = idValidationService;
     }
 
@@ -147,7 +147,7 @@ public class ListingService {
     //get all listings for the current user
     public List<ListingResponse> getListingsCurrentUser() {
         //get current user
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
         return getListingsByUser(currentUser);
     }
 
@@ -157,7 +157,7 @@ public class ListingService {
         Listing existingListing = idValidationService.validateListingIdAndReturnListing(id);
 
         //validate that the user is host of the listing
-        if (!authenticationService.isSameAsCurrentUser(existingListing.getHost())) {
+        if (!userAuthRepository.isSameAsCurrentUser(existingListing.getHost())) {
             throw new UnauthorizedException("Listing cannot be updated by current user.\n Only the listing can host update a listing.");
         }
 
@@ -183,7 +183,7 @@ public class ListingService {
         Listing listing = idValidationService.validateListingIdAndReturnListing(id);
 
         //validate that the user is host of the listing or admin
-        if (!authenticationService.isSameAsCurrentUserOrHasRole(listing.getHost(),Role.ADMIN)) {
+        if (!userAuthRepository.isSameAsCurrentUserOrHasRole(listing.getHost(),Role.ADMIN)) {
             throw new UnauthorizedException("Listing cannot be deleted by current user.\n Only the listing host or an admin user can delete a listing.");
         }
 
@@ -244,7 +244,7 @@ public class ListingService {
         Listing listing = new Listing();
 
         // Set the host the current user
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
         listing.setHost(currentUser);
         listing.setHostName(currentUser.getUsername());
         

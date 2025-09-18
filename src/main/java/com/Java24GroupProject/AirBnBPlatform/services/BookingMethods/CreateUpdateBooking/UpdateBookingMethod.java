@@ -7,7 +7,7 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationExce
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
@@ -19,8 +19,8 @@ import java.time.LocalDateTime;
 public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
     private Booking updatedBooking;
 
-    public UpdateBookingMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
-        super(idValidationService, authenticationService, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
+    public UpdateBookingMethod(IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+        super(idValidationService, userAuthRepository, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
     }
 
     @Override
@@ -33,7 +33,7 @@ public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
     void validateBookingRequest(BookingRequest updatedBookingRequest) {
         super.validateBookingRequest(updatedBookingRequest);
 
-        if (!authenticationService.isSameAsCurrentUser(booking.getUser())) {
+        if (!userAuthRepository.isSameAsCurrentUser(booking.getUser())) {
             throw new UnauthorizedException("Only the owner of the booking can update the booking");
         }
 

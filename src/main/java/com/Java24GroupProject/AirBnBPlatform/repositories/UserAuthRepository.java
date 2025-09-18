@@ -1,9 +1,8 @@
-package com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation;
+package com.Java24GroupProject.AirBnBPlatform.repositories;
 
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  * (These checks were previously not separate methods, but part on methods in the different Service classes.)
  ***********************/
 
-public interface AuthenticationService extends UserRepository {
+public interface UserAuthRepository extends UserRepository {
 
     //authenticate and extract current logged-in user, cast error if no user is logged-in or cannot be found in database
     default User authenticateAndExtractUser() {
