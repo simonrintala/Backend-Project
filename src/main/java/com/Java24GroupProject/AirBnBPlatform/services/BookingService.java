@@ -2,44 +2,35 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
-import com.Java24GroupProject.AirBnBPlatform.models.Booking;
-import com.Java24GroupProject.AirBnBPlatform.models.Listing;
-import com.Java24GroupProject.AirBnBPlatform.models.User;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethodTemplates.BookingCreateMethod;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethodTemplates.BookingCreateUpdateTemplate;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethodTemplates.BookingUpdateMethod;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectBooking;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectDeleteTemplate;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.DeleteBooking;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.CreateBookingMethod;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.CreateUpdateBookingTemplate;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.UpdateBookingMethod;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.GetBookingsMethods;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class BookingService {
-    private final BookingRepository bookingRepository;
-    private final ListingRepository listingRepository;
-    private final BookingDTOConversionService bookingDTOConversionService;
-    private final AuthenticationService authenticationService;
-    private final IdValidationService idValidationService;
-    private final BookingCreateUpdateTemplate bookingCreateMethod;
-    private final BookingCreateUpdateTemplate bookingUpdateMethod;
+    private final CreateUpdateBookingTemplate bookingCreateMethod;
+    private final CreateUpdateBookingTemplate bookingUpdateMethod;
+    private final GetBookingsMethods getBookingsMethods;
+    private final AcceptRejectDeleteTemplate deleteBooking;
+    private final AcceptRejectDeleteTemplate acceptRejectBooking;
 
     public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository) {
-        this.bookingRepository = bookingRepository;
-        this.listingRepository = listingRepository;
-        this.bookingDTOConversionService = bookingDTOConversionService;
-        this.authenticationService = authenticationService;
-        this.idValidationService = idValidationService;
-        bookingCreateMethod = new BookingCreateMethod(idValidationService, authenticationService, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
-        bookingUpdateMethod = new BookingUpdateMethod(idValidationService, authenticationService, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
+        bookingCreateMethod = new CreateBookingMethod(idValidationService, authenticationService, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
+        bookingUpdateMethod = new UpdateBookingMethod(idValidationService, authenticationService, bookingDTOConversionService,bookingRepository, new DateAvailabilityService(listingRepository));
+        getBookingsMethods = new GetBookingsMethods(listingRepository, idValidationService,authenticationService, bookingDTOConversionService,bookingRepository);
+        acceptRejectBooking = new AcceptRejectBooking(authenticationService, idValidationService, listingRepository, bookingRepository, bookingDTOConversionService);
+        deleteBooking = new DeleteBooking(authenticationService,idValidationService, listingRepository, bookingRepository);
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
@@ -52,208 +43,44 @@ public class BookingService {
     public BookingResponse updateBooking(String bookingId, BookingRequest updatedBookingRequest) {
         return bookingUpdateMethod.createUpdateBooking(updatedBookingRequest, bookingId);
     }
-    /*
-        //validate that bookingRequest data is valid
-
-        Listing listing = idValidationService.validateListingIdAndReturnListing(bookingRequest.getListingId());
-        //check that the user for the booking is not also the host of the listing
-        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
-            throw new IllegalArgumentException("user not allowed to make booking for their own listing");
-        }
-
-        //check that nrOfGuest does not exceed listing capacity
-        if (bookingRequest.getNumberOfGuests() > listing.getCapacity()) {
-            throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
-        }
-
-        //convert from RequestDTO to Booking
-        Booking booking = bookingDTOConversionService.convertRequestToBooking(bookingRequest);
-
-        //validate that booking dates are available and update listing dates, set status and price
-        validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
-        calculateAndSetPrice(booking, listing);
-        booking.setBookingStatus(BookingStatus.PENDING);
-        booking.setUpdatedAt(null);
-
-        //save booking
-        bookingRepository.save(booking);
-
-        //return as DTO
-        return bookingDTOConversionService.convertToDTOResponse(booking);
-    }
-
-    public BookingResponse updateBooking(String id, BookingRequest updatedBookingRequest) {
-        //validate booking and listing id
-        Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
-        Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
-
-        if (!authenticationService.isSameAsCurrentUser(booking.getUser())) {
-            throw new UnauthorizedException("Only the owner of the booking can update the booking");
-        }
-
-        //check if status is pending, otherwise cannot be changed
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Accepted or rejected bookings cannot be updated");
-        }
-
-        //listing of booking cannot be changed
-        if (!booking.getListing().getId().equals(updatedBookingRequest.getListingId())) {
-            throw new IllegalArgumentException("Listing cannot be changed");
-        }
-
-        //validate data in new booking
-        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
-            throw new IllegalArgumentException("user not allowed to make booking for their own listing");
-        }
-
-        //check that nrOfGuest does not exceed listing capacity
-        if (updatedBookingRequest.getNumberOfGuests() > listing.getCapacity()) {
-            throw new IllegalArgumentException("nrOfGuest on the booking exceeds listing capacity");
-        }
-
-        //convert DTO to booking object
-        Booking updatedBooking = bookingDTOConversionService.convertRequestToBooking(updatedBookingRequest);
-
-        //if booking dates are changed
-        if (!booking.getBookingDates().getStartDate().equals(updatedBooking.getBookingDates().getStartDate()) ||
-                !booking.getBookingDates().getEndDate().equals(updatedBooking.getBookingDates().getEndDate())) {
-
-            //add back the old dates
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listingRepository.save(listing);
-
-            //subtract new dates from listing
-            validateBookingDatesAndUpdateListing(updatedBooking, listing);
-            booking.setBookingDates(updatedBooking.getBookingDates());
-            calculateAndSetPrice(booking, listing);
-        }
-
-        //update other booking data booking
-        booking.setNumberOfGuests(updatedBooking.getNumberOfGuests());
-
-        //update updatedAt
-        booking.setUpdatedAt(LocalDateTime.now());
-
-        //save booking
-        bookingRepository.save(booking);
-
-        //return as DTO
-        return bookingDTOConversionService.convertToDTOResponse(booking);
-    }
-
-     */
 
     //get bookings by id
     public BookingResponse getBookingById(String id) {
-        Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
-        return bookingDTOConversionService.convertToDTOResponse(booking);
+        return getBookingsMethods.getBookingById(id);
     }
 
     //get all bookings
     public List<BookingResponse> getAllBookings() {
-        List<Booking> bookings = bookingRepository.findAll();
-        return bookingDTOConversionService.convertToDTOResponse(bookings);
+        return getBookingsMethods.getAllBookings();
     }
 
     //get bookings any user
     public List<BookingResponse> getBookingsByUserId(String userId) {
-        List<Booking> bookings = bookingRepository.findByUser(
-                idValidationService.validateUserIdAndReturnUser(userId));
-        return bookingDTOConversionService.convertToDTOResponse(bookings);
+        return getBookingsMethods.getBookingsByUserId(userId);
     }
 
     //get bookings current user
     public List<BookingResponse> getBookingsCurrentUser() {
-        List<Booking> bookings = bookingRepository.findByUser(
-                authenticationService.authenticateAndExtractUser());
-        return bookingDTOConversionService.convertToDTOResponse(bookings);
+        return getBookingsMethods.getBookingsCurrentUser();
     }
 
     //get all bookings for current user's listings
-    public List<BookingResponse> getListingBookingsCurrentUser() {
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        List<Listing> userListings = listingRepository.findByHost(currentUser);
-
-        List<Booking> bookingsForCurrentUserListings = new ArrayList<>();
-        for (Listing listing : userListings) {
-            bookingsForCurrentUserListings.addAll(bookingRepository.findByListing(listing));
-        }
-
-        return bookingDTOConversionService.convertToDTOResponse(bookingsForCurrentUserListings);
+    public List<BookingResponse> getBookingsForListingsOfCurrentUser() {
+        return getBookingsMethods.getBookingsForListingsOfCurrentUser();
     }
 
     //get all bookings for a listing using listingId
     public List<BookingResponse> getBookingsByListingId(String listingId) {
-        Listing listing = idValidationService.validateListingIdAndReturnListing(listingId);
-
-        //check that current user is owner of listing or admin
-        if (!authenticationService.isSameAsCurrentUserOrHasRole(listing.getHost(), Role.ADMIN)) {
-            throw new UnauthorizedException("Only the listing host and admin can see all bookings for a listing");
-        }
-
-        //convert to DTO and return
-        List<Booking> bookings = bookingRepository.findByListing(listing);
-        return bookingDTOConversionService.convertToDTOResponse(bookings);
+        return getBookingsMethods.getBookingsByListingId(listingId);
     }
 
     public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
-        //get booking from repository
-        Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
-
-        //check that booking status is pending
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new UnsupportedOperationException("Booking has already been accepted or rejected");
-        }
-
-        //get listing for the booking (to check that the current user is the host of the listing)
-        Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
-
-        //check that current user is the host of the listing the booking refers to, otherwise cast error
-        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
-            throw new UnauthorizedException("only the listing host can accept/reject a booking");
-        }
-
-        //if booking is accepted change status to accepted
-        if (isAccepted) {
-            booking.setBookingStatus(BookingStatus.ACCEPTED);
-            //if the booking is rejected, add back the booking dates to available dates and change status to rejected
-        } else {
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listing.setUpdatedAt(LocalDateTime.now());
-            listingRepository.save(listing);
-            booking.setBookingStatus(BookingStatus.REJECTED);
-        }
-
-        //save updated booking
-        booking.setUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
-
-        return bookingDTOConversionService.convertToDTOResponse(booking);
+        return acceptRejectBooking.acceptRejectDelete(id, isAccepted);
     }
 
     public void deleteBooking(String id) {
-        //check if id is valid
-        Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
-
-        //check that current user is owner of booking or admin
-        if (!authenticationService.isSameAsCurrentUserOrHasRole(booking.getUser(), Role.ADMIN)) {
-            throw new UnauthorizedException("Only the owner of the booking or admin can delete the booking");
-        }
-
-        //get listing
-        Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
-
-        //if booking does not have status denied, add back the booked dates to the listing
-        if (booking.getBookingStatus() != BookingStatus.REJECTED) {
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listing.setUpdatedAt(LocalDateTime.now());
-            listingRepository.save(listing);
-        }
-
-        //delete booking
-        bookingRepository.deleteById(id);
+        deleteBooking.acceptRejectDelete(id, null);
     }
-
 
 }
 

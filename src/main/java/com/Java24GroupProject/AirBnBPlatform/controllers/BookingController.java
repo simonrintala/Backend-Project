@@ -50,7 +50,7 @@ public class BookingController {
     //get all bookings for current user's listings
     @GetMapping("/host")
     public ResponseEntity<List<BookingResponse>> getListingBookingsCurrentUser() {
-        List<BookingResponse> bookingResponses = bookingService.getListingBookingsCurrentUser();
+        List<BookingResponse> bookingResponses = bookingService.getBookingsForListingsOfCurrentUser();
         return new ResponseEntity<>(bookingResponses, HttpStatus.OK);
     }
 

@@ -1,4 +1,4 @@
-package com.Java24GroupProject.AirBnBPlatform.services.BookingMethodTemplates;
+package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
@@ -13,7 +13,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.PriceCalculationService;
 import org.springframework.stereotype.Service;
 
 @Service
-public abstract class BookingCreateUpdateTemplate implements PriceCalculationService{
+public abstract class CreateUpdateBookingTemplate implements PriceCalculationService{
     final IdValidationService idValidationService;
     final AuthenticationService authenticationService;
     final BookingDTOConversionService bookingDTOConversionService;
@@ -23,7 +23,7 @@ public abstract class BookingCreateUpdateTemplate implements PriceCalculationSer
     Listing listing;
     Booking booking;
 
-    public BookingCreateUpdateTemplate(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+    public CreateUpdateBookingTemplate(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
         this.idValidationService = idValidationService;
         this.authenticationService = authenticationService;
         this.bookingDTOConversionService = bookingDTOConversionService;
@@ -31,7 +31,7 @@ public abstract class BookingCreateUpdateTemplate implements PriceCalculationSer
         this.dateAvailabilityService = dateAvailabilityService;
     }
 
-    public BookingResponse createUpdateBooking(BookingRequest bookingRequest, String bookingId) {
+    public final BookingResponse createUpdateBooking(BookingRequest bookingRequest, String bookingId) {
 
         setModels(bookingRequest, bookingId);
 

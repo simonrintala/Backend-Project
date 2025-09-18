@@ -1,4 +1,4 @@
-package com.Java24GroupProject.AirBnBPlatform.services.BookingMethodTemplates;
+package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
@@ -10,9 +10,9 @@ import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BookingCreateMethod extends BookingCreateUpdateTemplate {
+public class CreateBookingMethod extends CreateUpdateBookingTemplate {
 
-    public BookingCreateMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+    public CreateBookingMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
         super(idValidationService, authenticationService, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
     }
 

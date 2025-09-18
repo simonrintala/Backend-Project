@@ -1,4 +1,4 @@
-package com.Java24GroupProject.AirBnBPlatform.services.BookingMethodTemplates;
+package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-public class BookingUpdateMethod extends BookingCreateUpdateTemplate {
+public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
     private Booking updatedBooking;
 
-    public BookingUpdateMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+    public UpdateBookingMethod(IdValidationService idValidationService, AuthenticationService authenticationService, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
         super(idValidationService, authenticationService, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
     }
 
