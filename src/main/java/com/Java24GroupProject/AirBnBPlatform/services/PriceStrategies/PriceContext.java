@@ -7,6 +7,12 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
+/**
+ * The PriceContext class is used to change between price strategies
+ * and also run the calculation with the correct strategy to provide
+ * the total price.
+ */
+
 public class PriceContext {
     private PriceStrategyService strategy;
     private final PriceCalculation priceCalculation = new PriceCalculation();
@@ -18,7 +24,7 @@ public class PriceContext {
     }
     
     // swaps strategy when needed.
-    public void changeStrategy(PriceStrategyService strategy) {
+    private void changeStrategy(PriceStrategyService strategy) {
         this.strategy = strategy;
     }
     
@@ -30,13 +36,15 @@ public class PriceContext {
         // if hasWeekend true, Weekend strategy, else run standard strategy
         if (hasWeekend) {
             changeStrategy(new WeekendStrategy());
-            BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
-            booking.setTotalPrice(newPrice);
         } else {
             changeStrategy(new StandardStrategy());
-            BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
-            booking.setTotalPrice(newPrice);
         }
+        // Holiday strategy is yet to be implemented due to lack of time
+        // but will have its own changeStrategy once it's done.
+        
+        // calculate the new price with the set Strategy
+        BigDecimal newPrice = strategy.calculatePrice(priceCalculation.calculateAndSetPrice(booking, listing));
+        booking.setTotalPrice(newPrice);
     }
     
 
