@@ -11,18 +11,20 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetBookingsMethods {
+@Service
+public class GetBookingMethodService {
     final IdValidationService idValidationService;
     final UserAuthRepository userAuthRepository;
     final BookingDTOConversionService bookingDTOConversionService;
     final BookingRepository bookingRepository;
     final ListingRepository listingRepository;
 
-    public GetBookingsMethods(ListingRepository listingRepository, IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository) {
+    public GetBookingMethodService(ListingRepository listingRepository, IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository) {
         this.idValidationService = idValidationService;
         this.userAuthRepository = userAuthRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
@@ -64,7 +66,6 @@ public class GetBookingsMethods {
         for (Listing listing : userListings) {
             bookingsForCurrentUserListings.addAll(bookingRepository.findByListing(listing));
         }
-
         return bookingDTOConversionService.convertToDTOResponse(bookingsForCurrentUserListings);
     }
 

@@ -39,6 +39,10 @@ public abstract class AcceptRejectDeleteTemplate {
         return updateBooking(bookingId);
     }
 
+    public final BookingResponse acceptRejectDelete(String bookingId) {
+        return acceptRejectDelete(bookingId, null);
+    }
+
     void setVariables(String id, BookingStatus bookingStatus) {
         booking = idValidationService.validateBookingIdAndReturnBooking(id);
         listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());

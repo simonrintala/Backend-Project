@@ -55,6 +55,10 @@ public abstract class CreateUpdateBookingTemplate {
         return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
+    public final BookingResponse createUpdateBooking(BookingRequest bookingRequest) {
+        return createUpdateBooking(bookingRequest, null);
+    }
+
     void setModels(BookingRequest bookingRequest, String bookingId) {
         listing = idValidationService.validateListingIdAndReturnListing(bookingRequest.getListingId());
     }
