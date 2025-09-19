@@ -72,8 +72,13 @@ I den nya designen finns följande klasser:
 ### 4.3. BookingValidationService
 ***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
 
-### 4.4. PriceCalculationService
-***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
+### 4.4. PriceStrategyService
+
+PriceStrategyService är ett FunctionalInterface som ska ansvara för kommunikation mellan BookingService och skapandet av ett pris.
+Detta interface integrerar med alla typer av pris hanteringar och  
+används för att skicka vidare ett bas objekt för att senare implementera korrekt strategi beroende på vilka vilkor som uppfyllts. 
+För att implementera korrekt strategi behandlar PriceContext priset och kollar vilket vilkor som stämmer och sedan kallar på korrekt strategi med rätt kalkylering.
+För tillfället existerar två pris strategier, Standard och Weekend men planen för framtiden är att lägga till Season. 
 
 ### 4.5. DateAvailabilityService (***OBS! denna kanske vi inte gör, ta bort i så fall***)
 ***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
