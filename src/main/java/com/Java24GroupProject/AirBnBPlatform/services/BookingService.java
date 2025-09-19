@@ -17,6 +17,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import org.springframework.stereotype.Service;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingDecisionService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,18 +33,24 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     private final AuthenticationService authenticationService;
     private final IdValidationService idValidationService;
     private final BookingStateProcessor bookingStateProcessor;
+    private final BookingDecisionService bookingDecisionService;
 
-    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository, BookingStateProcessor bookingStateProcessor) {
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository, BookingStateProcessor bookingStateProcessor, BookingDecisionService bookingDecisionService) {
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
         this.authenticationService = authenticationService;
         this.idValidationService = idValidationService;
         this.bookingStateProcessor = bookingStateProcessor;
+        this.bookingDecisionService = bookingDecisionService;
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
 
+    /**
+     * Creates a new booking and sets its initial state to PENDING using the state pattern.
+     * The concrete state logic "lives" in the StatesBooking classes, this service just coordinates.
+     */
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         //validate that bookingRequest data is valid
         User currentUser = authenticationService.authenticateAndExtractUser();
@@ -172,38 +179,12 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         return bookingDTOConversionService.convertToDTOResponse(booking);
     }
 
+    /**
+     * Delegates accept/reject decision to the state-oriented decision service.
+     * Keeps the controller-facing API here while the other logic is separated.
+     */
     public BookingResponse acceptOrRejectBooking(String id, boolean isAccepted) {
-        //get booking from repository
-        Booking booking = idValidationService.validateBookingIdAndReturnBooking(id);
-
-        //check that booking status is pending
-        if (!"PENDING".equals(booking.getBookingStatus())) {
-            throw new UnauthorizedException("Booking has already been accepted or rejected");
-        }
-
-        //get current logged-in user
-        User currentUser = authenticationService.authenticateAndExtractUser();
-
-        //get listing for the booking (to check that the current user is the host of the listing)
-        Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
-
-        //check that current user is the host of the listing the booking refers to, otherwise cast error
-        if (!authenticationService.isSameAsCurrentUser(listing.getHost())) {
-            throw new UnauthorizedException("only the listing host can accept/reject a booking");
-        }
-
-        //if booking is accepted change status to accepted
-        if (isAccepted) {
-            bookingStateProcessor.accept(booking, listing, listingRepository);
-        } else {
-            bookingStateProcessor.reject(booking, listing, listingRepository);
-        }
-
-        //save updated booking
-        booking.setUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
-
-        return bookingDTOConversionService.convertToDTOResponse(booking);
+        return bookingDecisionService.acceptOrRejectBooking(id, isAccepted);
     }
 
     public void deleteBooking(String id) {

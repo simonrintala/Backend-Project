@@ -8,6 +8,10 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import java.time.LocalDateTime;
 
 public class RejectState implements IStateHandler {
+    /**
+     * REJECTED means the host declined the booking.
+     * We mark the booking as "REJECTED" AND release the previously held dates back to the listing.
+     */
     @Override
     public void apply(Booking booking, Listing listing, ListingRepository listingRepository) {
         listing.addAvailableDateRange(booking.getBookingDates());

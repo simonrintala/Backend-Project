@@ -6,6 +6,10 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 
 public class AcceptState implements IStateHandler {
+    /**
+     * ACCEPTED means the host approved the booking.
+     * We mark the booking as "ACCEPTED". Dates were already reserved at creation.
+     */
     @Override
     public void apply(Booking booking, Listing listing, ListingRepository listingRepository) {
         booking.setBookingStatus("ACCEPTED");
