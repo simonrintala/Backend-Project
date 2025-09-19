@@ -15,7 +15,10 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.HolidayStrategy;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceContext;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceStrategyService;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.StandardStrategy;
 import org.springframework.stereotype.Service;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingDecisionService;
 
@@ -26,7 +29,7 @@ import java.util.List;
 
 
 @Service
-public class BookingService implements BookingValidationService, PriceCalculationService, DateAvailabilityService {
+public class BookingService implements BookingValidationService, DateAvailabilityService {
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
     private final BookingDTOConversionService bookingDTOConversionService;
@@ -36,6 +39,8 @@ public class BookingService implements BookingValidationService, PriceCalculatio
     private final BookingDecisionService bookingDecisionService;
 
     public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository, BookingStateProcessor bookingStateProcessor, BookingDecisionService bookingDecisionService) {
+
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
@@ -64,6 +69,14 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
         calculateAndSetPrice(booking, listing);
         bookingStateProcessor.setPending(booking, listing, listingRepository);
+
+        //initiate priceContext with standard pricing
+        PriceContext priceContext = new PriceContext(new StandardStrategy());
+
+        //run calculation through strategies interface
+        priceContext.runCalculation(booking, listing);
+
+        booking.setBookingStatus(BookingStatus.PENDING);
         booking.setUpdatedAt(null);
 
         //save booking
@@ -137,7 +150,7 @@ public class BookingService implements BookingValidationService, PriceCalculatio
         }
 
         //check if status is pending, otherwise cannot be changed
-        if (!"PENDING".equals(booking.getBookingStatus())) {
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
             throw new UnsupportedOperationException("Accepted or rejected bookings cannot be updated");
         }
 
@@ -163,7 +176,12 @@ public class BookingService implements BookingValidationService, PriceCalculatio
             //subtract new dates from listing
             validateBookingDatesAndUpdateListing(updatedBooking, listing, listingRepository);
             booking.setBookingDates(updatedBooking.getBookingDates());
-            calculateAndSetPrice(booking, listing);
+
+
+            PriceContext priceContext = new PriceContext(new StandardStrategy());
+
+            //run calculation through strategies interface
+            priceContext.runCalculation(booking, listing);
         }
 
         //update other booking data booking
