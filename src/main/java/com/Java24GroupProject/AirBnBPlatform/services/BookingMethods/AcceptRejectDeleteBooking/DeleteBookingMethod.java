@@ -9,8 +9,16 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 
-public class DeleteBooking extends AcceptRejectDeleteTemplate {
-    public DeleteBooking(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository) {
+/************************
+ * DeleteBookingMethod
+ * ---
+ * This class contains methods that override abstract methods in the parent class.
+ * These methods dictate parts of the process that are different between changing booking status and
+ * deleting a booking.
+ * **********************/
+
+public class DeleteBookingMethod extends AcceptRejectDeleteBookingTemplate {
+    public DeleteBookingMethod(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository) {
         super(userAuthRepository, idValidationService, listingRepository, bookingRepository);
     }
 

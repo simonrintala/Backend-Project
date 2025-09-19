@@ -30,7 +30,6 @@ public class IdValidationService {
         this.listingRepository = listingRepository;
     }
 
-    //check if user id exists in database and if so return user. Converts Optional<User> (returned by Repository), to User
     public User validateUserIdAndReturnUser(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No user with id '"+ id + "' in database"));

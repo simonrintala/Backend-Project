@@ -16,6 +16,14 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/************************
+ * GetBookingMethodService
+ * ---
+ * This class holds all GET-methods for the booking class. It is separated out from the BookingService class
+ * for legibility and to allow BookingService to only hold a list of all methods and be an interaction surface
+ * between BookingController and all other booking related classes.
+ * **********************/
+
 @Service
 public class GetBookingMethodService {
     final IdValidationService idValidationService;

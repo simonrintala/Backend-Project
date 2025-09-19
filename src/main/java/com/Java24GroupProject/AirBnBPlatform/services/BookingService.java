@@ -7,9 +7,9 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectBooking;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectDeleteTemplate;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.DeleteBooking;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectBookingMethod;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectDeleteBookingTemplate;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.DeleteBookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.CreateBookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.CreateUpdateBookingTemplate;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.UpdateBookingMethod;
@@ -18,25 +18,35 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/************************
+ * BookingService
+ * ---
+ * This class contains objects holding the logic for the create, update, accept/reject and delete booking methods,
+ * and has a dependency injection for the GetBookingMethodsService (which contains all booking GET-methods).
+ * ---
+ * It is the interaction point between the BookingController and the different classes coordinating the logic
+ * of different booking-related operations.
+ * **********************/
+
 @Service
 public class BookingService {
     private final CreateUpdateBookingTemplate bookingCreateMethod;
     private final CreateUpdateBookingTemplate bookingUpdateMethod;
     private final GetBookingMethodService getBookingMethodService;
-    private final AcceptRejectDeleteTemplate deleteBookingMethod;
-    private final AcceptRejectDeleteTemplate acceptRejectBookingMethod;
+    private final AcceptRejectDeleteBookingTemplate deleteBookingMethod;
+    private final AcceptRejectDeleteBookingTemplate acceptRejectBookingMethod;
 
     public BookingService(BookingDTOConversionService bookingDTOConversionService, UserAuthRepository userAuthRepository, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, GetBookingMethodService getBookingMethodService, DateAvailabilityService dateAvailabilityService) {
         this.getBookingMethodService = getBookingMethodService;
         bookingCreateMethod = new CreateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, dateAvailabilityService);
         bookingUpdateMethod = new UpdateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, dateAvailabilityService);
-        acceptRejectBookingMethod = new AcceptRejectBooking(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingDTOConversionService);
-        deleteBookingMethod = new DeleteBooking(userAuthRepository,idValidationService, listingRepository, bookingRepository);
+        acceptRejectBookingMethod = new AcceptRejectBookingMethod(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingDTOConversionService);
+        deleteBookingMethod = new DeleteBookingMethod(userAuthRepository,idValidationService, listingRepository, bookingRepository);
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
     public BookingResponse createBooking(BookingRequest bookingRequest) {
-        return bookingCreateMethod.createUpdateBooking(bookingRequest);
+        return bookingCreateMethod.createUpdateBooking(bookingRequest, null);
     }
 
     public BookingResponse updateBooking(String bookingId, BookingRequest updatedBookingRequest) {
@@ -78,7 +88,7 @@ public class BookingService {
     }
 
     public void deleteBooking(String id) {
-        deleteBookingMethod.acceptRejectDelete(id);
+        deleteBookingMethod.acceptRejectDelete(id, null);
     }
 
 }

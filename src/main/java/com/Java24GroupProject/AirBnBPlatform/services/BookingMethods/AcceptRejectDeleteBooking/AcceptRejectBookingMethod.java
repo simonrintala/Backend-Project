@@ -12,12 +12,20 @@ import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionServic
 
 import java.time.LocalDateTime;
 
-public class AcceptRejectBooking extends AcceptRejectDeleteTemplate {
+/************************
+ * AcceptRejectBookingMethod
+ * ---
+ * This class contains methods that override abstract methods in the parent class.
+ * These methods dictate parts of the process that are different between changing booking status and
+ * deleting a booking.
+ * **********************/
+
+public class AcceptRejectBookingMethod extends AcceptRejectDeleteBookingTemplate {
 
     private final BookingDTOConversionService bookingDTOConversionService;
     private BookingStatus bookingStatus;
 
-    public AcceptRejectBooking(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingDTOConversionService bookingDTOConversionService) {
+    public AcceptRejectBookingMethod(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingDTOConversionService bookingDTOConversionService) {
         super(userAuthRepository, idValidationService, listingRepository, bookingRepository);
         this.bookingDTOConversionService = bookingDTOConversionService;
     }

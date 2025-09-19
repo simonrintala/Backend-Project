@@ -18,10 +18,11 @@ import java.util.stream.Collectors;
 /************************
  * BookingDTOConversionService
  * ---
- * This class contains for mapping data between Booking objects and BookingDTOs (Response- and RequestDTOs)
+ * This class contains methods for mapping data between Booking objects and BookingDTOs
+ * (Response- and RequestDTOs)
  * -
- * It is injected by BookingService to handle all conversions of Booking to/from DTOs. This class does not
- * handle data validation of e.g., RequestBodies and is purely an object conversion class.
+ * This class does not handle data validation of e.g., RequestBodies and is purely a dedicated
+ * object conversion class.
  ***********************/
 
 @Service

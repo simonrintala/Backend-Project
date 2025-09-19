@@ -7,9 +7,15 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
-import org.springframework.stereotype.Service;
 
-@Service
+/************************
+ * CreateBookingMethod
+ * ---
+ * This class contains methods that override abstract methods in the parent class.
+ * These methods dictate parts of the process that are different between creating a new booking
+ * and updating an existing booking.
+ * **********************/
+
 public class CreateBookingMethod extends CreateUpdateBookingTemplate {
 
     public CreateBookingMethod(IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
@@ -22,11 +28,13 @@ public class CreateBookingMethod extends CreateUpdateBookingTemplate {
         priceContext.runCalculation(booking, listing);
     }
 
+    //makes a booking from the bookingRequest and saves it as a class variable
     @Override
     void convertRequestDTOtoBooking(BookingRequest updatedBookingRequest) {
         booking = bookingDTOConversionService.convertRequestToBooking(updatedBookingRequest);
     }
 
+    //sets status as pending for a new booking
     @Override
     void setRemainingFields() {
         booking.setBookingStatus(BookingStatus.PENDING);

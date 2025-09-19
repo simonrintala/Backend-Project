@@ -11,7 +11,18 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
 
 import java.time.LocalDateTime;
 
-public abstract class AcceptRejectDeleteTemplate {
+/************************
+ * AcceptRejectDeleteTemplate
+ * ---
+ * This class is the abstract parent class to the AcceptRejectBookingMethod and DeleteBookingMethod.
+ * This class holds a template method (AcceptRejectDeleteBooking() ) that contains the parts of the accept/reject
+ * and delete booking that are the same, and where the different child classes method parts that are different
+ * for the accept/reject and delete methods, respectively.
+ * ---
+ * The classes in the AcceptRejectDeleteBooking-package follow the template method pattern.
+ * **********************/
+
+public abstract class AcceptRejectDeleteBookingTemplate {
     final UserAuthRepository userAuthRepository;
     final IdValidationService idValidationService;
     final ListingRepository listingRepository;
@@ -20,7 +31,7 @@ public abstract class AcceptRejectDeleteTemplate {
     Listing listing;
 
 
-    public AcceptRejectDeleteTemplate(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository) {
+    public AcceptRejectDeleteBookingTemplate(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository) {
         this.userAuthRepository = userAuthRepository;
         this.idValidationService = idValidationService;
         this.listingRepository = listingRepository;
@@ -28,9 +39,13 @@ public abstract class AcceptRejectDeleteTemplate {
     }
 
     public final BookingResponse acceptRejectDelete(String bookingId, BookingStatus bookingStatus) {
+        //save the booking and listing for the booking in a class variables for ease of use
         setVariables(bookingId, bookingStatus);
+
+        //validate the operation should be allowed to be performed based on e.g., booking status and current user roles
         validateOperation();
 
+        //check if the booking dates should be added back to the listing and if so, add back dates.
         if (modifyListingDatesCheck()) {
             listing.addAvailableDateRange(booking.getBookingDates());
             listing.setUpdatedAt(LocalDateTime.now());
@@ -39,14 +54,13 @@ public abstract class AcceptRejectDeleteTemplate {
         return updateBooking(bookingId);
     }
 
-    public final void acceptRejectDelete(String bookingId) {
-        acceptRejectDelete(bookingId, null);
-    }
-
+    //default methods for setting class variables
     void setVariables(String id, BookingStatus bookingStatus) {
         booking = idValidationService.validateBookingIdAndReturnBooking(id);
         listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
     }
+
+    //abstract methods
     abstract void validateOperation();
     abstract boolean modifyListingDatesCheck();
     abstract BookingResponse updateBooking(String bookingId);

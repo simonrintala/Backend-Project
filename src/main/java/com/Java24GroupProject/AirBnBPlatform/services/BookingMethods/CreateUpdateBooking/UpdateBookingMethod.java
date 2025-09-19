@@ -11,11 +11,16 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 
-@Service
+/************************
+ * UpdateBookingMethod
+ * ---
+ * This class contains methods that override abstract methods in the parent class.
+ * These methods dictate parts of the process that are different between creating a new booking
+ * and updating an existing booking.
+ * **********************/
+
 public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
     private Booking updatedBooking;
 
@@ -23,12 +28,14 @@ public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
         super(idValidationService, userAuthRepository, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
     }
 
+    //includes the super-method but also saves the current booking (which is to be updated) as a class variable
     @Override
-    void setModels(BookingRequest bookingRequest, String bookingId) {
-        super.setModels(bookingRequest, bookingId);
+    void setVariables(BookingRequest bookingRequest, String bookingId) {
+        super.setVariables(bookingRequest, bookingId);
         booking = idValidationService.validateBookingIdAndReturnBooking(bookingId);
     }
 
+    //includes the super-method and adds checks regarding the owner and status of the booking that is to be updated
     @Override
     void validateBookingRequest(BookingRequest updatedBookingRequest) {
         super.validateBookingRequest(updatedBookingRequest);
@@ -48,11 +55,13 @@ public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
         }
     }
 
+    //converts the bookingRequest to a booking in order to perform the updateListingDatesAndSetPrice method
     @Override
     void convertRequestDTOtoBooking(BookingRequest updatedBookingRequest) {
         updatedBooking = bookingDTOConversionService.convertRequestToBooking(updatedBookingRequest);
     }
 
+    //updates the booking dates IF they differ between the updatedBooking and the current booking
     @Override
     void updateListingDatesAndSetPrice() {
         if (!booking.getBookingDates().getStartDate().equals(updatedBooking.getBookingDates().getStartDate()) ||
@@ -63,6 +72,7 @@ public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
         }
     }
 
+    //sets number of guests according to new request and sets UpdatedAt
     @Override
     void setRemainingFields() {
         booking.setNumberOfGuests(booking.getNumberOfGuests());

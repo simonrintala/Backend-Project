@@ -9,10 +9,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /************************
- * AuthenticationService
+ * UserAuthRepository
  * ---
- * This class contain methods for authenticating and extracting the current user from jwtTokens/cookies,
- * and for validating the current users roles and database id.
+ * This interface extends the UserRepository interface and contains methods that extracts a User object
+ * from the jwt-token/cookies of the session using the SecurityContextHolder class (which is built into
+ * the Spring Security framework)
  * -
  * The authenticateAndExtractUser() method was previously a static method in the UserService class
  * (used by UserService, ListingService, BookingService and ReviewService) was separated into this interface instead
