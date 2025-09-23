@@ -1,7 +1,7 @@
 package com.Java24GroupProject.AirBnBPlatform.models;
 
 
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+// Removed BookingStatus enum usage in favor of String-based status managed by state pattern
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 import jakarta.validation.constraints.NotNull;
@@ -41,7 +41,7 @@ public class Booking {
     private BigDecimal totalPrice;
 
     @NotNull(message = "booking status cannot be null")
-    private BookingStatus bookingStatus;
+    private String bookingStatus;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -102,11 +102,11 @@ public class Booking {
     }
 
 
-    public BookingStatus getBookingStatus() {
+    public String getBookingStatus() {
         return bookingStatus;
     }
 
-    public void setBookingStatus(BookingStatus bookingStatus) {
+    public void setBookingStatus(String bookingStatus) {
         this.bookingStatus = bookingStatus;
     }
 

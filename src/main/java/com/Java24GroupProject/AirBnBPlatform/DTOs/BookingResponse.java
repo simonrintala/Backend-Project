@@ -1,6 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.DTOs;
 
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+// Removed BookingStatus enum usage; use String for status
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 
 import java.math.BigDecimal;
@@ -16,9 +16,9 @@ public class BookingResponse {
     private String endDate;
     private Integer numberOfGuests;
     private BigDecimal totalPrice;
-    private BookingStatus status;
+    private String status;
 
-    public BookingResponse(String id, NestedListing listing, String userId, String username, String userEmail, String userPhoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, BookingStatus status) {
+    public BookingResponse(String id, NestedListing listing, String userId, String username, String userEmail, String userPhoneNr, String startDate, String endDate, Integer numberOfGuests, BigDecimal totalPrice, String status) {
         this.id = id;
         this.listing = listing;
         this.userId = userId;
@@ -72,7 +72,7 @@ public class BookingResponse {
         return totalPrice;
     }
 
-    public BookingStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 }
