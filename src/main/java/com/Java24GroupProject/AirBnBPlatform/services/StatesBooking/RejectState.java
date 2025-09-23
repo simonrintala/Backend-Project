@@ -4,11 +4,9 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 // Removed BookingStatus enum usage; use String status instead
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
 public class RejectState implements IStateHandler {
     /**
      * REJECTED means the host declined the booking.
