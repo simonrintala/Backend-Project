@@ -2,12 +2,12 @@ package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptReje
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 
 /************************
  * DeleteBookingMethod
@@ -18,8 +18,8 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
  * **********************/
 
 public class DeleteBookingMethod extends AcceptRejectDeleteBookingTemplate {
-    public DeleteBookingMethod(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository) {
-        super(userAuthRepository, idValidationService, listingRepository, bookingRepository);
+    public DeleteBookingMethod(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingStateProcessor bookingStateProcessor) {
+        super(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingStateProcessor);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class DeleteBookingMethod extends AcceptRejectDeleteBookingTemplate {
     @Override
     boolean modifyListingDatesCheck() {
         //if booking does not have status denied, add back the booked dates to the listing
-        return  (booking.getBookingStatus() != BookingStatus.REJECTED);
+        return  (!booking.getBookingStatus().equals("REJECTED"));
     }
 
     @Override
@@ -40,7 +40,4 @@ public class DeleteBookingMethod extends AcceptRejectDeleteBookingTemplate {
         bookingRepository.deleteById(bookingId);
         return null;
     }
-
-
-
 }

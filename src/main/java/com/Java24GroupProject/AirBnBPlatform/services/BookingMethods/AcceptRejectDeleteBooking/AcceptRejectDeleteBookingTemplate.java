@@ -3,13 +3,12 @@ package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptReje
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
-
-import java.time.LocalDateTime;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
 
 /************************
  * AcceptRejectDeleteTemplate
@@ -27,18 +26,20 @@ public abstract class AcceptRejectDeleteBookingTemplate {
     final IdValidationService idValidationService;
     final ListingRepository listingRepository;
     final BookingRepository bookingRepository;
+    final BookingStateProcessor bookingStateProcessor;
     Booking booking;
     Listing listing;
 
 
-    public AcceptRejectDeleteBookingTemplate(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository) {
+    public AcceptRejectDeleteBookingTemplate(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingStateProcessor bookingStateProcessor) {
         this.userAuthRepository = userAuthRepository;
         this.idValidationService = idValidationService;
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
+        this.bookingStateProcessor = bookingStateProcessor;
     }
 
-    public final BookingResponse acceptRejectDelete(String bookingId, BookingStatus bookingStatus) {
+    public final BookingResponse acceptRejectDelete(String bookingId, IStateHandler bookingStatus) {
         //save the booking and listing for the booking in a class variables for ease of use
         setVariables(bookingId, bookingStatus);
 
@@ -47,15 +48,14 @@ public abstract class AcceptRejectDeleteBookingTemplate {
 
         //check if the booking dates should be added back to the listing and if so, add back dates.
         if (modifyListingDatesCheck()) {
-            listing.addAvailableDateRange(booking.getBookingDates());
-            listing.setUpdatedAt(LocalDateTime.now());
-            listingRepository.save(listing);
+            //reject will add back the dates to the listing.
+            bookingStateProcessor.reject(booking, listing, listingRepository);
         }
         return updateBooking(bookingId);
     }
 
     //default methods for setting class variables
-    void setVariables(String id, BookingStatus bookingStatus) {
+    void setVariables(String id, IStateHandler bookingStatus) {
         booking = idValidationService.validateBookingIdAndReturnBooking(id);
         listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
     }

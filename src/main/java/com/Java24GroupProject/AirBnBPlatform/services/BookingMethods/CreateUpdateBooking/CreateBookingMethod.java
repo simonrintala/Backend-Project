@@ -3,10 +3,12 @@ package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpda
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
+import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 
 /************************
  * CreateBookingMethod
@@ -17,9 +19,13 @@ import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
  * **********************/
 
 public class CreateBookingMethod extends CreateUpdateBookingTemplate {
+    private final BookingStateProcessor bookingStateProcessor;
+    private final ListingRepository listingRepository;
 
-    public CreateBookingMethod(IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService) {
+    public CreateBookingMethod(IdValidationService idValidationService, UserAuthRepository userAuthRepository, BookingDTOConversionService bookingDTOConversionService, BookingRepository bookingRepository, DateAvailabilityService dateAvailabilityService, BookingStateProcessor bookingStateProcessor, ListingRepository listingRepository) {
         super(idValidationService, userAuthRepository, bookingDTOConversionService, bookingRepository, dateAvailabilityService);
+        this.bookingStateProcessor = bookingStateProcessor;
+        this.listingRepository = listingRepository;
     }
 
     @Override
@@ -37,7 +43,7 @@ public class CreateBookingMethod extends CreateUpdateBookingTemplate {
     //sets status as pending for a new booking
     @Override
     void setRemainingFields() {
-        booking.setBookingStatus(BookingStatus.PENDING);
+        bookingStateProcessor.setPending(booking, listing);
         booking.setUpdatedAt(null);
     }
 

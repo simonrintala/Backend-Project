@@ -2,7 +2,6 @@ package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
@@ -14,6 +13,8 @@ import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdat
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.CreateUpdateBookingTemplate;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.UpdateBookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.GetBookingMethodService;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,12 +37,12 @@ public class BookingService {
     private final AcceptRejectDeleteBookingTemplate deleteBookingMethod;
     private final AcceptRejectDeleteBookingTemplate acceptRejectBookingMethod;
 
-    public BookingService(BookingDTOConversionService bookingDTOConversionService, UserAuthRepository userAuthRepository, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, GetBookingMethodService getBookingMethodService, DateAvailabilityService dateAvailabilityService) {
+    public BookingService(BookingStateProcessor bookingStateProcessor, BookingDTOConversionService bookingDTOConversionService, UserAuthRepository userAuthRepository, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, GetBookingMethodService getBookingMethodService, DateAvailabilityService dateAvailabilityService) {
         this.getBookingMethodService = getBookingMethodService;
-        bookingCreateMethod = new CreateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, dateAvailabilityService);
+        bookingCreateMethod = new CreateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, dateAvailabilityService, bookingStateProcessor, listingRepository);
         bookingUpdateMethod = new UpdateBookingMethod(idValidationService, userAuthRepository, bookingDTOConversionService,bookingRepository, dateAvailabilityService);
-        acceptRejectBookingMethod = new AcceptRejectBookingMethod(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingDTOConversionService);
-        deleteBookingMethod = new DeleteBookingMethod(userAuthRepository,idValidationService, listingRepository, bookingRepository);
+        acceptRejectBookingMethod = new AcceptRejectBookingMethod(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingStateProcessor, bookingDTOConversionService);
+        deleteBookingMethod = new DeleteBookingMethod(userAuthRepository,idValidationService, listingRepository, bookingRepository, bookingStateProcessor);
     }
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
@@ -83,8 +84,8 @@ public class BookingService {
         return getBookingMethodService.getBookingsByListingId(listingId);
     }
 
-    public BookingResponse acceptOrRejectBooking(String id, BookingStatus bookingStatus) {
-        return acceptRejectBookingMethod.acceptRejectDelete(id, bookingStatus);
+    public BookingResponse acceptOrRejectBooking(String id, IStateHandler iStateHandler) {
+        return acceptRejectBookingMethod.acceptRejectDelete(id, iStateHandler);
     }
 
     public void deleteBooking(String id) {

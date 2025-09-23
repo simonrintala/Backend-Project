@@ -9,7 +9,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.Review;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
+// Removed BookingStatus enum usage; compare against String statuses
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.UserAddress;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
@@ -221,7 +221,7 @@ public class UserService {
 
         //loop bookings and add back dates to listing if booking is pending
         for (Booking booking : userBookings) {
-            if (booking.getBookingStatus() == BookingStatus.PENDING) {
+            if ("PENDING".equals(booking.getBookingStatus())) {
 
                 Listing listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
                 listing.addAvailableDateRange(booking.getBookingDates());

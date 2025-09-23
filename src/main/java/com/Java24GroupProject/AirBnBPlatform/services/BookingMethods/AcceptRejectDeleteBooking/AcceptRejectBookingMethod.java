@@ -1,14 +1,18 @@
 package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
+import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.AcceptState;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
 
 import java.time.LocalDateTime;
 
@@ -23,22 +27,23 @@ import java.time.LocalDateTime;
 public class AcceptRejectBookingMethod extends AcceptRejectDeleteBookingTemplate {
 
     private final BookingDTOConversionService bookingDTOConversionService;
-    private BookingStatus bookingStatus;
+    private IStateHandler bookingStatus;
 
-    public AcceptRejectBookingMethod(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingDTOConversionService bookingDTOConversionService) {
-        super(userAuthRepository, idValidationService, listingRepository, bookingRepository);
+    public AcceptRejectBookingMethod(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ListingRepository listingRepository, BookingRepository bookingRepository, BookingStateProcessor bookingStateProcessor, BookingDTOConversionService bookingDTOConversionService) {
+        super(userAuthRepository, idValidationService, listingRepository, bookingRepository, bookingStateProcessor);
         this.bookingDTOConversionService = bookingDTOConversionService;
+
     }
 
     @Override
-    void setVariables(String id, BookingStatus bookingStatus) {
+    void setVariables(String id, IStateHandler bookingStatus) {
         super.setVariables(id, bookingStatus);
         this.bookingStatus = bookingStatus;
     }
     @Override
     void validateOperation() {
         //check that booking status is pending
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+        if (!booking.getBookingStatus().equals("PENDING")) {
             throw new UnsupportedOperationException("Booking has already been accepted or rejected");
         }
 
@@ -51,12 +56,18 @@ public class AcceptRejectBookingMethod extends AcceptRejectDeleteBookingTemplate
 
     @Override
     boolean modifyListingDatesCheck() {
-        return (bookingStatus == BookingStatus.REJECTED);
+        return (bookingStatus instanceof RejectState);
     }
 
     @Override
     BookingResponse updateBooking(String bookingId) {
-            booking.setBookingStatus(bookingStatus);
+            if (bookingStatus instanceof AcceptState) {
+                bookingStateProcessor.accept(booking, listing, listingRepository);
+            } else if (bookingStatus instanceof RejectState) {
+                bookingStateProcessor.reject(booking, listing, listingRepository);
+            } else {
+                throw new IllegalArgumentException("Cannot set status of pending booking to other then accept/reject");
+            }
             booking.setUpdatedAt(LocalDateTime.now());
             bookingRepository.save(booking);
             return bookingDTOConversionService.convertToDTOResponse(booking);
