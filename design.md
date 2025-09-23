@@ -37,16 +37,13 @@ DIP är har varit viktig för att göra kopplingen mellan BookingService och de 
 Vi har implementerat följande designmönster:
 - Strategy Pattern 
 - State Pattern
-- Factory Pattern(ska kolla på??)
 - Template Pattern
 
 Strategy Pattern används för att centralisera prislogik och öppna upp för att ha flera olika prisstrategier. Detta pattern gör det lätt att i framtiden lägga till fler prisstrategier för t.ex. olika säsonger eller helgdagar, vilket innan var svårt att göra utan att helt skriva om alla individuella metoder som rörde pris. Detta pattern (liksom många patterns) hjälpte oss att följa OCP.
 
 State Pattern används för hantering av bokningstatus och göra denna mer säker och OCP-compliant. Genom att följa state pattern så kunde vi kapsla in de olika statusalternativen med sin egen logik och även öppna upp för att lägga till fler statusalternativ i framtiden.
 
-Factory Pattern används för DTOConversion, d.v.s. att skapa Booking objekt från BookingRequest objekt och BookingResponse objekt från Booking objekt. Genom att använda factory pattern så separerar vi ut DTOConversion metoderna i sin egen klass och följer således SRP. Vi gör även skapander av dessa objekt mer felsäker genom att ha en dedikerad klass med robust logik. ***[fortsätt skriv här när vi läst på /kodat lite mer]***
-
-Template Method Pattern används för att standardisera flöden i BookingService(eller i ett interface??).... ***[fortsätt skriv här när vi läst på /kodat lite mer]***
+Template Method Pattern används för att standardisera flöden i BookingService för de olika methoderna som kopplar till API endpoints i BookingControllern. Denna gruppering maximerar återanvändningen av kod, genom att utgå ifrån att dela så mycket kod som möjligt emellan dessa metoder. Det förenklar också adderingen av nya metoder, i de fall där dessa har signifikanta likheter med existerande metoder och därmed kan använda ett existernande templat.
 
 ***[Lägg in nytt sekvensdiagram - beskriv att tidigare beteende som bara inkluderade att BookingService gjorde allt.]***
 
