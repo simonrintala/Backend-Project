@@ -8,17 +8,19 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationExce
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
+// Removed BookingStatus enum dependency; use String status
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.HolidayStrategy;
 import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceContext;
+import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceStrategyService;
 import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.StandardStrategy;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingDecisionService;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import org.springframework.stereotype.Service;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingDecisionService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,6 +39,8 @@ public class BookingService implements BookingValidationService, DateAvailabilit
     private final BookingDecisionService bookingDecisionService;
 
     public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository, BookingStateProcessor bookingStateProcessor, BookingDecisionService bookingDecisionService) {
+
+    public BookingService(BookingDTOConversionService bookingDTOConversionService, AuthenticationService authenticationService, IdValidationService idValidationService, BookingRepository bookingRepository, ListingRepository listingRepository, UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
         this.bookingDTOConversionService = bookingDTOConversionService;
@@ -63,11 +67,16 @@ public class BookingService implements BookingValidationService, DateAvailabilit
 
         //validate that booking dates are available and update listing dates, set status and price
         validateBookingDatesAndUpdateListing(booking, listing, listingRepository);
-        // Strategy-based price calculation
-        PriceContext priceContext = new PriceContext(new StandardStrategy());
-        priceContext.runCalculation(booking, listing);
-        // Set initial state to PENDING
+        calculateAndSetPrice(booking, listing);
         bookingStateProcessor.setPending(booking, listing, listingRepository);
+
+        //initiate priceContext with standard pricing
+        PriceContext priceContext = new PriceContext(new StandardStrategy());
+
+        //run calculation through strategies interface
+        priceContext.runCalculation(booking, listing);
+
+        booking.setBookingStatus(BookingStatus.PENDING);
         booking.setUpdatedAt(null);
 
         //save booking
@@ -141,7 +150,7 @@ public class BookingService implements BookingValidationService, DateAvailabilit
         }
 
         //check if status is pending, otherwise cannot be changed
-        if (!"PENDING".equals(booking.getBookingStatus())) {
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
             throw new UnsupportedOperationException("Accepted or rejected bookings cannot be updated");
         }
 
@@ -168,8 +177,10 @@ public class BookingService implements BookingValidationService, DateAvailabilit
             validateBookingDatesAndUpdateListing(updatedBooking, listing, listingRepository);
             booking.setBookingDates(updatedBooking.getBookingDates());
 
-            // Strategy-based price recalculation after date change
+
             PriceContext priceContext = new PriceContext(new StandardStrategy());
+
+            //run calculation through strategies interface
             priceContext.runCalculation(booking, listing);
         }
 
