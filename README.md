@@ -68,11 +68,6 @@ Strategy pattern let us better pick what strategy will be used in the price calc
 The booking process has a bunch of different status options that we want to separate in to multiple state-classes.
 These classes will have less possible operations to handle and should be easier to use. This will also make the implementation of adding future statuses simpler.
 
-#### Command: 
-By applying the command pattern we encapsulate the operation too handle them as commands.            
-Example, create booking:         
-The following operations validation, price calculation, availability update and save are performed in one big transaction with rollback functionality
-
 #### Factory: 
 In using factory pattern we can centralize all different operations that is required for a booking to be complete.
 It will make the code much simpler and improve the development and testing possibility in the future.
@@ -86,6 +81,7 @@ All service operations are to follow the same path with alternating details depe
 ## Diagrams
 Diagrams created while planning can be found here.        
 https://drive.google.com/file/d/1vjZqXoIeQTIFehQvcYVYt8CMpKg8pMNV/view?usp=sharing
+
 
 
 
