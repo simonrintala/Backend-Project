@@ -30,9 +30,11 @@ public class DeleteBookingMethod extends AcceptRejectDeleteBookingTemplate {
     }
 
     @Override
-    boolean modifyListingDatesCheck() {
+    void modifyListingDatesViaStatus() {
         //if booking does not have status denied, add back the booked dates to the listing
-        return  (!booking.getBookingStatus().equals("REJECTED"));
+        if (!booking.getBookingStatus().equals("REJECTED")) {
+            super.removeDates();
+        }
     }
 
     @Override

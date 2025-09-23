@@ -1,7 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingResponse;
-import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
@@ -9,10 +8,8 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.AcceptState;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
-import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
 
 import java.time.LocalDateTime;
 
@@ -55,19 +52,12 @@ public class AcceptRejectBookingMethod extends AcceptRejectDeleteBookingTemplate
 
 
     @Override
-    boolean modifyListingDatesCheck() {
-        return (bookingStatus instanceof RejectState);
+    void modifyListingDatesViaStatus() {
+        bookingStateProcessor.applyState(bookingStatus, booking, listing, listingRepository);
     }
 
     @Override
     BookingResponse updateBooking(String bookingId) {
-            if (bookingStatus instanceof AcceptState) {
-                bookingStateProcessor.accept(booking, listing, listingRepository);
-            } else if (bookingStatus instanceof RejectState) {
-                bookingStateProcessor.reject(booking, listing, listingRepository);
-            } else {
-                throw new IllegalArgumentException("Cannot set status of pending booking to other then accept/reject");
-            }
             booking.setUpdatedAt(LocalDateTime.now());
             bookingRepository.save(booking);
             return bookingDTOConversionService.convertToDTOResponse(booking);

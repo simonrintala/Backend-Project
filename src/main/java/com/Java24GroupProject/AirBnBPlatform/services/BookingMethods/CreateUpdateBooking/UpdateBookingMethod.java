@@ -5,12 +5,12 @@ import com.Java24GroupProject.AirBnBPlatform.exceptions.IllegalArgumentException
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnsupportedOperationException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
+
 import java.time.LocalDateTime;
 
 /************************
@@ -45,7 +45,7 @@ public class UpdateBookingMethod extends CreateUpdateBookingTemplate {
         }
 
         //check if status is pending, otherwise cannot be changed
-        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+        if (!booking.getBookingStatus().equals("PENDING")) {
             throw new UnsupportedOperationException("Accepted or rejected bookings cannot be updated");
         }
 

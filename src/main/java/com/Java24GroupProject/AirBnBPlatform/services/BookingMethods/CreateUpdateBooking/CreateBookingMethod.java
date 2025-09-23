@@ -1,7 +1,6 @@
 package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking;
 
 import com.Java24GroupProject.AirBnBPlatform.DTOs.BookingRequest;
-import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.BookingStatus;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
@@ -9,6 +8,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidatio
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.PendingState;
 
 /************************
  * CreateBookingMethod
@@ -43,7 +43,7 @@ public class CreateBookingMethod extends CreateUpdateBookingTemplate {
     //sets status as pending for a new booking
     @Override
     void setRemainingFields() {
-        bookingStateProcessor.setPending(booking, listing);
+        bookingStateProcessor.applyState(new PendingState(), booking, listing, listingRepository);
         booking.setUpdatedAt(null);
     }
 

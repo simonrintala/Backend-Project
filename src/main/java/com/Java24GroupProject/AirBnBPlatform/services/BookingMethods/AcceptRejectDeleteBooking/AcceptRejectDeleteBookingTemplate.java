@@ -9,6 +9,7 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
+import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
 
 /************************
  * AcceptRejectDeleteTemplate
@@ -47,10 +48,8 @@ public abstract class AcceptRejectDeleteBookingTemplate {
         validateOperation();
 
         //check if the booking dates should be added back to the listing and if so, add back dates.
-        if (modifyListingDatesCheck()) {
-            //reject will add back the dates to the listing.
-            bookingStateProcessor.reject(booking, listing, listingRepository);
-        }
+        modifyListingDatesViaStatus();
+
         return updateBooking(bookingId);
     }
 
@@ -60,9 +59,13 @@ public abstract class AcceptRejectDeleteBookingTemplate {
         listing = idValidationService.validateListingIdAndReturnListing(booking.getListing().getId());
     }
 
+    void removeDates() {
+        bookingStateProcessor.applyState(new RejectState(), booking, listing, listingRepository);
+    }
+
     //abstract methods
     abstract void validateOperation();
-    abstract boolean modifyListingDatesCheck();
+    abstract void modifyListingDatesViaStatus();
     abstract BookingResponse updateBooking(String bookingId);
 
 }
