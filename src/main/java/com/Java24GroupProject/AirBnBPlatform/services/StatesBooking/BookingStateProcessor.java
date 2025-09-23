@@ -14,29 +14,44 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class BookingStateProcessor {
+    private final PendingState pendingState;
+    private final AcceptState acceptState;
+    private final RejectState rejectState;
+
+    public BookingStateProcessor(PendingState pendingState, AcceptState acceptState, RejectState rejectState) {
+        this.pendingState = pendingState;
+        this.acceptState = acceptState;
+        this.rejectState = rejectState;
+    }
+
+    /**
+     * Apply any provided state handler to the booking via a BookingContext.
+     */
+    public void applyState(IStateHandler stateHandler, Booking booking, Listing listing, ListingRepository listingRepository) {
+        BookingContext context = new BookingContext(booking, listing, listingRepository);
+        context.transitionTo(stateHandler);
+        context.apply();
+    }
 
     /**
      * Set booking to PENDING state.
      */
     public void setPending(Booking booking, Listing listing, ListingRepository listingRepository) {
-        IStateHandler state = new PendingState();
-        state.apply(booking, listing, listingRepository);
+        applyState(pendingState, booking, listing, listingRepository);
     }
 
     /**
      * Set booking to ACCEPTED state.
      */
     public void accept(Booking booking, Listing listing, ListingRepository listingRepository) {
-        IStateHandler state = new AcceptState();
-        state.apply(booking, listing, listingRepository);
+        applyState(acceptState, booking, listing, listingRepository);
     }
 
     /**
      * Set booking to REJECTED state and release dates back to the listing.
      */
     public void reject(Booking booking, Listing listing, ListingRepository listingRepository) {
-        IStateHandler state = new RejectState();
-        state.apply(booking, listing, listingRepository);
+        applyState(rejectState, booking, listing, listingRepository);
     }
 }
 

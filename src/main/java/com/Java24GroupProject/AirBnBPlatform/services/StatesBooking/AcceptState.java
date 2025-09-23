@@ -1,17 +1,14 @@
 package com.Java24GroupProject.AirBnBPlatform.services.StatesBooking;
 
-import com.Java24GroupProject.AirBnBPlatform.models.Booking;
-import com.Java24GroupProject.AirBnBPlatform.models.Listing;
-// Removed BookingStatus enum usage; use String status instead
-import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AcceptState implements IStateHandler {
     /**
      * ACCEPTED means the host approved the booking.
-     * We mark the booking as "ACCEPTED". Dates were already reserved at creation.
      */
     @Override
-    public void apply(Booking booking, Listing listing, ListingRepository listingRepository) {
-        booking.setBookingStatus("ACCEPTED");
+    public void apply(BookingContext context) {
+        context.getBooking().setBookingStatus("ACCEPTED");
     }
 }
