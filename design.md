@@ -71,7 +71,7 @@ Följande delar av det nya systemet beskrivs mer i detalj i kommande undersektio
 ### 4.3. BookingTemplateMethods
 ***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
 
-### 4.4. PriceStrategies (StrategyPattern)
+### 4. PriceStrategies (StrategyPattern)
 PriceStrategyService är ett FunctionalInterface som ska ansvara för kommunikation mellan BookingService och skapandet av ett pris.
 Detta interface integrerar med alla typer av pris hanteringar och  
 används för att skicka vidare ett bas objekt för att senare implementera korrekt strategi beroende på vilka vilkor som uppfyllts. 
