@@ -61,26 +61,22 @@ We're making classes depend on interfaces instead of eachother, making them easi
 ### Design patterns used
 
 #### Strategy: 
-We wanted to expand on the defferent types of pricing so that depending on season or weekend the price would alternate.
+We wanted to expand on the different types of pricing so that depending on season or weekend the price would alternate.
 Strategy pattern let us better pick what strategy will be used in the price calculation and also make it easier for future implementation of different pricings.
 
 #### State: 
 The booking process has a bunch of different status options that we want to separate in to multiple state-classes.
 These classes will have less possible operations to handle and should be easier to use. This will also make the implementation of adding future statuses simpler.
 
-#### Factory: 
-In using factory pattern we can centralize all different operations that is required for a booking to be complete.
-It will make the code much simpler and improve the development and testing possibility in the future.
-
 #### Template Method:
-The template method helps us create a type of standard service operation path.
-All service operations are to follow the same path with alternating details depending on the operation. 
+The template method pattern is used to create general scaffolds of methods for different types of API endpoint commands. Using this pattern and grouping the methods under different template methods maximizes on code reusability and makes it easier to add logic behind new API endpoints in the future, should they conform to the structure of an existing template.
 
 ---
 
 ## Diagrams
 Diagrams created while planning can be found here.        
 https://drive.google.com/file/d/1vjZqXoIeQTIFehQvcYVYt8CMpKg8pMNV/view?usp=sharing
+
 
 
 
