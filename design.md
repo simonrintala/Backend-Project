@@ -43,7 +43,7 @@ Strategy Pattern används för att centralisera prislogik och öppna upp för at
 
 State Pattern används för hantering av bokningstatus och göra denna mer säker och OCP-compliant. Genom att följa state pattern så kunde vi kapsla in de olika statusalternativen med sin egen logik och även öppna upp för att lägga till fler statusalternativ i framtiden.
 
-Template Method Pattern används för att standardisera flöden i BookingService för de olika methoderna som kopplar till API endpoints i BookingControllern. Denna gruppering maximerar återanvändningen av kod, genom att utgå ifrån att dela så mycket kod som möjligt emellan dessa metoder. Det förenklar också adderingen av nya metoder, i de fall där dessa har signifikanta likheter med existerande metoder och därmed kan använda ett existernande templat.
+Template Method Pattern används för att standardisera flöden i BookingService för de olika methoderna som kopplar till API endpoints som kräver en en komplex logik (så som create, update, accept/reject och delete). Denna gruppering maximerar återanvändningen av kod, genom att utgå ifrån att dela så mycket kod som möjligt emellan dessa metoder. Det förenklar också adderingen av nya metoder, i de fall där dessa har signifikanta likheter med existerande metoder och därmed kan använda ett existernande templat.
 
 ***[Lägg in nytt sekvensdiagram - beskriv att tidigare beteende som bara inkluderade att BookingService gjorde allt.]***
 
@@ -60,12 +60,12 @@ Följande delar av det nya systemet beskrivs mer i detalj i kommande undersektio
 - DTOConversionService
 
 ### 4.1. BookingService
-***[Kort om hur denna klass ser ut nu, vilka ansvar den har kvar osv.]***
+Den nya BookingService är en koordinationspunkt för logik gällande Booking API-endpoint-relaterade operationer. Den är en kontaktyta mellan BookingController och de nya klasser som skapats under refaktoreringen. Att dela upp funktionerna av den gamla BookingService klassen på fler klasser är i enlighet med SRP och även med OCP - då en mer atomär kod gör det lättare att lägga till nya funktioner utan att behöva skriva om befintlig kod.
 
-### 4.2. AuthenticationService och IdValidationService
-***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
+### 4.2. UserAuthService och IdValidationService
+Dessa två klasser innehåller metoder och logik som tidigare fanns i form av statiska metoder i UserService, ListingService och BookingService och användes klasserna sinsemellan. Genom att bryta ut dessa statiska metoder till separata klasser, tog vi bort den direkta kopplingen mellan BookingService och User- och ListingService. Dessa nya klasser är också i enlighet med SRP, då de har mindre och relativt avgränsade ansvarsområden.
 
-### 4.3. BookingTemplateMethods
+### 4.3. BookingMethods (TemplatePattern)
 ***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
 
 ### 4.4. PriceStrategies (StrategyPattern)
@@ -78,8 +78,8 @@ För tillfället existerar två pris strategier, Standard och Weekend men planen
 ### 4.5. StatesBooking (State Pattern)
 ***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
 
-### 4.6. DTOConversionService
-***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
+### 4.6. BookingDTOConversionService
+BookingDTOConverison service ansvarar för att mappa data mellan Booking objekt och BookingDTOs, och är därmed den klass som skapar nya Booking object och BookingResponse object. Att ha en ensklid klass som ansvarar för detta är i enlighet med SRP och ökar också kontrollen av skapandet av nya modellobjekt i applikationen.
 
 ## 5. Analys och Konsekvenser
 ***[Denna  section ska innehålla:
