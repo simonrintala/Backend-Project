@@ -7,6 +7,7 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.BookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
@@ -22,7 +23,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
  * The classes in the AcceptRejectDeleteBooking-package follow the template method pattern.
  * **********************/
 
-public abstract class AcceptRejectDeleteBookingTemplate {
+public abstract class AcceptRejectDeleteBookingTemplate implements BookingMethod {
     final UserAuthRepository userAuthRepository;
     final IdValidationService idValidationService;
     final ListingRepository listingRepository;
@@ -40,7 +41,7 @@ public abstract class AcceptRejectDeleteBookingTemplate {
         this.bookingStateProcessor = bookingStateProcessor;
     }
 
-    public final BookingResponse acceptRejectDelete(String bookingId, IStateHandler bookingStatus) {
+    public final BookingResponse runMethod(String bookingId, IStateHandler bookingStatus) {
         //save the booking and listing for the booking in a class variables for ease of use
         setVariables(bookingId, bookingStatus);
 
