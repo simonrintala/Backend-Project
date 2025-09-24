@@ -1,19 +1,19 @@
-package com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation;
+package com.Java24GroupProject.AirBnBPlatform.repositories;
 
 import com.Java24GroupProject.AirBnBPlatform.exceptions.UnauthorizedException;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
-import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /************************
- * AuthenticationService
+ * UserAuthRepository
  * ---
- * This class contain methods for authenticating and extracting the current user from jwtTokens/cookies,
- * and for validating the current users roles and database id.
+ * This interface extends the UserRepository interface and contains methods that extracts a User object
+ * from the jwt-token/cookies of the session using the SecurityContextHolder class (which is built into
+ * the Spring Security framework)
  * -
  * The authenticateAndExtractUser() method was previously a static method in the UserService class
  * (used by UserService, ListingService, BookingService and ReviewService) was separated into this interface instead
@@ -23,7 +23,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  * (These checks were previously not separate methods, but part on methods in the different Service classes.)
  ***********************/
 
-public interface AuthenticationService extends UserRepository {
+public interface UserAuthRepository extends UserRepository {
 
     //authenticate and extract current logged-in user, cast error if no user is logged-in or cannot be found in database
     default User authenticateAndExtractUser() {

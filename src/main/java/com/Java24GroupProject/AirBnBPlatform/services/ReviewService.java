@@ -13,8 +13,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,14 +26,14 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
-    private final AuthenticationService authenticationService;
+    private final UserAuthRepository userAuthRepository;
     private final IdValidationService idValidationService;
 
-    public ReviewService(AuthenticationService authenticationService, IdValidationService idValidationService, ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
+    public ReviewService(UserAuthRepository userAuthRepository, IdValidationService idValidationService, ReviewRepository reviewRepository, BookingRepository bookingRepository, ListingRepository listingRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.listingRepository = listingRepository;
-        this.authenticationService = authenticationService;
+        this.userAuthRepository = userAuthRepository;
         this.idValidationService = idValidationService;
     }
 
@@ -43,7 +42,7 @@ public class ReviewService {
     // Create a review
     public ReviewResponse createReview(ReviewRequest reviewRequest) {
         // Get the logged in users username from the JWT token
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
 
         // Validate the listing id
         Listing listing = idValidationService.validateListingIdAndReturnListing(reviewRequest.getListingId());
@@ -88,7 +87,7 @@ public class ReviewService {
 
     //get reviews made by the current logged in user
     public List<ReviewResponse> getReviewsCurrentUser() {
-        User user = authenticationService.authenticateAndExtractUser();
+        User user = userAuthRepository.authenticateAndExtractUser();
         return getUserReviews(user);
     }
 
@@ -106,8 +105,8 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("No review with id '" + reviewId + "' in database."));
 
         //check that current user is the owner of the review or admin
-        User currentUser = authenticationService.authenticateAndExtractUser();
-        if (!authenticationService.isSameAsCurrentUserOrHasRole(review.getUser(), Role.ADMIN)) {
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
+        if (!userAuthRepository.isSameAsCurrentUserOrHasRole(review.getUser(), Role.ADMIN)) {
             throw new UnauthorizedException("Review cannot be deleted by current user.\n Only the user who created the review or an admin user can delete a review.");
         }
 

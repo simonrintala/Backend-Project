@@ -7,8 +7,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,30 +17,31 @@ import java.util.stream.Collectors;
 /************************
  * BookingDTOConversionService
  * ---
- * This class contains for mapping data between Booking objects and BookingDTOs (Response- and RequestDTOs)
+ * This class contains methods for mapping data between Booking objects and BookingDTOs
+ * (Response- and RequestDTOs)
  * -
- * It is injected by BookingService to handle all conversions of Booking to/from DTOs. This class does not
- * handle data validation of e.g., RequestBodies and is purely an object conversion class.
+ * This class does not handle data validation of e.g., RequestBodies and is purely a dedicated
+ * object conversion class.
  ***********************/
 
 @Service
 public class BookingDTOConversionService {
-    private final AuthenticationService authenticationService;
+    private final UserAuthRepository userAuthRepository;
     private final IdValidationService idValidationService;
-    
-    public BookingDTOConversionService(AuthenticationService authenticationService, IdValidationService idValidationService) {
-        this.authenticationService = authenticationService;
+
+    public BookingDTOConversionService(UserAuthRepository userAuthRepository, IdValidationService idValidationService) {
+        this.userAuthRepository = userAuthRepository;
         this.idValidationService = idValidationService;
     }
-    
+
     //convert BookingRequest to Booking
     public Booking convertRequestToBooking(BookingRequest bookingRequest) {
-        
-        User currentUser = authenticationService.authenticateAndExtractUser();
+
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
         Listing listing = idValidationService.validateListingIdAndReturnListing(bookingRequest.getListingId());
-        
+
         Booking booking = new Booking();
-        
+
         booking.setListing(listing);
         booking.setListingInfo(new NestedListing(listing.getId(), listing.getTitle(),
                 listing.getLocation(),
@@ -54,14 +54,14 @@ public class BookingDTOConversionService {
         booking.setNumberOfGuests(bookingRequest.getNumberOfGuests());
         return booking;
     }
-    
-    
+
+
     //convert Booking object to BookingResponseDTO
     public BookingResponse convertToDTOResponse(Booking booking) {
-        
+
         //get user to save user variables in DTOResponse
         User user = idValidationService.validateUserIdAndReturnUser(booking.getUser().getId());
-        
+
         return new BookingResponse(
                 booking.getId(),
                 booking.getListingInfo(),
@@ -76,7 +76,7 @@ public class BookingDTOConversionService {
                 booking.getBookingStatus()
         );
     }
-    
+
     //convert list of Booking objects to BookingResponseDTOs
     public List<BookingResponse> convertToDTOResponse(List<Booking> bookings) {
         return bookings.stream()

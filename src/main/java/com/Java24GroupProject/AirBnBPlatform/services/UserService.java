@@ -16,8 +16,7 @@ import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ReviewRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.AuthenticationService;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,23 +29,21 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ListingRepository listingRepository;
     private final BookingRepository bookingRepository;
     private final ReviewRepository reviewRepository;
-    private final AuthenticationService authenticationService;
+    private final UserAuthRepository userAuthRepository;
     private final IdValidationService idValidationService;
 
 
     //constructor injection
-    public UserService(AuthenticationService authenticationService, IdValidationService idValidationService, UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
-        this.userRepository = userRepository;
+    public UserService(UserAuthRepository userAuthRepository, IdValidationService idValidationService, UserRepository userRepository, PasswordEncoder passwordEncoder, ListingRepository listingRepository, BookingRepository bookingRepository, ReviewRepository reviewRepository) {
         this.passwordEncoder = passwordEncoder;
         this.listingRepository = listingRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
-        this.authenticationService = authenticationService;
+        this.userAuthRepository = userAuthRepository;
         this.idValidationService = idValidationService;
     }
 
@@ -56,17 +53,17 @@ public class UserService {
     public RegisterResponse registerUser(UserRequest userRequest) {
         //validate that username, email and phoneNr is unique
         //check if username already exists, and if is does, cast error
-        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
+        if (userAuthRepository.findByUsername(userRequest.getUsername()).isPresent()) {
             throw new NameAlreadyBoundException("Username already registered to another user");
         }
 
         //same for email
-        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+        if (userAuthRepository.findByEmail(userRequest.getEmail()).isPresent()) {
             throw new NameAlreadyBoundException("Email already registered to another user");
         }
 
         //same for phoneNr
-        if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
+        if (userAuthRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
             throw new NameAlreadyBoundException("PhoneNr already registered to another user");
         }
 
@@ -76,14 +73,14 @@ public class UserService {
         user.setFavorites(new ArrayList<>());
 
         //save new user
-        userRepository.save(user);
+        userAuthRepository.save(user);
 
         return new RegisterResponse("user registered successfully", user.getUsername(), user.getRoles());
     }
 
     //get all users, return as UserResponseDTO
     public List<UserResponse> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userAuthRepository.findAll();
         return users.stream()
                 .map(this::transferUserToUserResponse)
                 .collect(Collectors.toList());
@@ -91,7 +88,7 @@ public class UserService {
 
     //get current user
     public UserResponse getCurrentUser() {
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
         return transferUserToUserResponse(currentUser);
     }
 
@@ -103,7 +100,7 @@ public class UserService {
 
     //delete current user
     public void deleteCurrentUser() {
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
         deleteUser(currentUser);
     }
 
@@ -116,25 +113,25 @@ public class UserService {
     //update current user data
     public UserResponse updateCurrentUser(UserRequest userRequest) {
         //get current user
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
 
         //if username is changed, check that username is not taken
         if (!currentUser.getUsername().equals(userRequest.getUsername())) {
-            if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
+            if (userAuthRepository.findByUsername(userRequest.getUsername()).isPresent()) {
                 throw new NameAlreadyBoundException("Username already registered to another user");
             }
         }
 
         //same for email
         if (!currentUser.getEmail().equals(userRequest.getEmail())) {
-            if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+            if (userAuthRepository.findByEmail(userRequest.getEmail()).isPresent()) {
                 throw new NameAlreadyBoundException("Email already registered to another user");
             }
         }
 
         //same for phoneNr
         if (!currentUser.getPhoneNr().equals(userRequest.getPhoneNr())) {
-            if (userRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
+            if (userAuthRepository.findByPhoneNr(userRequest.getPhoneNr()).isPresent()) {
                 throw new NameAlreadyBoundException("PhoneNr already registered to another user");
             }
         }
@@ -144,7 +141,7 @@ public class UserService {
 
         //set updated at to current time
         currentUser.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(currentUser);
+        userAuthRepository.save(currentUser);
 
         //convert to a responseDTO and return
         return transferUserToUserResponse(currentUser);
@@ -154,7 +151,7 @@ public class UserService {
     public List<String> addOrRemoveFavorite(String listingId) {
         idValidationService.validateListingIdAndReturnListing(listingId);
         //get current user
-        User user = authenticationService.authenticateAndExtractUser();
+        User user = userAuthRepository.authenticateAndExtractUser();
 
         boolean isRemoved = false;
         //loop through favorites to check if newListing is already saved
@@ -174,7 +171,7 @@ public class UserService {
             user.addFavorite(listingId);
         }
 
-        userRepository.save(user);
+        userAuthRepository.save(user);
 
         return getFavorites();
     }
@@ -182,7 +179,7 @@ public class UserService {
     //get favorites for current user
     public List<String> getFavorites() {
         //get current user
-        User user = authenticationService.authenticateAndExtractUser();
+        User user = userAuthRepository.authenticateAndExtractUser();
 
 
         if (!user.getFavorites().isEmpty()) {
@@ -194,7 +191,7 @@ public class UserService {
             }
         }
 
-        userRepository.save(user);
+        userAuthRepository.save(user);
 
         return user.getFavorites();
     }
@@ -203,7 +200,7 @@ public class UserService {
 
     //find a user via username, throw error if not found - used by AuthenticationController class for login-method
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
+        return userAuthRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
@@ -240,7 +237,7 @@ public class UserService {
                 userReview.setUsername("[deleted user]");
             }
         }
-        userRepository.delete(user);
+        userAuthRepository.delete(user);
     }
 
     //convert incoming DTO (from UserController) to User object
@@ -283,7 +280,7 @@ public class UserService {
 
     // PATCH
     public User updateUserInfo(UserUpdateRequest updatedInfo) {
-        User currentUser = authenticationService.authenticateAndExtractUser();
+        User currentUser = userAuthRepository.authenticateAndExtractUser();
 
         if (updatedInfo.getPhoneNr() != null) {
             currentUser.setPhoneNr(updatedInfo.getPhoneNr());
@@ -296,7 +293,7 @@ public class UserService {
             currentUser.setAddress(updatedInfo.getAddress());
         }
 
-        return userRepository.save(currentUser);
+        return userAuthRepository.save(currentUser);
     }
 
 }

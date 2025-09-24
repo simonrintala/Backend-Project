@@ -4,8 +4,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 
 /**
  * The PriceContext class is used to change between price strategies
@@ -14,17 +12,17 @@ import java.time.LocalDate;
  */
 
 public class PriceContext {
-    private PriceStrategyService strategy;
+    private IPriceStrategy strategy;
     private final PriceCalculation priceCalculation = new PriceCalculation();
 
     
     
-    public PriceContext(PriceStrategyService strategy) {
+    public PriceContext(IPriceStrategy strategy) {
         this.strategy = strategy;
     }
     
     // swaps strategy when needed.
-    private void changeStrategy(PriceStrategyService strategy) {
+    private void changeStrategy(IPriceStrategy strategy) {
         this.strategy = strategy;
     }
     

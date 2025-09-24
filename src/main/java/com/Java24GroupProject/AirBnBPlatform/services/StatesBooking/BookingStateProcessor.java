@@ -33,26 +33,6 @@ public class BookingStateProcessor {
         context.apply();
     }
 
-    /**
-     * Set booking to PENDING state.
-     */
-    public void setPending(Booking booking, Listing listing, ListingRepository listingRepository) {
-        applyState(pendingState, booking, listing, listingRepository);
-    }
-
-    /**
-     * Set booking to ACCEPTED state.
-     */
-    public void accept(Booking booking, Listing listing, ListingRepository listingRepository) {
-        applyState(acceptState, booking, listing, listingRepository);
-    }
-
-    /**
-     * Set booking to REJECTED state and release dates back to the listing.
-     */
-    public void reject(Booking booking, Listing listing, ListingRepository listingRepository) {
-        applyState(rejectState, booking, listing, listingRepository);
-    }
 }
 
 
