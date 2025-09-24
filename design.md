@@ -76,7 +76,13 @@ För att implementera korrekt strategi behandlar PriceContext priset och kollar 
 För tillfället existerar två pris strategier, Standard och Weekend men planen för framtiden är att lägga till Season. 
 
 ### 4.5. StatesBooking (State Pattern)
-***[Kort om hur denna klass ser ut, vilka ansvar den har och hur den interagerar med andra klasser.]***
+StatesBooking är ett paket som implementerar State Pattern för att hantera bokningens olika tillstånd i applikationen. Paketet definierar samtliga states, deras beteenden och övergångar mellan varandra.
+State-mönstret används för att kapsla in logiken för respektive tillstånd, vilket gör att applikationen blir mer modulär, lättare att underhålla och enklare att utöka. På så sätt undviks hårdkodade villkorssatser som annars hade styrt bokningsflödet.
+Varje state ansvarar för:
+- Representation av sitt tillstånd
+- Tillståndsspecifik logik, dvs. hur applikationen ska "agera" när en bokning befinner sig i detta state.
+- Övergångar till andra states, beroende på användarens handlingar eller systemets regler.
+States appliceras på en bokning genom variabeln bookingStatus (en String i Bookings-modulen), men logiken för hur den används och förändras ligger helt i StatesBooking. Detta innebär att själva Booking-modulen förblir enkel och inte behöver känna till detaljer om de olika statesens inre funktionalitet.
 
 ### 4.6. BookingDTOConversionService
 BookingDTOConverison service ansvarar för att mappa data mellan Booking objekt och BookingDTOs, och är därmed den klass som skapar nya Booking object och BookingResponse object. Att ha en ensklid klass som ansvarar för detta är i enlighet med SRP och ökar också kontrollen av skapandet av nya modellobjekt i applikationen.
