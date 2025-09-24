@@ -7,9 +7,9 @@ import com.Java24GroupProject.AirBnBPlatform.models.Booking;
 import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.BookingMethod;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.IBookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.DateAvailabilityService;
 import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.PriceContext;
 import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.StandardStrategy;
@@ -25,7 +25,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.PriceStrategies.StandardSt
  * The classes in the CreateUpdateBooking-package follow the template method pattern.
  * **********************/
 
-public abstract class CreateUpdateBookingTemplate implements BookingMethod {
+public abstract class CreateUpdateBookingTemplate implements IBookingMethod {
     final IdValidationService idValidationService;
     final UserAuthRepository userAuthRepository;
     final BookingDTOConversionService bookingDTOConversionService;

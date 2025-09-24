@@ -3,7 +3,7 @@ package com.Java24GroupProject.AirBnBPlatform.services.BookingMethods;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingDTOConversionService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectBookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectDeleteBookingTemplate;
@@ -18,13 +18,24 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/************************
+ * BookingMethodService
+ * ---
+ * Service class that holds and returns different BookingService methods related to API-endpoint commands.
+ * Works with the CreateUpdateBookingTemplate and AcceptRejectDeleteBookingTemplate via the BookingMethod interface.
+ * Uses an enum constant and a hashmap to coordinate return of BookingMethod subtypes.
+ * -
+ * Currently, this class does not hold any methods related to API GET-endpoints as these are still held
+ * directly by the BookingService class.
+ * **********************/
+
 @Service
 public class BookingMethodService {
     private final CreateUpdateBookingTemplate bookingCreateMethod;
     private final CreateUpdateBookingTemplate bookingUpdateMethod;
     private final AcceptRejectDeleteBookingTemplate deleteBookingMethod;
     private final AcceptRejectDeleteBookingTemplate acceptRejectBookingMethod;
-    private final Map<BookingMethodEnum, BookingMethod> bookingMethodMap;
+    private final Map<BookingMethodEnum, IBookingMethod> bookingMethodMap;
 
     public enum BookingMethodEnum {CREATE, UPDATE, ACC_REJ, DELETE}
 
@@ -41,7 +52,7 @@ public class BookingMethodService {
         }};
     }
 
-    public BookingMethod setBookingMethod(BookingMethodEnum bookingMethodEnum) {
+    public IBookingMethod getBookingMethod(BookingMethodEnum bookingMethodEnum) {
         return bookingMethodMap.get(bookingMethodEnum);
     }
 

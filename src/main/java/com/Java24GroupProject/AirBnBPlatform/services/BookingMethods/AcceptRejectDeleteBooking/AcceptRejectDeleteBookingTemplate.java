@@ -6,8 +6,8 @@ import com.Java24GroupProject.AirBnBPlatform.models.Listing;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
-import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.BookingMethod;
+import com.Java24GroupProject.AirBnBPlatform.services.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.IBookingMethod;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.IStateHandler;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
@@ -23,7 +23,7 @@ import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.RejectState;
  * The classes in the AcceptRejectDeleteBooking-package follow the template method pattern.
  * **********************/
 
-public abstract class AcceptRejectDeleteBookingTemplate implements BookingMethod {
+public abstract class AcceptRejectDeleteBookingTemplate implements IBookingMethod {
     final UserAuthRepository userAuthRepository;
     final IdValidationService idValidationService;
     final ListingRepository listingRepository;

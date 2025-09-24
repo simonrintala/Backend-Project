@@ -1,4 +1,4 @@
-package com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation;
+package com.Java24GroupProject.AirBnBPlatform.services;
 
 import com.Java24GroupProject.AirBnBPlatform.exceptions.ResourceNotFoundException;
 import com.Java24GroupProject.AirBnBPlatform.models.Booking;

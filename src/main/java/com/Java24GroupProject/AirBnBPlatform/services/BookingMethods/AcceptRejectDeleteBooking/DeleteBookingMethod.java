@@ -6,7 +6,7 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
+import com.Java24GroupProject.AirBnBPlatform.services.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.StatesBooking.BookingStateProcessor;
 
 /************************

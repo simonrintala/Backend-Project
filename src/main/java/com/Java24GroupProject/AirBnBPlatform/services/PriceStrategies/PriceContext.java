@@ -12,17 +12,17 @@ import java.math.BigDecimal;
  */
 
 public class PriceContext {
-    private PriceStrategyService strategy;
+    private IPriceStrategy strategy;
     private final PriceCalculation priceCalculation = new PriceCalculation();
 
     
     
-    public PriceContext(PriceStrategyService strategy) {
+    public PriceContext(IPriceStrategy strategy) {
         this.strategy = strategy;
     }
     
     // swaps strategy when needed.
-    private void changeStrategy(PriceStrategyService strategy) {
+    private void changeStrategy(IPriceStrategy strategy) {
         this.strategy = strategy;
     }
     

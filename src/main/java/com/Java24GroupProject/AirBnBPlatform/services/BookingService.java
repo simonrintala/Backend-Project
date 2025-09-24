@@ -10,7 +10,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.Role;
 import com.Java24GroupProject.AirBnBPlatform.repositories.BookingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.ListingRepository;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.AcceptRejectDeleteBooking.AcceptRejectDeleteBookingTemplate;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.BookingMethodService;
 import com.Java24GroupProject.AirBnBPlatform.services.BookingMethods.CreateUpdateBooking.CreateUpdateBookingTemplate;
@@ -23,11 +22,11 @@ import java.util.List;
 /************************
  * BookingService
  * ---
- * This class contains objects holding the logic for the create, update, accept/reject and delete booking methods,
- * and has a dependency injection for the GetBookingMethodsService (which contains all booking GET-methods).
- * ---
- * It is the interaction point between the BookingController and the different classes coordinating the logic
- * of different booking-related operations.
+ * This class is the interaction point between the BookingController and the different classes
+ * coordinating the logic of different booking-related operations.
+ * -
+ * Logic for the API GET-endpoints is contained directly in the BookingService class, while more complex
+ * method (for POST/UPDATE/DELETE/PATCH) are handled via the BookingMethodService class.
  * **********************/
 
 @Service
@@ -51,22 +50,22 @@ public class BookingService {
 
     //METHODS used by BOOKING CONTROLLER CLASS -----------------------------------------------------------------------
     public BookingResponse createBooking(BookingRequest bookingRequest) {
-        CreateUpdateBookingTemplate bookingMethod = (CreateUpdateBookingTemplate) bookingMethodService.setBookingMethod(BookingMethodService.BookingMethodEnum.CREATE);
+        CreateUpdateBookingTemplate bookingMethod = (CreateUpdateBookingTemplate) bookingMethodService.getBookingMethod(BookingMethodService.BookingMethodEnum.CREATE);
         return bookingMethod.runMethod(bookingRequest, null);
     }
 
     public BookingResponse updateBooking(String bookingId, BookingRequest updatedBookingRequest) {
-        CreateUpdateBookingTemplate bookingMethod = (CreateUpdateBookingTemplate) bookingMethodService.setBookingMethod(BookingMethodService.BookingMethodEnum.UPDATE);
+        CreateUpdateBookingTemplate bookingMethod = (CreateUpdateBookingTemplate) bookingMethodService.getBookingMethod(BookingMethodService.BookingMethodEnum.UPDATE);
         return bookingMethod.runMethod(updatedBookingRequest, bookingId);
     }
 
     public BookingResponse acceptOrRejectBooking(String id, IStateHandler iStateHandler) {
-        AcceptRejectDeleteBookingTemplate bookingMethod = (AcceptRejectDeleteBookingTemplate) bookingMethodService.setBookingMethod(BookingMethodService.BookingMethodEnum.ACC_REJ);
+        AcceptRejectDeleteBookingTemplate bookingMethod = (AcceptRejectDeleteBookingTemplate) bookingMethodService.getBookingMethod(BookingMethodService.BookingMethodEnum.ACC_REJ);
         return bookingMethod.runMethod(id, iStateHandler);
     }
 
     public void deleteBooking(String id) {
-        AcceptRejectDeleteBookingTemplate bookingMethod = (AcceptRejectDeleteBookingTemplate) bookingMethodService.setBookingMethod(BookingMethodService.BookingMethodEnum.DELETE);
+        AcceptRejectDeleteBookingTemplate bookingMethod = (AcceptRejectDeleteBookingTemplate) bookingMethodService.getBookingMethod(BookingMethodService.BookingMethodEnum.DELETE);
         bookingMethod.runMethod(id, null);
     }
 

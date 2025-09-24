@@ -8,7 +8,6 @@ import com.Java24GroupProject.AirBnBPlatform.models.User;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.DateRange;
 import com.Java24GroupProject.AirBnBPlatform.models.supportClasses.NestedListing;
 import com.Java24GroupProject.AirBnBPlatform.repositories.UserAuthRepository;
-import com.Java24GroupProject.AirBnBPlatform.services.AuthenticationAndValidation.IdValidationService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

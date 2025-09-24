@@ -12,6 +12,6 @@ import java.math.BigDecimal;
  *
  */
 @FunctionalInterface
-public interface PriceStrategyService {
+public interface IPriceStrategy {
     BigDecimal calculatePrice(BigDecimal price);
 }
